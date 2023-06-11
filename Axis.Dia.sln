@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33516.290
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia", "Axis.Dia\Axis.Dia.csproj", "{9B133004-16B3-4B37-B09C-05E0AF7C0C8C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".items", ".items", "{94C7D9F0-468D-4712-AB5B-AC9166D4E4DC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{55AE1BB6-89E5-432D-A7CC-F87ECFA85EAA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{2EEBCFFF-A11A-4E22-9DF0-193A1BC07C14}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9B133004-16B3-4B37-B09C-05E0AF7C0C8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B133004-16B3-4B37-B09C-05E0AF7C0C8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B133004-16B3-4B37-B09C-05E0AF7C0C8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B133004-16B3-4B37-B09C-05E0AF7C0C8C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9B133004-16B3-4B37-B09C-05E0AF7C0C8C} = {55AE1BB6-89E5-432D-A7CC-F87ECFA85EAA}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AA5CFEA6-4C0E-4559-9C62-32E94CB558B5}
+	EndGlobalSection
+EndGlobal
