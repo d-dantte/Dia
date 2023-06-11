@@ -67,7 +67,7 @@ As stated previously, the textual representation of dia is a superset of `json`;
 
 
 ### <a id="Attribute"></a> _0. Attribute_
-An attribute is not a bonafide dia type, but a special use-case of the [Symbol](#Symbol) type. An attribute is used to tag a value with extra (possible semantic)
+An attribute is not a bonafide dia type, but a special use-case of the [Symbol](#-6-symbol) type. An attribute is used to tag a value with extra (possible semantic)
 meaning, and is usually open to interpretation by the user of the data. Attributes come in 2 flavors:
 1. Tags: a simple text defined by the regex: /^[a-zA-Z0-9_-.]\z/
 2. Value-Pair: a name/value pair defined as follows: '&lt;tag&gt;@&lt;text&gt;', where &lt;tag&gt; is the name, and &lt;text&gt; is the value. &lt;text&gt; is defined as any valid [Symbol](#Symbol)
