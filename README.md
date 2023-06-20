@@ -5,7 +5,7 @@
 ## Contents
 1. [Introduction](#Introduction)
 2. [Specification](#Specification)
-3. [Attribute](#Attribute)
+3. [Annotation](#Annotation)
 4. [Bool](#Bool)
 5. [Integer](#Int)
 6. [Decimal](#Decimal)
@@ -24,7 +24,7 @@ Dia is yet another data representation format, born from the need for more featu
 
 ## <a id="Specification"></a> Specification
 Dia recognizes 9 data types. The concept of types in `Dia` allow for the absence of values: in this case, a null is used. `Dia` types are:
-0. Attribute
+0. Annotation
 1. Bool
 2. Int
 3. Decimal
@@ -36,7 +36,7 @@ Dia recognizes 9 data types. The concept of types in `Dia` allow for the absence
 9. List
 10. Record
 
-Every dia value represents data of the corresponding type, or the absence of data. All values may also have an optional attribute list attached to them.
+Every dia value represents data of the corresponding type, or the absence of data. All values may also have an optional annotation list attached to them.
 
 As already stated, Dia supports Textual and Binary representation of a specific arrangement of the above types. The following sections will
 discuss the details of each of the types, as well as their representation in the 2 formats. However, before proceeding, a general overview of
@@ -54,32 +54,32 @@ be explained in detail later.
 Generally speaking, the first byte of each dia-value, henceforth called the type-metadata, represents it's _type_: since dia supports only 9 distinct types, this 
 byte is more than sufficient to represent 9 distinct values: 1 - 9. For values of the bool type, a single byte is usually enough to encapsulate the entire data.
 
-The first 4 bits (index 0 - 3) are reserved to represent actual type identifiers, bit 5 (index 4) is reserved for indicating if attributes exist on the value,
+The first 4 bits (index 0 - 3) are reserved to represent actual type identifiers, bit 5 (index 4) is reserved for indicating if annotations exist on the value,
 bit 6 (index 5) is reserved to indicate if the value is null (if set), while the remaining 2 bits (index 6, 7) are left for each type to use as it pleases.
 
-Immediately after the type-metadata is an optional byte group for attributes, and then a byte group for the types pay-load.
+Immediately after the type-metadata is an optional byte group for annotations, and then a byte group for the types pay-load.
 
 Dia binary packets are a sequential list of dia binary values.
 
 #### _3. Text Representation_
-As stated previously, the textual representation of dia is a superset of `json`; it is essentially `json` + attributes + extra-data-types.
+As stated previously, the textual representation of dia is a superset of `json`; it is essentially `json` + annotations + extra-data-types.
 
 
 
-### <a id="Attribute"></a> _0. Attribute_
-An attribute is not a bonafide dia type, but a special use-case of the [Symbol](#Symbol) type. An attribute is used to tag a value with extra (possible semantic)
-meaning, and is usually open to interpretation by the user of the data. Attributes come in 2 flavors:
-1. Tags: a simple text defined by the regex: /^[a-zA-Z0-9_-.]\z/
-2. Value-Pair: a name/value pair defined as follows: '&lt;tag&gt;@&lt;text&gt;', where &lt;tag&gt; is the name, and &lt;text&gt; is the value. &lt;text&gt; is defined as any valid [Symbol](#Symbol)
-   character.
-Both of these are valid forms of the [Symbol](#Symbol) type. Dia key-words cannot appear in non-quoted forms of attributes.
+### <a id="Annotation"></a> _Annotation_
+An annotation is not a bonafide dia type, but a special use-case of the [Symbol](#-6-ymbol) type. An annotation is used to tag a value with extra (possible semantic)
+meaning, and is usually open to interpretation by the user of the data. Annotations come in 2 flavors:
+1. Tags, which are symbols in the `identifier` format, and cannot be equivalent to Dia [keywords](#Keywords).
+
+2. Attributes (Value-Pair): a name/value pair defined as follows: `<tag>:<text>`, where `<tag>` is the name, and `<text>` is the value.
+   Attributes conform to the pattern: `/^\[a-zA-Z_\](([.-])?\[a-zA-Z0-9_\])*@.+\z/`, the symbol is called an `attribute`.
   
-Note: Attributes are never null (null symbols).
+Note: Annotations are never null (null symbols).
 
 #### _Text Representation_
 When present in textual format, attribtues present themselves as text with an end-delimiter of "::". The following examples illustrate this:
 ```
-valid::attributes::<dia-value> // valid
+valid::annotations::<dia-value> // valid
  
 in valid::att-ributes::<dia-value> // invalid
   
@@ -113,7 +113,7 @@ be represented with only 1 byte.
 - true: `[.1.. 0010]`
 - false: `[.0.. 0010]`
 - null: `[..1. 0010]`
-- attributed: `[...1 0010]`
+- annotated: `[...1 0010]`
 
 
 
@@ -159,7 +159,7 @@ _545 // invalid
 - `[.... 0010]` (0x2)
 
 ##### _Custom-Metadata_
-- attributed: `[...1 0010]`
+- annotated: `[...1 0010]`
 - null: `[..1. 0010]`
 - Int8: `[00.. 0010]`
 - Int16: `[01.. 0010]`
@@ -234,7 +234,7 @@ is essentially the regular notation with a "E&lt;sign&gt;&lt;digits&gt;" concate
 - `[.... 0011]` (0x3)
 
 ##### _Custom-Metadata_
-- Attributed: `[...1 0011]`
+- annotated: `[...1 0011]`
 - null: `[..1. 0011]`
 - Decimal16: `[00.. 0011]`
 - BigDecimal: `[01.. 0011]`
@@ -271,7 +271,7 @@ Examples:
 - `[.... 0100]` (0x4)
 
 ##### _Custom-Metadata_
-- Attributed: `[...1 0100]`
+- annotated: `[...1 0100]`
 - null: `[..1. 0100]`
 - HMS: `[.1.. 0100]`
 - Sub-seconds: `[1... 0100]`
@@ -400,8 +400,7 @@ The following escape sequences are supported:
 | \\\\            | Backslash                                                                                   |
 | \NL             | Escape whitespaces. A backslash followed by a new line, and arbitrary number of whitespaces |
 | \xHH            | 1 byte char escape                                                                          |
-| \uHHHH          | 2 byte char escape                                                                          |
-| \UHHHHHHHH      | 4 byte char escape                                                                          |
+| \uHHHH          | 2 byte char escape                                                                         |
 
 #### _Binary Representation_
 
@@ -409,7 +408,7 @@ The following escape sequences are supported:
 - `[.... 0101]` (0x5)
 
 ### Custom-Metadata
-- Attributed: `[...1 0101]`
+- annotated: `[...1 0101]`
 - null: `[..1. 0101]`
 
 ### Description
@@ -420,14 +419,23 @@ and is represented as a [var-byte](#Var-byte).
 
 
 ### <a id="Symbol"></a> _6. Symbol_
-A symbol is similar to a string, but with a few restrictions on it. It is a sequence of printable ascii characters  and escape sequences.
-When the sequence of characters conforms to the pattern `/^\[a-zA-Z_\](([.-])?\[a-zA-Z0-9_\])*\z/`, the symbol is called an `identifier`.
-In the identifier form, symbols must exclude the Dia [keywords](#Keywords). Two symbols are equivalent if they contain the same sequence
-of characters.
+A symbol is similar to a string, but with a few restrictions on it: It is a sequence of ONLY printable ascii characters.
+There are 3 types of symbols, each depending on the nature of the character sequence contained:
+
+1. When the sequence of characters conforms to the pattern `/^\[a-zA-Z_\](([.-])?\[a-zA-Z0-9_\])*\z/`, the symbol is called an `identifier`.
+In the identifier form, symbols cannot be equal to the Dia [keywords](#Keywords).
+
+2. All other character sequence arrangements not matching the 2 above are classified as general symbols.
+
+Two symbols are equivalent if they contain the same sequence of characters. Also note since the symbol is restricted to printable ascii
+characters, it means escape characters are never applied, but left in their escape format.
+
+Symbols provide an Api for extracting attributes, or identifiers where present; only when extracting attributes are escape sequences processed
+and reduced to their actual unicode characters.
 
 #### _Textual Representation_
-Textually, symbols are enclused in the `'` delimiter. When they are `identifiers`, the single-quotes can be omited, and when present, cannot
-be empty. 
+Textually, except for `identifier` symbols, symbols MUST be enclosed by the `'` delimiter. In the case of `identifier`s, the single-quotes
+can be omited. When present however, the enclosing delimiters cannot be empty.
 
 Escape sequences supported are all listed [here](#Escapes), excluding `\NL`, but including `\'`.
 
@@ -473,7 +481,7 @@ are repeated a lot, and can benefit from some form of compression. The compressi
 - `[.... 0110]` (0x6)
 
 ##### _Custom-Metadata_
-- Attributed: `[...1 0110]`
+- annotated: `[...1 0110]`
 - null: `[..1. 0110]`
 - regular symbol: `[.... 0110]`
 - symbol ID: `[.1.. 0110]`
@@ -507,7 +515,7 @@ Examples:
 - `[.... 0111]` (0x7)
 
 ### Custom-Metadata
-- Attributed: `[...1 0111]`
+- annotated: `[...1 0111]`
 - null: `[..1. 0111]`
 
 ### Description
@@ -538,7 +546,7 @@ Examples:
 - `[.... 1000]` (0x8)
 
 ### Custom-Metadata
-- Attributed: `[...1 1000]`
+- annotated: `[...1 1000]`
 - null: `[..1. 1000]`
 
 ### Description
@@ -556,7 +564,7 @@ Between each value can appear whitespaces or [comments](#Comments).
 
 Examples:
 ```
-[ 234, 3.45, true, [], 1992-04-05T, <abcxyz> << clob text>>, attributed::"string value"]
+[ 234, 3.45, true, [], 1992-04-05T, <abcxyz> << clob text>>, annotated::"string value"]
 ```
 
 #### _Binary Representation_
@@ -565,7 +573,7 @@ Examples:
 - `[.... 1001]` (0x9)
 
 ### Custom-Metadata
-- Attributed: `[...1 1001]`
+- annotated: `[...1 1001]`
 - null: `[..1. 1001]`
 
 ### Description
@@ -593,7 +601,7 @@ Examples:
 // valid
 {
     something: 2345.54,
-    attribute::"key" : < b64_bytes= >,
+    annotation::"key" : < b64_bytes= >,
     'Key@value'::again::'property' : bleh::34
 }
 ```
@@ -604,7 +612,7 @@ Examples:
 - `[....-1010]` (0xA)
 
 ### Custom-Metadata
-- Attributed: `[...1 1010]`
+- annotated: `[...1 1010]`
 - null: `[..1. 1010]`
 
 ### Description
@@ -622,5 +630,9 @@ A variable byte binary representation. This is a regular 1-byte integer number, 
 Reading the collection of `var-byte` data requires removing all the overflow bits, and concatenating the remaining bits.
 
 
-### <a id="Appendix"></a> _Comments_
+### <a id="Comments"></a> _Comments_
 Comments are...
+
+
+### <a id="Keywords"></a> _Keywords_
+Keywords incldue...
