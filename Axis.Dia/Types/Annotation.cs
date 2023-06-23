@@ -1,51 +1,104 @@
-﻿using Axis.Dia.Utils;
+﻿using Axis.Dia.Contracts;
+using Axis.Dia.Utils;
+using Axis.Luna.Common;
+using Axis.Luna.Extensions;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace Axis.Dia.Types
 {
-    public record Annotation
+    public readonly struct Annotation :
+        IDiaType,
+        IDefaultValueProvider<Annotation>,
+        IDeepCopyable<Annotation>,
+        IEquatable<Annotation>
     {
         private static readonly Regex AttributePattern = new(
             "^(?'key'[a-zA-Z_](([.-])?[a-zA-Z0-9_])*):(?'value'.+)\\z",
             RegexOptions.Compiled);
 
-        public SymbolValue Symbol { get; }
+        private static readonly Regex IdentifierPattern = new(
+            "^[a-zA-Z_](([.-])?[a-zA-Z0-9_])*\\z",
+            RegexOptions.Compiled);
+
+        #region Fields
+        private readonly string _value;
+        #endregion
+
+        #region Properties
+        public DiaType Type => DiaType.Annotation;
+
+        public string Text => _value;
 
         /// <summary>
         /// Indicates if this annotation conforms to the symbol's Identifier pattern
         /// </summary>
-        public bool IsIdentifier => Symbol.IsIdentifier;
+        public bool IsIdentifier => IdentifierPattern.IsMatch(_value);
 
         /// <summary>
         /// Indicates if this symbol conforms to the attribute pattern <c>key:value</c>
         /// </summary>
-        public bool IsAttribute => AttributePattern.IsMatch(Symbol.Value!);
+        public bool IsAttribute => AttributePattern.IsMatch(_value);
+        #endregion
 
-
-        public Annotation(SymbolValue symbol)
+        #region Construction
+        public Annotation(string annotation)
         {
-            Symbol = symbol
-                .ThrowIf(
-                    s => s.IsNull,
-                    _ => new ArgumentException($"Invalid symbol: null value"))
-                .ThrowIf(
-                    s => s.Annotations.Length > 0,
-                    _ => new ArgumentException("Invalid symbol: annotation symbol cannot be annotated"));
+            _value = annotation.ThrowIf(
+                string.IsNullOrEmpty,
+                _ => new ArgumentException("Invalid annotation symbol"));
         }
 
-        public static Annotation Of(SymbolValue symbol) => new Annotation(symbol);
+        public static Annotation Of(string annotation) => new Annotation(annotation);
 
-        public static Annotation Of(string symbol) => new Annotation(symbol);
+        public static Annotation Of(char[] annotation) => new Annotation(new string(annotation));
+
+        public static Annotation Of(Span<char> annotation) => new Annotation(new string(annotation.ToArray()));
 
         public static Annotation[] Of(
             params string[] symbols)
             => symbols.Select(Of).ToArray();
 
 
-        public static implicit operator Annotation(SymbolValue symbol) => new Annotation(symbol);
-        public static implicit operator Annotation(string symbol) => new Annotation(symbol);
+        public static implicit operator Annotation(char[] symbol) => Annotation.Of(symbol);
+        public static implicit operator Annotation(Span<char> symbol) => Annotation.Of(symbol);
+        public static implicit operator Annotation(string symbol) => Annotation.Of(symbol);
+        #endregion
 
+        #region DefaultProvider
+        public bool IsDefault => _value == null;
 
+        public static Annotation Default => default;
+        #endregion
+
+        #region DeepCopyable
+        public Annotation DeepCopy() => IsDefault ? default: new Annotation(_value);
+        #endregion
+
+        #region Equatable
+        public bool Equals(Annotation other) => _value.NullOrEquals(other._value);
+        #endregion
+
+        #region Overrides
+        public override string ToString()
+        {
+            return $"[{_value}]";
+        }
+
+        public override bool Equals([NotNullWhen(true)] object? obj)
+        {
+            return obj is Annotation other
+                && Equals(other);
+        }
+
+        public override int GetHashCode() => _value.GetHashCode();
+
+        public static bool operator ==(Annotation left, Annotation right) => left.Equals(right);
+
+        public static bool operator !=(Annotation left, Annotation right) => !(left == right);
+        #endregion
+
+        #region API
         /// <summary>
         /// Returns this annotation, deconstructed into it's attribute form, if it indeed is an attribute.
         /// </summary>
@@ -53,7 +106,7 @@ namespace Axis.Dia.Types
         /// <returns>true if this is an attribute and the deconstruction is successful, false otherwise.</returns>
         public bool TryGetAttribute(out KeyValuePair<string, string> attribute)
         {
-            var kvpMatch = AttributePattern.Match(Symbol.Value!);
+            var kvpMatch = AttributePattern.Match(_value);
             if (kvpMatch.Success)
             {
                 attribute = KeyValuePair.Create(
@@ -67,10 +120,21 @@ namespace Axis.Dia.Types
         }
 
         /// <summary>
-        /// Returns this symbol's value if it comforms to the Identifier pattern, otherwise, returns null
+        /// Returns this annotation's value if it comforms to the Identifier pattern, otherwise, returns a null string.
         /// </summary>
         /// <param name="identifier">the output identifier if the pattern matches</param>
         /// <returns>True if this is an identifier, false otherwise</returns>
-        public bool TryGetIdentifier(out string identifier) => Symbol.TryGetIdentifier(out identifier);
+        public bool TryGetIdentifier(out string? identifier)
+        {
+            if (IsIdentifier)
+            {
+                identifier = _value;
+                return true;
+            }
+
+            identifier = null!;
+            return false;
+        }
+        #endregion
     }
 }

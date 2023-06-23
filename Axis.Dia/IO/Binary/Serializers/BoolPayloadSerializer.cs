@@ -3,6 +3,7 @@ using Axis.Dia.IO.Binary.Metadata;
 using Axis.Dia.Types;
 using Axis.Dia.Utils;
 using Axis.Luna.Common.Results;
+using Axis.Luna.Common.Utils;
 using Axis.Luna.Extensions;
 
 namespace Axis.Dia.IO.Binary.Serializers
@@ -44,7 +45,7 @@ namespace Axis.Dia.IO.Binary.Serializers
                 .Map(tmeta => (
                     TypeMetadata: tmeta,
                     Annotations: tmeta.IsAnnotated
-                        ? AnnotationSerializer.Deserialize(stream, context).Resolve()
+                        ? AnnotationSerializer.Deserialize(stream).Resolve()
                         : Array.Empty<Annotation>()))
 
                 // construct the BoolValue
@@ -61,7 +62,7 @@ namespace Axis.Dia.IO.Binary.Serializers
             {
                 var payload = CreatePayload(value);
                 return AnnotationSerializer
-                    .Serialize(value.Annotations, context)
+                    .Serialize(value.Annotations)
                     .Map(annotationBytes => payload.TypeMetadata.Metadata
                         .ToArray()
                         .JoinWith(annotationBytes));

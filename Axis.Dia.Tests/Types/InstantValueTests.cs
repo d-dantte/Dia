@@ -118,7 +118,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(0, value.Annotations.Length);
 
             Assert.ThrowsException<ArgumentNullException>(() => new InstantValue(null, null as Annotation[]));
-            Assert.ThrowsException<ArgumentException>(() => new InstantValue(null as DateTimeOffset?, "stuff", null));
+            Assert.ThrowsException<ArgumentException>(() => new InstantValue(null as DateTimeOffset?, "stuff", default));
         }
 
         [TestMethod]

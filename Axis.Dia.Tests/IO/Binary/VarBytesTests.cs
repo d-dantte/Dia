@@ -160,9 +160,14 @@ namespace Axis.Dia.Tests.IO.Binary
             Assert.AreEqual(varbytes, varbytes);
             Assert.IsTrue(varbytes.Equals(varbytes));
             Assert.AreEqual(varbytes, varbytes2);
+
             Assert.IsTrue(varbytes.Equals(varbytes2));
             Assert.IsTrue(varbytes == varbytes2);
-            Assert.AreNotEqual(varbytes, varbytes2);
+            Assert.AreEqual(varbytes, varbytes2);
+
+            Assert.IsFalse(varbytes.Equals(varbytes3));
+            Assert.IsFalse(varbytes == varbytes3);
+            Assert.AreNotEqual(varbytes, varbytes3);
         }
     }
 }

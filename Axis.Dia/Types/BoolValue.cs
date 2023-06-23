@@ -38,8 +38,8 @@ namespace Axis.Dia.Types
             _value = value;
             _annotations = annotations
                 .ThrowIfAny(
-                    ann => ann is null,
-                    _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain null"))
+                    ann => ann.IsDefault,
+                    _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain invalid values"))
                 .ToArray();
         }
 

@@ -4,9 +4,9 @@
     /// Defines deep-copy contract
     /// </summary>
     /// <typeparam name="TIon"></typeparam>
-    public interface IDeepCopyable<TIon>
-    where TIon : IDeepCopyable<TIon>
+    public interface IDeepCopyable<TType>
+    where TType : IDeepCopyable<TType>
     {
-        TIon DeepCopy();
+        TType DeepCopy();
     }
 }

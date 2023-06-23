@@ -144,7 +144,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(0, value.Annotations.Length);
 
             Assert.ThrowsException<ArgumentNullException>(() => new IntValue(null, null as Annotation[]));
-            Assert.ThrowsException<ArgumentException>(() => new IntValue(null as int?, "stuff", null));
+            Assert.ThrowsException<ArgumentException>(() => new IntValue(null as int?, "stuff", default));
         }
 
         [TestMethod]

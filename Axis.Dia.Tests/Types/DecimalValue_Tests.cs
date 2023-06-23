@@ -105,7 +105,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(0, value.Annotations.Length);
 
             Assert.ThrowsException<ArgumentNullException>(() => new DecimalValue(null, null as Annotation[]));
-            Assert.ThrowsException<ArgumentException>(() => new DecimalValue(null as BigDecimal?, "stuff", null));
+            Assert.ThrowsException<ArgumentException>(() => new DecimalValue(null as BigDecimal?, "stuff", default));
         }
 
         [TestMethod]

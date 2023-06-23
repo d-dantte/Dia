@@ -1,5 +1,6 @@
 ﻿using Axis.Dia.Contracts;
 using Axis.Dia.Utils;
+using Axis.Luna.Common;
 using Axis.Luna.Extensions;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
@@ -12,30 +13,35 @@ namespace Axis.Dia.Types
     public readonly struct SymbolValue :
         IRefValue<string>,
         IDeepCopyable<SymbolValue>,
+        IDefaultValueProvider<SymbolValue>,
         INullable<SymbolValue>,
         IEquatable<SymbolValue>,
         IValueEquatable<SymbolValue, string>
     {
-        #region Local members
         private static readonly Regex IdentifierPattern = new(
             "^[a-zA-Z_](([.-])?[a-zA-Z0-9_])*\\z",
             RegexOptions.Compiled);
 
+        #region Fields
         private readonly string? _value;
+        #endregion
 
+        #region Properties
         private readonly Annotation[] _annotations;
 
         /// <summary>
         /// Indicates if this symbol conforms to the Identifier pattern
         /// </summary>
         public bool IsIdentifier => !IsNull && IdentifierPattern.IsMatch(_value!);
+        #endregion
 
+        #region API
         /// <summary>
         /// Returns this symbol's value if it comforms to the Identifier pattern, otherwise, returns null
         /// </summary>
         /// <param name="identifier">the output identifier if the pattern matches</param>
         /// <returns>True if this is an identifier, false otherwise</returns>
-        public bool TryGetIdentifier(out string identifier)
+        public bool TryGetIdentifier(out string? identifier)
         {
             if (IsIdentifier)
             {
@@ -68,8 +74,8 @@ namespace Axis.Dia.Types
             _value = ValidateSymbolString(value);
             _annotations = annotations
                 .ThrowIfAny(
-                    ann => ann is null,
-                    _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain null"))
+                    ann => ann.IsDefault,
+                    _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain invalid values"))
                 .ToArray();
         }
 
@@ -109,6 +115,12 @@ namespace Axis.Dia.Types
             return ValueEquals(other)
                 && Enumerable.SequenceEqual(Annotations, other._annotations);
         }
+        #endregion
+
+        #region DefaultProvider
+        public bool IsDefault => _value == null && _annotations == null;
+
+        public static SymbolValue Default => default;
         #endregion
 
         #region Overrides

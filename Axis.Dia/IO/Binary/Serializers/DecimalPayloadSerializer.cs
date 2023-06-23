@@ -4,6 +4,7 @@ using Axis.Dia.Types;
 using Axis.Dia.Utils;
 using Axis.Luna.Common;
 using Axis.Luna.Common.Results;
+using Axis.Luna.Common.Utils;
 using Axis.Luna.Extensions;
 using System.Numerics;
 
@@ -60,7 +61,7 @@ namespace Axis.Dia.IO.Binary.Serializers
                         ? (int)tmeta.CustomMetadataAsInt()
                         : -1,
                     Annotations: tmeta.IsAnnotated
-                        ? AnnotationSerializer.Deserialize(stream, context).Resolve()
+                        ? AnnotationSerializer.Deserialize(stream).Resolve()
                         : Array.Empty<Annotation>()))
 
                 // read and construct the int
@@ -82,7 +83,7 @@ namespace Axis.Dia.IO.Binary.Serializers
             try
             {
                 var typeMetadataResult = Result.Of(CreatePayload(value)).Map(payload => payload.TypeMetadata);
-                var annotationResult = AnnotationSerializer.Serialize(value.Annotations, context);
+                var annotationResult = AnnotationSerializer.Serialize(value.Annotations);
                 var decimalDataResult = (value.Value ?? 0) == 0
                     ? Result.Of(Array.Empty<byte>)
                     : Result.Of(() =>

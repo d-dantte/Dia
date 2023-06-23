@@ -5,7 +5,7 @@ namespace Axis.Dia.Contracts
     /// <summary>
     /// The base contract for Dia values
     /// </summary>
-    public interface IDiaValue
+    public interface IDiaValue: IDiaType
     {
         #region NullOf
         /// <summary>
@@ -35,11 +35,6 @@ namespace Axis.Dia.Contracts
         #endregion
 
         #region Members
-        /// <summary>
-        /// The <see cref="DiaType"/>
-        /// </summary>
-        DiaType Type { get; }
-
         /// <summary>
         /// Indicating if the value is null (default).
         /// </summary>

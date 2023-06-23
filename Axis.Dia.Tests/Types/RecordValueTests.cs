@@ -120,7 +120,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(0, value.Annotations.Length);
 
             Assert.ThrowsException<ArgumentNullException>(() => new RecordValue(null as IEnumerable<Property>, null as Annotation[]));
-            Assert.ThrowsException<ArgumentException>(() => new RecordValue(null as IEnumerable<Property>, "stuff", null));
+            Assert.ThrowsException<ArgumentException>(() => new RecordValue(null as IEnumerable<Property>, "stuff", default));
         }
 
         [TestMethod]
@@ -215,7 +215,7 @@ namespace Axis.Dia.Tests.Types
             value["key2", "help"] = "second value";
             Assert.AreEqual(2, value.Count());
 
-            var key = value.Keys!.FirstOrDefault(k => k.Annotations.Any(ann => ann.Symbol.Value == "help"));
+            var key = value.Keys!.FirstOrDefault(k => k.Annotations.Any(ann => ann.Text == "help"));
             Assert.IsNotNull(key);
         }
 
@@ -313,7 +313,7 @@ namespace Axis.Dia.Tests.Types
 
             Assert.AreEqual(true, ((BoolValue)result).Value);
             Assert.IsTrue(record.TryGetKeySymbol("1", out var key));
-            Assert.AreEqual("no", key.Annotations[0].Symbol.Value);
+            Assert.AreEqual("no", key.Annotations[0].Text);
 
             result = record.GetOrAdd(
                 SymbolValue.Of("4", "not no"),
@@ -323,7 +323,7 @@ namespace Axis.Dia.Tests.Types
                 });
             Assert.AreEqual(IntValue.Of(3), result);
             Assert.IsTrue(record.TryGetKeySymbol("4", out key));
-            Assert.AreEqual("not no", key.Annotations[0].Symbol.Value);
+            Assert.AreEqual("not no", key.Annotations[0].Text);
         }
 
         [TestMethod]

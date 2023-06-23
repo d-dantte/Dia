@@ -3,7 +3,9 @@ using Axis.Dia.IO.Binary.Metadata;
 using Axis.Dia.Types;
 using Axis.Luna.Common;
 using Axis.Luna.Common.Results;
+using Axis.Luna.Common.Utils;
 using Axis.Luna.Extensions;
+using System.IO;
 using System.Numerics;
 
 namespace Axis.Dia.IO.Binary.Serializers
@@ -22,9 +24,14 @@ namespace Axis.Dia.IO.Binary.Serializers
                 | (value.IsNull ? TypeMetadata.MetadataFlags.Null : TypeMetadata.MetadataFlags.None)
                 | (!value.IsNull && !BigInteger.Zero.Equals(value.Value!) ? TypeMetadata.MetadataFlags.Overflow : TypeMetadata.MetadataFlags.None);
 
-            BigInteger byteCount = value.Value?.GetByteCount() ?? 0;
-            BitSequence byteCountSequence = byteCount.ToByteArray();
-            VarBytes byteCountVarBytes = byteCountSequence[..(int)byteCount.GetBitLength()];
+            BigInteger byteCount =
+                value.Value is null ? 0 :
+                value.Value!.Value == 0 ? 0 :
+                value.Value!.Value.GetByteCount();
+
+            var byteCountVarBytes = byteCount
+                .ToBitSequence()
+                .ApplyTo(VarBytes.Of);
 
             var customMetadataArray = byteCountVarBytes
                 .Select(@byte => (CustomMetadata)@byte)
@@ -58,7 +65,7 @@ namespace Axis.Dia.IO.Binary.Serializers
                         ? (int)tmeta.CustomMetadataAsInt()
                         : -1,
                     Annotations: tmeta.IsAnnotated
-                        ? AnnotationSerializer.Deserialize(stream, context).Resolve()
+                        ? AnnotationSerializer.Deserialize(stream).Resolve()
                         : Array.Empty<Annotation>()))
 
                 // read and construct the int
@@ -77,10 +84,12 @@ namespace Axis.Dia.IO.Binary.Serializers
 
         public static IResult<byte[]> Serialize(IntValue value, BinarySerializerContext context)
         {
+            ArgumentNullException.ThrowIfNull(context);
+
             try
             {
                 var typeMetadataResult = Result.Of(CreatePayload(value)).Map(payload => payload.TypeMetadata);
-                var annotationResult = AnnotationSerializer.Serialize(value.Annotations, context);
+                var annotationResult = AnnotationSerializer.Serialize(value.Annotations);
                 var intDataResult = Result.Of(value.Value?.ToByteArray() ?? Array.Empty<byte>());
 
                 return typeMetadataResult

@@ -118,7 +118,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(0, symbol.Annotations.Length);
 
             Assert.ThrowsException<ArgumentNullException>(() => new SymbolValue(null, null as Annotation[]));
-            Assert.ThrowsException<ArgumentException>(() => new SymbolValue(null, "stuff", null));
+            Assert.ThrowsException<ArgumentException>(() => new SymbolValue(null, "stuff", default));
         }
 
         [TestMethod]

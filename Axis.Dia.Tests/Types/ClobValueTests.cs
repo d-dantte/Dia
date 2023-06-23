@@ -118,7 +118,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(0, value.Annotations.Length);
 
             Assert.ThrowsException<ArgumentNullException>(() => new ClobValue(null, null as Annotation[]));
-            Assert.ThrowsException<ArgumentException>(() => new ClobValue(null, "stuff", null));
+            Assert.ThrowsException<ArgumentException>(() => new ClobValue(null, "stuff", default));
         }
 
         [TestMethod]

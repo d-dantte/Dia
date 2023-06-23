@@ -1,4 +1,5 @@
 ﻿using Axis.Luna.Extensions;
+using System.Numerics;
 
 namespace Axis.Dia.Utils
 {
@@ -110,5 +111,23 @@ namespace Axis.Dia.Utils
 
             return combinedArray;
         }
+
+        public static IEnumerable<TOut> Repeat<TOut>(
+            this BigInteger count,
+            Func<BigInteger, TOut> func)
+        {
+            ArgumentNullException.ThrowIfNull(func);
+
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+
+            BigInteger index = BigInteger.Zero;
+            while (index++ < count)
+            {
+                yield return func.Invoke(index);
+            }
+        }
+
+        public static IEnumerable<BigInteger> Repeat(this BigInteger count) => count.Repeat(i => i);
     }
 }

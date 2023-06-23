@@ -2,7 +2,8 @@
 {
     public enum DiaType
     {
-        Bool = 1,
+        Annotation = 1,
+        Bool,
         Int,
         Decimal,
         Instant,

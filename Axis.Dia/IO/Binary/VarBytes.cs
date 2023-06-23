@@ -44,6 +44,13 @@ namespace Axis.Dia.IO.Binary
         /// Creates a new <see cref="VarBytes"/>
         /// </summary>
         /// <param name="bits">the data to create the instance from</param>
+        /// <returns>The created instance</returns>
+        public static VarBytes Of(BitSequence bits) => new VarBytes(bits, true);
+
+        /// <summary>
+        /// Creates a new <see cref="VarBytes"/>
+        /// </summary>
+        /// <param name="bits">the data to create the instance from</param>
         /// <param name="isRawData">indicates if the data is raw bytes, or already converted to var-bytes</param>
         /// <returns>The created instance</returns>
         public static VarBytes Of(BitSequence bits, bool isRawData = true) => new VarBytes(bits, isRawData);

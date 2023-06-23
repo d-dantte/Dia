@@ -91,7 +91,7 @@ abc@xyz::<dia-value> // invalid
 ```
   
 #### _Binary Representation_
-Identical to (Symbol)(#Symbol).
+Identical to (Symbol)(#Symbol), but with a var-byte byte-count appearing first, representing the number of annotations that follow.
 
 
 

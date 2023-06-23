@@ -1,4 +1,4 @@
-﻿using Axis.Dia.Utils;
+﻿using Axis.Luna.Extensions;
 
 namespace Axis.Dia.IO.Binary
 {

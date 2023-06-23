@@ -104,7 +104,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(0, value.Annotations.Length);
 
             Assert.ThrowsException<ArgumentNullException>(() => new BoolValue(null, null as Annotation[]));
-            Assert.ThrowsException<ArgumentException>(() => new BoolValue(null as bool?, "stuff", null));
+            Assert.ThrowsException<ArgumentException>(() => new BoolValue(null as bool?, "stuff", default));
         }
 
         [TestMethod]

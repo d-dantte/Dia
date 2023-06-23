@@ -113,7 +113,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(0, value.Annotations.Length);
 
             Assert.ThrowsException<ArgumentNullException>(() => new BlobValue(null as byte[], null as Annotation[]));
-            Assert.ThrowsException<ArgumentException>(() => new BlobValue(null as byte[], "stuff", null));
+            Assert.ThrowsException<ArgumentException>(() => new BlobValue(null as byte[], "stuff", default));
         }
 
         [TestMethod]

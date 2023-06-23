@@ -103,7 +103,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(0, value.Annotations.Length);
 
             Assert.ThrowsException<ArgumentNullException>(() => new ListValue(null, null as Annotation[]));
-            Assert.ThrowsException<ArgumentException>(() => new ListValue(null as IEnumerable<IDiaValue>, "stuff", null));
+            Assert.ThrowsException<ArgumentException>(() => new ListValue(null as IEnumerable<IDiaValue>, "stuff", default));
         }
 
         [TestMethod]
