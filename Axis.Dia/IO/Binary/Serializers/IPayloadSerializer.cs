@@ -88,9 +88,9 @@ namespace Axis.Dia.IO.Binary.Serializers
                         .Deserialize(stream, tmeta, context)
                         .Map(value => (IDiaValue)value),
 
-                    //DiaType.Instant => InstantPayloadSerializer
-                    //    .Deserialize(stream, tmeta, context)
-                    //    .Map(value => (IDiaValue)value),
+                    DiaType.Instant => InstantPayloadSerializer
+                        .Deserialize(stream, tmeta, context)
+                        .Map(value => (IDiaValue)value),
 
                     DiaType.Int => IntPayloadSerializer
                         .Deserialize(stream, tmeta, context)
@@ -100,9 +100,9 @@ namespace Axis.Dia.IO.Binary.Serializers
                         .Deserialize(stream, tmeta, context)
                         .Map(value => (IDiaValue)value),
 
-                    //DiaType.String => IntPayloadSerializer
-                    //    .Deserialize(stream, tmeta, context)
-                    //    .Map(value => (IDiaValue)value),
+                    DiaType.Blob => BlobPayloadSerializer
+                        .Deserialize(stream, tmeta, context)
+                        .Map(value => (IDiaValue)value),
 
                     //DiaType.Symbol => IntPayloadSerializer
                     //    .Deserialize(stream, tmeta, context)

@@ -3,8 +3,8 @@ using Axis.Dia.IO.Binary.Metadata;
 using Axis.Dia.Types;
 using Axis.Dia.Utils;
 using Axis.Luna.Common;
+using Axis.Luna.Common.Numerics;
 using Axis.Luna.Common.Results;
-using Axis.Luna.Common.Utils;
 using Axis.Luna.Extensions;
 using System.Numerics;
 
@@ -22,21 +22,40 @@ namespace Axis.Dia.IO.Binary.Serializers
             TypeMetadata.MetadataFlags metadataFlags =
                 (!value.Annotations.IsEmpty() ? TypeMetadata.MetadataFlags.Annotated : TypeMetadata.MetadataFlags.None)
                 | (value.IsNull ? TypeMetadata.MetadataFlags.Null : TypeMetadata.MetadataFlags.None)
-                | TypeMetadata.MetadataFlags.Overflow;
+                | (!value.IsNull && !BigDecimal.Zero.Equals(value.Value!) ? TypeMetadata.MetadataFlags.Overflow : TypeMetadata.MetadataFlags.None);
 
-            var (significant, _) = (value.Value ?? 0.0);
-            var  byteCount = (BigInteger)significant.GetByteCount();
-            BitSequence byteCountSequence = byteCount.ToByteArray();
-            VarBytes byteCountVarBytes = byteCountSequence[..(int)byteCount.GetBitLength()];
+            var (significand, scale) = (value.Value ?? 0.0);
+            var scaleSign = int.IsPositive(scale);
+            var sigSign = BigInteger.IsPositive(significand);
+            BigInteger sigByteCount =
+                value.Value is null ? 0 :
+                value.Value!.Value == 0 ? 0 :
+                significand.GetByteCount(sigSign);
 
-            var customMetadataArray = byteCountVarBytes
-                .Select(@byte => (CustomMetadata)@byte)
-                .ToArray();
+            // padding byte: for positive numbers that have the last bit set, an extra byte (0x0) is padded
+            // at the end of the array so it isn't seen as a negative number. e.g,
+            // 192 => [1100-0000] => [0000-0000, 1100-0000]
+            // -64 => [1100-0000] => [1100-0000] // no padding is done here
+            //
+            // with the above in mind,
+            // 1. if significand is positive, set the cmeta[0][D1] bit to 1, else leave it at zero
+            // 2. if scale is positive, set the cmeta[0][D2] bit to 1, else leave it at zero
+            // 2. concat `BitSequence.OfSignificantBits(significand.ToByteArray(true))` to cmeta from [D3..]
+            var cmetaBits =
+                value.Value is null ? BitSequence.Empty :
+                value.Value!.Value == 0 ? BitSequence.Empty :
+                BitSequence
+                    .Of(sigSign, scaleSign) // setting [D1], [D2]
+                    .Concat(BitSequence.OfSignificantBits(sigByteCount.ToByteArray(true))); // concatenating the byteCount
+
+            var cmeta = VarBytes
+                .Of(cmetaBits)
+                .ToCustomMetadata();
 
             var typeMetadata = TypeMetadata.Of(
-                DiaType.Int,
+                DiaType.Decimal,
                 metadataFlags,
-                customMetadataArray);
+                cmeta);
 
             return new ValuePayload<DecimalValue>(value, typeMetadata);
         }
@@ -57,25 +76,45 @@ namespace Axis.Dia.IO.Binary.Serializers
 
                 // read annotations and determine how many bytes to read for the significand
                 .Map(tmeta => (
-                    SignificandByteCount: !tmeta.IsNull
-                        ? (int)tmeta.CustomMetadataAsInt()
-                        : -1,
+                    IsNullValue: tmeta.IsNull,
+                    IsPositiveValue: tmeta.CustomMetadataCount > 0
+                        ? tmeta.CustomMetadata[0].IsSet(CustomMetadata.MetadataFlags.D1)
+                        : true,
+                    IsPositiveScale: tmeta.CustomMetadataCount > 0
+                        ? tmeta.CustomMetadata[0].IsSet(CustomMetadata.MetadataFlags.D2)
+                        : true,
+                    SignificandByteCount: tmeta.CustomMetadataCount > 0
+                        ? (int)tmeta.CustomMetadata.ToBigInteger(2..)
+                        : 0,
                     Annotations: tmeta.IsAnnotated
                         ? AnnotationSerializer.Deserialize(stream).Resolve()
                         : Array.Empty<Annotation>()))
 
-                // read and construct the int
+                // read and construct the decimal from the scale, and the sig
                 .Map(tuple => (
                     tuple.Annotations,
-                    BigInt: tuple.SignificandByteCount < 0
-                        ? (BigInteger?)null
-                        : stream
-                            .ReadExactBytesResult(tuple.SignificandByteCount)
-                            .Map(bytes => new BigInteger(bytes))
-                            .Resolve()))
+                    Decimal: tuple.IsNullValue
+                        ? (BigDecimal?)null
+                        : new BigDecimal(
+                            scale: tuple.SignificandByteCount == 0
+                                ? 0
+                                : stream
+                                    .ReadVarBytesResult()
+                                    .Map(vb => BitSequence.Of(vb.ToByteArray()))
+                                    .Map(bs => bs.SignificantBits())
+                                    .Map(bs => (int)new BigInteger(bs.ToByteArray(), tuple.IsPositiveScale))
+                                    .Resolve(),
+                            significand: tuple.SignificandByteCount == 0
+                                ? 0
+                                : stream
+                                    .ReadExactBytesResult(tuple.SignificandByteCount)
+                                    .Map(bytes => new BigInteger(bytes, tuple.IsPositiveValue))
+                                    .Resolve())))
 
                 // construct the DecimalValue
-                .Map(tuple => DecimalValue.Of(tuple.BigInt, tuple.Annotations));
+                .Map(tuple => DecimalValue.Of(
+                    tuple.Decimal,
+                    tuple.Annotations));
         }
 
         public static IResult<byte[]> Serialize(DecimalValue value, BinarySerializerContext context)
@@ -89,8 +128,15 @@ namespace Axis.Dia.IO.Binary.Serializers
                     : Result.Of(() =>
                     {
                         var (sig, scale) = value.Value!.Value;
-                        var scaleBytes = BitConverter.GetBytes(scale);
-                        var sigBytes = sig.ToByteArray();
+                        var sigBytes = sig
+                            .ToByteArray()
+                            .ApplyTo(BitSequence.Of)
+                            .SignificantBits()
+                            .ToByteArray();
+                        var scaleBytes = new BigInteger(scale)
+                            .ToVarBytes()
+                            .ToArray()
+                            .ApplyTo(arr => arr.IsEmpty() ? new byte[1]: arr); // as long as the value is not 0, there should be a scale byte
 
                         return scaleBytes.JoinWith(sigBytes);
                     });

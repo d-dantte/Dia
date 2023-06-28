@@ -252,41 +252,42 @@ The Instant type represents a timestamp, in addition to `null`. Instants are rep
 the unspecified precisions assuming the default values.
 
 #### _Text Representation_
-In text, instants are represented in the format: &lt;year&gt;-&lt;month&gt;-&lt;day&gt;&lt;delimiter&gt;&lt;hour&gt;:&lt;minute&gt;:&lt;second&gt;.&lt;sub-seconds&gt;.
+In text, instants are represented in the format: &lt;year&gt;-&lt;month&gt;-&lt;day&gt;&lt;delimiter&gt;&lt;hour&gt;:&lt;minute&gt;:&lt;second&gt;.&lt;sub-seconds&gt;&lt;time-zone&gt;.
 
 - Mandatory components: year, month, day, delimiter
-- Optional components: hour, minute, second, sub-seconds. Optional components are used in order of thier appearance: e.g, `year-month-day-delimiter-second.sub-second` is invalid.
+- Optional components: hour, minute, second, sub-seconds, time-zone. Optional components are used in order of thier appearance: e.g, `year-month-day-delimiter-second.sub-second` is invalid,
+  except for the time-zone component, which can appear independent of the presence of all the other optional components.
 Examples:
 ```
-2023-02-13T // <year>-<month>-<day><delimiter> -> 2023/02/13 00:00:00.0
-1993-09-27T12 // <year>-<month>-<day><delimiter><hour> -> 1993/09/27 12:00:00.0
+2023-02-13TZ // <year>-<month>-<day><delimiter><time-zone> -> 2023/02/13 00:00:00.0 +00:00
+1993-09-27T12 +00:00 // <year>-<month>-<day><delimiter><hour><time-zone> -> 1993/09/27 12:00:00.0 +00:00
 1993-09-27T12:31 // <year>-<month>-<day><delimiter><hour>:<minute> -> 1993/09/27 12:31:00.0
 1993-09-27T12:31:08 // <year>-<month>-<day><delimiter><hour>:<minute>:<seconds> -> 1993/09/27 12:31:08.0
 1993-09-27T12:31:08.0023319 // <year>-<month>-<day><delimiter><hour>:<minute>:<seconds>.<sub-second> -> 1993/09/27 12:31:08.0023319
 ```
 
+
 #### _Binary Representation_
 
 ##### _Type-Metadata_
 - `[.... 0100]` (0x4)
-
-##### _Custom-Metadata_
 - annotated: `[...1 0100]`
 - null: `[..1. 0100]`
-- HMS: `[.1.. 0100]`
-- Sub-seconds: `[1... 0100]`
+
+##### _Custom-Metadata_
+...
 
 ##### _Description_
-The instant is made of 7 components, each with their own binary representation, the first 3 of which are mandatory.
+The instant is made of 8 components, each with their own binary representation, the first 3 of which are mandatory.
 In practice, however, there are actually only 5 components, because the `Hour`, `Minute` and `Second` components
-are stored as a unit of seconds. Presence of the optional components are indicated by the 2 custom-metadata bits
-as shown above.
+are stored as a unit of seconds, as well as the `Month` and `Day` components.
 
 Components include (in the order they appear in the data stream):
 1. Year
 2. MD (Month-Day)
 3. HMS (Hour-Minute-Seconds) (optional)
 4. Sub-seconds (optional)
+5. Time-zone (optional)
 
 ###### _Year_
 The year is a special component. It represents an ever increasing value, and as such a definit amount of data cannot
@@ -298,9 +299,6 @@ a single "right-shift" of the bits restores the original value of the year compo
 
 * Data type: var-byte
 * Capacity: variable
-* Arrangement: 
-    * year[0]: `Day` component overflow
-    * year[1..*]: `Year` data.
 
 
 ###### _Month + Day_
@@ -308,33 +306,55 @@ a single "right-shift" of the bits restores the original value of the year compo
 above, the single bit is borrowed from the first bit-position of the `year` component.
 
 * Data type: byte
-* Capacity: 1
+* Capacity: 1.125
 * Arrangement:
-    * MD[0..3]: `Month` data
-    * MD[4..7]: `Day` data
-    * Year[0] : `Day` data
+    * Month:            `00 [.... xxxx]`
+    * Day:              `00 [xxxx ....], M0 [.... ...x]`  ps: `M0` represents the custom metadata byte[0]
 
 
 ###### _Hour + Minute + Second_
-There are a total of _86,400_ seconds in a day, translating to exactly 17 bits (2 bytes and a bit) of data. Considering the
-optional nature of this component, the possibility of the values swinging from a single byte all the way to 3 bytes, this
-component will be represented using [var-byte](#Var-byte).
+24 hours (0-23) requires 5 bits; being identical, minutes and seconds require 6 bits each to store their range (0-59), yielding
+a total of 17bits, or 2 bytes and an extra bit. The extra bit is borrowed from the CustomMetadata.
 
-* Data type: var-byte
-* Capacity: variable
+* Data type: byte
+* Capacity: 2.125
 * Arrangement:
-    * HMS[0..*]: `HMS` data
+    * Seconds:       `00 [..xx xxxx]`
+    * Minutes:       `00 [xx.. ....], 01 [.... xxxx]`
+    * Hours:         `01 [xxxx ....], M0 [.... ..x.]`
 
 
 ###### _Sub-seconds_
 The unit of the subsecond component is the [tick](https://learn.microsoft.com/en-us/dotnet/api/system.timespan.ticks?view=net-7.0#remarks),
 each of which is 100 nanoseconds. There are a total of 9,999,999 ticks in a second, translating to 24 bits, or 3 bytes.
-Again, this will be represented by a [var-byte](#Var-byte), owing to the potential sparse nature of the data.
 
-* Data type: var-byte
-* Capacity: variable
+* Data type: byte
+* Capacity: 3
+
+
+###### _Time-Zone_
+The time zone is stored as a sign bit indicating the timezone direction (positive for east, negative for west), 4 bits
+for 12 hour range, and 6 bits for 59 minutes range, a total of 11 bits
+
+* Data type: bits
+* Capacity: 7
 * Arrangement:
-    * HMS[0..*]: `Sub-second` data
+    * Sign:    `M0 [.... .x..]`
+    * Hour:    `00 [xx.. ....], M0 [...x x...] `
+    * Minutes: `00 [..xx xxxx]`
+
+
+##### Overall arrangement
+- `00   [type-metadata]`
+- `01   [custom-metadata]`
+- `02   [year]+`
+- `03   [month-day]`
+- `04   [HMS]`
+- `05*  [HMS]`
+- `06   [sub-seconds]`
+- `07   [sub-seconds]`
+- `08   [sub-seconds]`
+- `07*  [time-zone]`
 
 
 

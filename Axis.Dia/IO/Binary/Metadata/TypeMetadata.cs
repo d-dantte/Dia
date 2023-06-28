@@ -2,6 +2,7 @@
 using Axis.Luna.Common;
 using Axis.Luna.Extensions;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 
 namespace Axis.Dia.IO.Binary.Metadata
 {
@@ -45,11 +46,35 @@ namespace Axis.Dia.IO.Binary.Metadata
             params CustomMetadata[] customMetadata)
             => new TypeMetadata(typeMetadata, customMetadata);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="typeMetadata"></param>
+        /// <param name="dataCount">unsigned BigInt</param>
+        /// <returns></returns>
+        public static TypeMetadata Of(
+            byte typeMetadata,
+            BigInteger dataCount)
+            => new TypeMetadata(typeMetadata, dataCount.ToCustomMetadata());
+
         public static TypeMetadata Of(
             DiaType type,
             MetadataFlags flags,
             params CustomMetadata[] customMetadata)
             => new TypeMetadata(ToMetadataByte(type, flags), customMetadata);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="flags"></param>
+        /// <param name="dataCount">unsigned BigInt</param>
+        /// <returns></returns>
+        public static TypeMetadata Of(
+            DiaType type,
+            MetadataFlags flags,
+            BigInteger dataCount)
+            => new TypeMetadata(ToMetadataByte(type, flags), dataCount.ToCustomMetadata());
 
         public static implicit operator TypeMetadata(VarBytes metadata) => new TypeMetadata(metadata);
         #endregion

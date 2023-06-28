@@ -3,6 +3,7 @@ using Axis.Luna.Common;
 using Axis.Luna.Extensions;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 
 namespace Axis.Dia.IO.Binary
 {    
@@ -23,9 +24,6 @@ namespace Axis.Dia.IO.Binary
         {
             get
             {
-                if (_data.Length < 0)
-                    return -1;
-
                 var divrem = Math.DivRem(_data.Length, 8);
                 return divrem.Quotient + (divrem.Remainder > 0 ? 1 : 0);
             }
@@ -61,7 +59,12 @@ namespace Axis.Dia.IO.Binary
         /// <param name="byteArray">the data to create the instance from</param>
         /// <param name="isRawData">indicates if the data is raw bytes, or already converted to var-bytes</param>
         /// <returns>The created instance</returns>
-        public static VarBytes Of(IEnumerable<byte> byteArray, bool isRawData = true) => new VarBytes(byteArray.ToArray(), isRawData);
+        public static VarBytes Of(IEnumerable<byte> byteArray, bool isRawData = true)
+        {
+            ArgumentNullException.ThrowIfNull(byteArray);
+
+            return new VarBytes(byteArray.ToArray(), isRawData);
+        }
 
         /// <summary>
         /// Creates a new <see cref="VarBytes"/>
@@ -69,7 +72,12 @@ namespace Axis.Dia.IO.Binary
         /// <param name="byteArray">the data to create the instance from</param>
         /// <param name="isRawData">indicates if the data is raw bytes, or already converted to var-bytes</param>
         /// <returns>The created instance</returns>
-        public static VarBytes Of(byte[] byteArray, bool isRawData) => new VarBytes(byteArray, isRawData);
+        public static VarBytes Of(byte[] byteArray, bool isRawData)
+        {
+            ArgumentNullException.ThrowIfNull(byteArray);
+
+            return new VarBytes(byteArray, isRawData);
+        }
 
         /// <summary>
         /// Creates a new <see cref="VarBytes"/>
@@ -107,14 +115,18 @@ namespace Axis.Dia.IO.Binary
         {
             get
             {
-                ValidateState();
+                if (IsDefault)
+                    throw new IndexOutOfRangeException();
+
                 return _data.ByteAt(index * 8);
             }
         }
 
         public byte[] Slice(int index, int length)
         {
-            ValidateState();
+            if (IsDefault && index == 0 && length == 0)
+                return Array.Empty<byte>();
+
             return _data
                 .ToByteArray()
                 .Slice(index, length)
@@ -129,7 +141,7 @@ namespace Axis.Dia.IO.Binary
         #endregion
 
         #region overrides
-        public override string ToString() => $"VarBytes {_data}";
+        public override string ToString() => $"VarBytes: {_data}";
 
         public override bool Equals([NotNullWhen(true)] object? obj)
         {
@@ -144,28 +156,55 @@ namespace Axis.Dia.IO.Binary
         #endregion
 
         #region API
+        public bool IsEmpty => IsDefault;
+
+        public static VarBytes Empty => default;
+
         /// <summary>
         /// Converts this var-bytes into a byte array, removing the overflow bits, and stitching
         /// the original data back together.
         /// </summary>
         /// <returns>the byte array</returns>
-        public byte[]? ToByteArray()
+        public byte[] ToByteArray()
         {
             if (IsDefault)
-                return null;
+                return Array.Empty<byte>();
 
             return _data
                 .ApplyTo(RemoveOverflow)
                 .ToByteArray();
+        }
+
+        /// <summary>
+        /// Empty <see cref="VarBytes"/> instances yield "0"; all others are calculated accordingly
+        /// <para>
+        /// Note, because of the sign, the raw bytes making up the <see cref="BigInteger"/> are interpreted differently.
+        /// E.g
+        /// <code>
+        /// new BigInteger(new byte[]{192}, false); // this yields -64
+        /// new BigInteger(new byte[]{192}, true);  // this yields 192
+        /// new BigInteger(new byte[]{192, 0}, false);  // this yields 192
+        /// new BigInteger(new byte[]{192, 0}, true);   // this yields 192
+        /// </code>
+        /// </para>
+        /// </summary>
+        /// <param name="isUnsigned">indicates if the expected value is unsigned</param>
+        /// <returns></returns>
+        public BigInteger ToBigInteger(bool isUnsigned = false)
+        {
+            if (IsDefault)
+                return BigInteger.Zero;
+
+            return new BigInteger(ToByteArray(), isUnsigned);
         }
         #endregion
 
         #region IEnumerable
         public IEnumerator<byte> GetEnumerator()
         {
-            ValidateState();
-
-            return ((IEnumerable<byte>)_data.ToByteArray()).GetEnumerator();
+            return IsDefault
+                ? Enumerable.Empty<byte>().GetEnumerator()
+                : ((IEnumerable<byte>)_data.ToByteArray()).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -178,12 +217,6 @@ namespace Axis.Dia.IO.Binary
                 return data;
 
             else throw new ArgumentException("Invalid VarByte array");
-        }
-
-        private void ValidateState()
-        {
-            if (IsDefault)
-                throw new InvalidOperationException("VarBytes is in invalid state");
         }
 
         /// <summary>
@@ -218,32 +251,6 @@ namespace Axis.Dia.IO.Binary
         {
             return BitSequence.Of(bits.SkipEveryNth(8));
         }
-
-        private static BitSequence AppendMagicByte(BitSequence bits)
-        {
-            var (_, remainder) = Math.DivRem(bits.Length, 8);
-
-            var lastBits = bits[^remainder..];
-
-            // the last bit is a full byte with overflow bit set
-            if (lastBits.Length == 8 && lastBits[7])
-                return bits.AppendBits(0);
-
-            return bits;
-        }
-
-        //private static BitSequence RemoveMagicByte(BitSequence bits)
-        //{
-        //    var (_, remainder) = Math.DivRem(bits.Length, 8);
-
-        //    var lastBits = bits[^remainder..];
-
-        //    if (lastBits.All(b => !b))
-        //        return bits[..^remainder];
-
-        //    return bits;
-        //}
-
 
         /// <summary>
         /// validate the data - make sure no byte follows a previous byte with its overflow bit unset.

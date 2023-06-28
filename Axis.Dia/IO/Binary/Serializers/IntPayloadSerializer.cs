@@ -3,9 +3,7 @@ using Axis.Dia.IO.Binary.Metadata;
 using Axis.Dia.Types;
 using Axis.Luna.Common;
 using Axis.Luna.Common.Results;
-using Axis.Luna.Common.Utils;
 using Axis.Luna.Extensions;
-using System.IO;
 using System.Numerics;
 
 namespace Axis.Dia.IO.Binary.Serializers
@@ -24,23 +22,35 @@ namespace Axis.Dia.IO.Binary.Serializers
                 | (value.IsNull ? TypeMetadata.MetadataFlags.Null : TypeMetadata.MetadataFlags.None)
                 | (!value.IsNull && !BigInteger.Zero.Equals(value.Value!) ? TypeMetadata.MetadataFlags.Overflow : TypeMetadata.MetadataFlags.None);
 
+            var sigSign = BigInteger.IsPositive(value.Value!.Value);
             BigInteger byteCount =
                 value.Value is null ? 0 :
                 value.Value!.Value == 0 ? 0 :
-                value.Value!.Value.GetByteCount();
+                value.Value!.Value.GetByteCount(sigSign);
 
-            var byteCountVarBytes = byteCount
-                .ToBitSequence()
-                .ApplyTo(VarBytes.Of);
+            // padding byte: for positive numbers that have the last bit set, an extra byte (0x0) is padded
+            // at the end of the array so it isn't seen as a negative number. e.g,
+            // 192 => [1100-0000] => [0000-0000, 1100-0000]
+            // -64 => [1100-0000] => [1100-0000] // no padding is done here
+            //
+            // with the above in mind,
+            // 1. if value is positive, set the cmeta[0][D1] bit to 1, else leave it at zero
+            // 2. concat `BitSequence.OfSignificantBits(byteCount.ToByteArray(true))` to cmeta from [D2..]
+            var cmetaBits =
+                value.Value is null ? BitSequence.Empty :
+                value.Value!.Value == 0 ? BitSequence.Empty :
+                BitSequence
+                    .Of(sigSign) // setting [D1]
+                    .Concat(BitSequence.OfSignificantBits(byteCount.ToByteArray(true))); // concatenating the byteCount
 
-            var customMetadataArray = byteCountVarBytes
-                .Select(@byte => (CustomMetadata)@byte)
-                .ToArray();
+            var cmeta = VarBytes
+                .Of(cmetaBits)
+                .ToCustomMetadata();
 
             var typeMetadata = TypeMetadata.Of(
                 DiaType.Int,
                 metadataFlags,
-                customMetadataArray);
+                cmeta);
 
             return new ValuePayload<IntValue>(value, typeMetadata);
         }
@@ -61,9 +71,13 @@ namespace Axis.Dia.IO.Binary.Serializers
 
                 // read annotations and determine how many bytes to read for the int
                 .Map(tmeta => (
-                    IntByteCount: !tmeta.IsNull
-                        ? (int)tmeta.CustomMetadataAsInt()
-                        : -1,
+                    IsNullValue: tmeta.IsNull,
+                    IsPositiveValue: tmeta.CustomMetadataCount > 0
+                        ? tmeta.CustomMetadata[0].IsSet(CustomMetadata.MetadataFlags.D1)
+                        : true,
+                    IntByteCount: tmeta.CustomMetadataCount > 0
+                        ? (int)tmeta.CustomMetadata.ToBigInteger(1..)
+                        : 0,
                     Annotations: tmeta.IsAnnotated
                         ? AnnotationSerializer.Deserialize(stream).Resolve()
                         : Array.Empty<Annotation>()))
@@ -71,11 +85,11 @@ namespace Axis.Dia.IO.Binary.Serializers
                 // read and construct the int
                 .Map(tuple => (
                     tuple.Annotations,
-                    BigInt: tuple.IntByteCount < 0
+                    BigInt: tuple.IsNullValue
                         ? (BigInteger?)null
                         : stream
                             .ReadExactBytesResult(tuple.IntByteCount)
-                            .Map(bytes => new BigInteger(bytes))
+                            .Map(bytes => new BigInteger(bytes, tuple.IsPositiveValue))
                             .Resolve()))
 
                 // construct the IntValue
@@ -90,7 +104,10 @@ namespace Axis.Dia.IO.Binary.Serializers
             {
                 var typeMetadataResult = Result.Of(CreatePayload(value)).Map(payload => payload.TypeMetadata);
                 var annotationResult = AnnotationSerializer.Serialize(value.Annotations);
-                var intDataResult = Result.Of(value.Value?.ToByteArray() ?? Array.Empty<byte>());
+                var intDataResult = Result.Of(
+                    value.Value is null ? Array.Empty<byte>() :
+                    value.Value!.Value == 0 ? Array.Empty<byte>() :
+                    value.Value!.Value.ToByteArray(BigInteger.IsPositive(value.Value!.Value)));
 
                 return typeMetadataResult
 

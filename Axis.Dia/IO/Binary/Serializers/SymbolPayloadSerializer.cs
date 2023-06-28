@@ -3,7 +3,6 @@ using Axis.Dia.IO.Binary.Metadata;
 using Axis.Dia.Types;
 using Axis.Luna.Common;
 using Axis.Luna.Common.Results;
-using Axis.Luna.Common.Utils;
 using Axis.Luna.Extensions;
 using System.Numerics;
 using System.Text;
@@ -20,24 +19,16 @@ namespace Axis.Dia.IO.Binary.Serializers
         public static ValuePayload<SymbolValue> CreatePayload(SymbolValue value)
         {
             TypeMetadata.MetadataFlags metadataFlags =
-                (!ArrayUtil.IsEmpty(value.Annotations) ? TypeMetadata.MetadataFlags.Annotated : TypeMetadata.MetadataFlags.None)
+                (!value.Annotations.IsEmpty() ? TypeMetadata.MetadataFlags.Annotated : TypeMetadata.MetadataFlags.None)
                 | (value.IsNull ? TypeMetadata.MetadataFlags.Null : TypeMetadata.MetadataFlags.None)
                 | (!string.IsNullOrEmpty(value.Value) ? TypeMetadata.MetadataFlags.Overflow : TypeMetadata.MetadataFlags.None);
 
             BigInteger charCount = string.IsNullOrEmpty(value.Value) ? 0 : value.Value!.Length;
 
-            var charCountVarBytes = charCount
-                .ToBitSequence()
-                .ApplyTo(VarBytes.Of);
-
-            var customMetadataArray = charCountVarBytes
-                .Select(@byte => (CustomMetadata)@byte)
-                .ToArray();
-
             var typeMetadata = TypeMetadata.Of(
                 DiaType.Symbol,
                 metadataFlags,
-                customMetadataArray);
+                charCount);
 
             return new ValuePayload<SymbolValue>(value, typeMetadata);
         }
@@ -59,7 +50,7 @@ namespace Axis.Dia.IO.Binary.Serializers
                 // read annotations and determine how many bytes/chars to read for the symbol
                 .Map(tmeta => (
                     CharCount: !tmeta.IsNull
-                        ? (int)tmeta.CustomMetadataAsInt()
+                        ? (int)tmeta.CustomMetadata.ToBigInteger()
                         : -1,
                     Annotations: tmeta.IsAnnotated
                         ? AnnotationSerializer.Deserialize(stream).Resolve()

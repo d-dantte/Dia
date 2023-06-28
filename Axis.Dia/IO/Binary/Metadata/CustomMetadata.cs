@@ -103,13 +103,13 @@ namespace Axis.Dia.IO.Binary.Metadata
         {
             None = 0,
 
-            D1 = 1,
-            D2 = 2,
-            D3 = 4,
-            D4 = 8,
-            D5 = 16,
-            D6 = 32,
-            D7 = 64,
+            D1 = 1,  // bit at index 0
+            D2 = 2,  // bit at index 1
+            D3 = 4,  // bit at index 2
+            D4 = 8,  // bit at index 3
+            D5 = 16, // bit at index 4
+            D6 = 32, // bit at index 5
+            D7 = 64, // bit at index 6
 
             /// <summary>
             /// Indicates that a custom metadata byte follows this byte
