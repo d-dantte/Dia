@@ -1,9 +1,12 @@
 ﻿using Axis.Dia.Contracts;
+using Axis.Dia.IO.Binary;
 using Axis.Dia.IO.Binary.Metadata;
 using Axis.Dia.IO.Binary.Serializers;
 using Axis.Dia.Types;
+using Axis.Luna.Common;
 using Axis.Luna.Common.Numerics;
 using Axis.Luna.Common.Results;
+using Axis.Luna.Extensions;
 using System.Numerics;
 
 namespace Axis.Dia.Tests.IO.Binary.Serializers
@@ -218,27 +221,29 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
             result = DecimalPayloadSerializer.Serialize(otherInt, new Dia.IO.Binary.BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
-            Assert.AreEqual(6, data.Length);
+            Assert.AreEqual(5, data.Length);
             Assert.AreEqual(132, data[0]); // tmeta
-            Assert.AreEqual(9, data[1]);   // significand byte count
-            Assert.AreEqual(255, data[2]); // scale (-1)
-            Assert.AreEqual(1, data[3]);   // sale (-1 overflow)
-            Assert.AreEqual(198, data[4]);   // sig data
-            Assert.AreEqual(4, data[5]);   // sig data
+            Assert.IsTrue(data[1].IsSet(0));   // sig sign
+            Assert.IsFalse(data[1].IsSet(1));   // scale sign
+            Assert.AreEqual(2, data[1] >> 2);   // sig byte count
+            Assert.AreEqual(1, data[2]); // Math.Abs(scale)
+            Assert.AreEqual(198, data[3]);   // sig byte[0]
+            Assert.AreEqual(4, data[4]); // sig byte[1]
 
 
             otherInt = 65.536m;
             result = DecimalPayloadSerializer.Serialize(otherInt, new Dia.IO.Binary.BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
-            Assert.AreEqual(7, data.Length);
-            Assert.AreEqual(132, data[0]);
-            Assert.AreEqual(13, data[1]);
-            Assert.AreEqual(253, data[2]); // scale (-3)
-            Assert.AreEqual(1, data[3]);   // scale (-3 overflow)
+            Assert.AreEqual(6, data.Length);
+            Assert.AreEqual(132, data[0]);     // tmeta
+            Assert.IsTrue(data[1].IsSet(0));   // sig sign
+            Assert.IsFalse(data[1].IsSet(1));  // scale sign
+            Assert.AreEqual(3, data[1] >> 2);   // sig byte count
+            Assert.AreEqual(3, data[2]); // Math.Abs(scale)
+            Assert.AreEqual(0, data[3]);
             Assert.AreEqual(0, data[4]);
-            Assert.AreEqual(0, data[5]);
-            Assert.AreEqual(1, data[6]);
+            Assert.AreEqual(1, data[5]);
 
             otherInt = BigDecimal.Parse("18446744073709551616").Resolve();
             result = DecimalPayloadSerializer.Serialize(otherInt, new Dia.IO.Binary.BinarySerializerContext());
@@ -247,6 +252,9 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
             Assert.AreEqual(12, data.Length);
             Assert.AreEqual(132, data[0]);
             Assert.AreEqual(39, data[1]);
+            Assert.IsTrue(data[1].IsSet(0));   // sig sign
+            Assert.IsTrue(data[1].IsSet(1));   // scale sign
+            Assert.AreEqual(9, data[1] >> 2);  // sig byte count
             Assert.AreEqual(0, data[2]); // scale
 
 
@@ -261,6 +269,9 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
             Assert.AreEqual(13, data.Length);
             Assert.AreEqual(132, data[0]);
             Assert.AreEqual(39, data[1]); // byte count
+            Assert.IsTrue(data[1].IsSet(0));   // sig sign
+            Assert.IsTrue(data[1].IsSet(1));   // scale sign
+            Assert.AreEqual(9, data[1] >> 2);  // sig byte count
             Assert.AreEqual(202, data[2]); // scale
 
 
@@ -300,11 +311,24 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
             result = DecimalPayloadSerializer.Serialize(otherInt, new Dia.IO.Binary.BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
-            Assert.AreEqual(1366, data.Length);
-            Assert.AreEqual(132, data[0]); // tmeta
-            Assert.AreEqual(193, data[1]); // cmeta[0]
-            Assert.AreEqual(42, data[2]);  // cmeta[1]
-            Assert.AreEqual(200, data[3]);  // scale
+            Assert.AreEqual(1365, data.Length);
+            Assert.AreEqual(132, data[0]);     // tmeta
+            Assert.AreEqual(193, data[1]);     // cmeta[0]
+            Assert.AreEqual(42, data[2]);      // cmeta[1]
+            Assert.IsTrue(data[1].IsSet(0));   // sig sign
+            Assert.IsFalse(data[1].IsSet(1));  // scale sign
+            var byteCount = VarBytes
+                .Of(data[1..3], false)
+                .ToByteArray()
+                .ApplyTo(BitSequence.Of)
+                .RightShift(2)
+                .ApplyTo(bits => new BigInteger(bits.ToByteArray(), true));
+            Assert.AreEqual(1360, byteCount);
+            var scale = VarBytes
+                .Of(data[3..5], false)
+                .ToByteArray()
+                .ApplyTo(bytes => new BigInteger(bytes, true));
+            Assert.AreEqual(3256, scale);
         }
 
         [TestMethod]

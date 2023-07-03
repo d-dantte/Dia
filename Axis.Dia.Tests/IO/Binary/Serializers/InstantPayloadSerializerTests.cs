@@ -4,7 +4,6 @@ using Axis.Dia.IO.Binary.Metadata;
 using Axis.Dia.IO.Binary.Serializers;
 using Axis.Dia.Types;
 using Axis.Luna.Common;
-using Axis.Luna.Common.Numerics;
 using Axis.Luna.Common.Results;
 using System.Numerics;
 
@@ -155,7 +154,7 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
             Assert.IsFalse(payload.TypeMetadata.IsCustomFlagSet);
             Assert.IsTrue(payload.TypeMetadata.IsOverflowFlagSet);
             Assert.AreEqual(1, payload.TypeMetadata.CustomMetadataCount);
-            Assert.AreEqual(11, payload.TypeMetadata.CustomMetadata[0].DataByteValue);
+            Assert.AreEqual(27, payload.TypeMetadata.CustomMetadata[0].DataByteValue);
         }
 
 

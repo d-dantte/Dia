@@ -40,13 +40,13 @@ namespace Axis.Dia.IO.Binary.Serializers
             // with the above in mind,
             // 1. if significand is positive, set the cmeta[0][D1] bit to 1, else leave it at zero
             // 2. if scale is positive, set the cmeta[0][D2] bit to 1, else leave it at zero
-            // 2. concat `BitSequence.OfSignificantBits(significand.ToByteArray(true))` to cmeta from [D3..]
+            // 2. concat `BitSequence.Of(significand.ToByteArray(true))`.SignificantBits to cmeta from [D3..]
             var cmetaBits =
                 value.Value is null ? BitSequence.Empty :
                 value.Value!.Value == 0 ? BitSequence.Empty :
                 BitSequence
                     .Of(sigSign, scaleSign) // setting [D1], [D2]
-                    .Concat(BitSequence.OfSignificantBits(sigByteCount.ToByteArray(true))); // concatenating the byteCount
+                    .Concat(BitSequence.Of(sigByteCount.ToByteArray(true)).SignificantBits); // concatenating the byteCount
 
             var cmeta = VarBytes
                 .Of(cmetaBits)
@@ -124,19 +124,23 @@ namespace Axis.Dia.IO.Binary.Serializers
                 var typeMetadataResult = Result.Of(CreatePayload(value)).Map(payload => payload.TypeMetadata);
                 var annotationResult = AnnotationSerializer.Serialize(value.Annotations);
                 var decimalDataResult = (value.Value ?? 0) == 0
-                    ? Result.Of(Array.Empty<byte>)
+                    ? Result.Of(Array.Empty<byte>) // this is the only instance where significand is zero
                     : Result.Of(() =>
                     {
                         var (sig, scale) = value.Value!.Value;
-                        var sigBytes = sig
-                            .ToByteArray()
-                            .ApplyTo(BitSequence.Of)
-                            .SignificantBits()
-                            .ToByteArray();
-                        var scaleBytes = new BigInteger(scale)
-                            .ToVarBytes()
-                            .ToArray()
-                            .ApplyTo(arr => arr.IsEmpty() ? new byte[1]: arr); // as long as the value is not 0, there should be a scale byte
+
+                        var sigBytes = BigInteger
+                            .Abs(sig)
+                            .ToByteArray(true);
+
+                        var scaleBytes = scale == 0
+                            ? new byte[1]
+                            : Math
+                                .Abs(scale)
+                                .ApplyTo(v => new BigInteger(v))
+                                .ApplyTo(BitSequence.Of).SignificantBits
+                                .ApplyTo(VarBytes.Of)
+                                .ToArray();
 
                         return scaleBytes.JoinWith(sigBytes);
                     });

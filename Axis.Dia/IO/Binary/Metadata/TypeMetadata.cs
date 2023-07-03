@@ -54,8 +54,8 @@ namespace Axis.Dia.IO.Binary.Metadata
         /// <returns></returns>
         public static TypeMetadata Of(
             byte typeMetadata,
-            BigInteger dataCount)
-            => new TypeMetadata(typeMetadata, dataCount.ToCustomMetadata());
+            BigInteger? dataCount)
+            => new TypeMetadata(typeMetadata, dataCount?.ToCustomMetadata() ?? Array.Empty<CustomMetadata>());
 
         public static TypeMetadata Of(
             DiaType type,
@@ -73,8 +73,10 @@ namespace Axis.Dia.IO.Binary.Metadata
         public static TypeMetadata Of(
             DiaType type,
             MetadataFlags flags,
-            BigInteger dataCount)
-            => new TypeMetadata(ToMetadataByte(type, flags), dataCount.ToCustomMetadata());
+            BigInteger? dataCount)
+            => new TypeMetadata(
+                ToMetadataByte(type, flags),
+                dataCount?.ToCustomMetadata() ?? Array.Empty<CustomMetadata>());
 
         public static implicit operator TypeMetadata(VarBytes metadata) => new TypeMetadata(metadata);
         #endregion

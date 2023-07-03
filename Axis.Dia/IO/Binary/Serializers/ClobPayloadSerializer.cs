@@ -4,44 +4,45 @@ using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using System.Numerics;
+using System.Text;
 
 namespace Axis.Dia.IO.Binary.Serializers
 {
-    internal class BlobPayloadSerializer :
-        IPayloadSerializer<BlobValue>,
-        IPayloadProvider<BlobValue>
+    internal class ClobPayloadSerializer :
+        IPayloadSerializer<ClobValue>,
+        IPayloadProvider<ClobValue>
     {
         // prohibits instantiation
-        private BlobPayloadSerializer() { }
+        private ClobPayloadSerializer() { }
 
-        public static ValuePayload<BlobValue> CreatePayload(BlobValue value)
+        public static ValuePayload<ClobValue> CreatePayload(ClobValue value)
         {
             TypeMetadata.MetadataFlags metadataFlags =
                 (!value.Annotations.IsEmpty() ? TypeMetadata.MetadataFlags.Annotated : TypeMetadata.MetadataFlags.None)
                 | (value.IsNull ? TypeMetadata.MetadataFlags.Null : TypeMetadata.MetadataFlags.None)
                 | (value.Value?.Length > 0 ? TypeMetadata.MetadataFlags.Overflow : TypeMetadata.MetadataFlags.None);
 
-            BigInteger? byteCount = value.Value?.Length switch
+            BigInteger? charCount = value.Value?.Length switch
             {
                 null or 0 => null,
                 int v => new BigInteger(v)
             };
 
             var typeMetadata = TypeMetadata.Of(
-                DiaType.Blob,
+                DiaType.Clob,
                 metadataFlags,
-                byteCount);
+                charCount);
 
-            return new ValuePayload<BlobValue>(value, typeMetadata);
+            return new ValuePayload<ClobValue>(value, typeMetadata);
         }
 
-        public static IResult<BlobValue> Deserialize(Stream stream, TypeMetadata typeMetadata, BinarySerializerContext context)
+        public static IResult<ClobValue> Deserialize(Stream stream, TypeMetadata typeMetadata, BinarySerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(stream);
             ArgumentNullException.ThrowIfNull(context);
 
-            if (!DiaType.Blob.Equals(typeMetadata.Type))
-                throw new ArgumentException($"Invalid TypeMetadata.Type: '{typeMetadata.Type}', expected: '{DiaType.Blob}'");
+            if (!DiaType.Clob.Equals(typeMetadata.Type))
+                throw new ArgumentException($"Invalid TypeMetadata.Type: '{typeMetadata.Type}', expected: '{DiaType.Clob}'");
 
             return Result
                 .Of(typeMetadata)
@@ -49,7 +50,7 @@ namespace Axis.Dia.IO.Binary.Serializers
                 // read annotations and determine how many bytes/chars to read for the symbol
                 .Map(tmeta => (
                     tmeta.IsNull,
-                    ByteCount: tmeta.CustomMetadataCount > 0
+                    CharCount: tmeta.CustomMetadataCount > 0
                         ? (int)tmeta.CustomMetadata.ToBigInteger()
                         : 0,
                     Annotations: tmeta.IsAnnotated
@@ -59,23 +60,26 @@ namespace Axis.Dia.IO.Binary.Serializers
                 // read and construct the symbol
                 .Map(tuple => (
                     tuple.Annotations,
-                    Bytes: tuple.IsNull ? null:
-                        tuple.ByteCount == 0 ? Array.Empty<byte>():
-                        stream.ReadExactBytesResult(tuple.ByteCount).Resolve()))
+                    Bytes: tuple.IsNull ? null :
+                        tuple.CharCount == 0 ? "" :
+                        stream
+                            .ReadExactBytesResult(tuple.CharCount * 2)
+                            .Map(Encoding.Unicode.GetString)
+                            .Resolve()))
 
                 // construct the SymbolValue
-                .Map(tuple => BlobValue.Of(tuple.Bytes, tuple.Annotations));
+                .Map(tuple => ClobValue.Of(tuple.Bytes, tuple.Annotations));
         }
 
-        public static IResult<byte[]> Serialize(BlobValue value, BinarySerializerContext context)
+        public static IResult<byte[]> Serialize(ClobValue value, BinarySerializerContext context)
         {
             try
             {
                 var typeMetadataResult = Result.Of(CreatePayload(value)).Map(payload => payload.TypeMetadata);
                 var annotationResult = AnnotationSerializer.Serialize(value.Annotations);
-                var blobDataResult = (value.Value?.Length ?? 0) == 0
+                var clobDataResult = (value.Value?.Length ?? 0) == 0
                     ? Result.Of(Array.Empty<byte>)
-                    : Result.Of(() => value.Value!);
+                    : Result.Of(() => Encoding.Unicode.GetBytes(value.Value!));
 
                 return typeMetadataResult
 
@@ -86,7 +90,7 @@ namespace Axis.Dia.IO.Binary.Serializers
                     .Combine(annotationResult, (bytes, annotationBytes) => bytes.Concat(annotationBytes))
 
                     // finally, the blob bytes
-                    .Combine(blobDataResult, (bytes, blobBytes) => bytes.Concat(blobBytes))
+                    .Combine(clobDataResult, (bytes, blobBytes) => bytes.Concat(blobBytes))
                     .Map(bytes => bytes.ToArray());
             }
             catch (Exception ex)

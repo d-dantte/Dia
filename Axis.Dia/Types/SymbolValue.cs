@@ -158,6 +158,9 @@ namespace Axis.Dia.Types
             if (symbol is null)
                 return null;
 
+            if (string.Empty.Equals(symbol))
+                throw new ArgumentException($"Symbol text cannot be empty");
+
             return symbol
                 .ThrowIfAny(
                     c => !char.IsAscii(c) || c < 32,

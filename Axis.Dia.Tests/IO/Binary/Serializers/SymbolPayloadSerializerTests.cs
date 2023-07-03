@@ -21,16 +21,6 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
             Assert.AreEqual(0, payload.TypeMetadata.CustomMetadataCount);
 
 
-            SymbolValue emptyValue = "";
-            payload = SymbolPayloadSerializer.CreatePayload(emptyValue);
-
-            Assert.IsFalse(payload.TypeMetadata.IsNull);
-            Assert.IsFalse(payload.TypeMetadata.IsAnnotated);
-            Assert.IsFalse(payload.TypeMetadata.IsCustomFlagSet);
-            Assert.IsFalse(payload.TypeMetadata.IsOverflowFlagSet);
-            Assert.AreEqual(0, payload.TypeMetadata.CustomMetadataCount);
-
-
             SymbolValue someValue = SymbolValue.Of("some-symbol", "annotated");
             payload = SymbolPayloadSerializer.CreatePayload(someValue);
 
@@ -51,15 +41,6 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
             var data = result.Resolve();
             Assert.AreEqual(1, data.Length);
             Assert.AreEqual(39, data[0]);
-
-
-            SymbolValue emptyValue = "";
-            result = SymbolPayloadSerializer.Serialize(emptyValue, new Dia.IO.Binary.BinarySerializerContext());
-            Assert.IsTrue(result.IsDataResult());
-            data = result.Resolve();
-            Assert.AreEqual(1, data.Length);
-            Assert.AreEqual(7, data[0]);
-
 
             SymbolValue someValue = SymbolValue.Of("the-value", "the-annotation", "the-other-annotation");
             result = SymbolPayloadSerializer.Serialize(someValue, new Dia.IO.Binary.BinarySerializerContext());

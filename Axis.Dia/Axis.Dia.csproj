@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Axis.Luna.Common" Version="6.0.16" />
+    <PackageReference Include="Axis.Luna.Common" Version="6.0.17" />
     <PackageReference Include="Axis.Luna.Extensions" Version="6.0.15" />
     <PackageReference Include="Axis.Pulsar.Grammar" Version="0.7.16" />
     <PackageReference Include="Axis.Pulsar.Languages" Version="0.7.13" />

@@ -104,25 +104,25 @@ namespace Axis.Dia.IO.Binary.Serializers
                         .Deserialize(stream, tmeta, context)
                         .Map(value => (IDiaValue)value),
 
-                    //DiaType.Symbol => IntPayloadSerializer
-                    //    .Deserialize(stream, tmeta, context)
-                    //    .Map(value => (IDiaValue)value),
+                    DiaType.Clob => ClobPayloadSerializer
+                        .Deserialize(stream, tmeta, context)
+                        .Map(value => (IDiaValue)value),
 
-                    //DiaType.Clob => IntPayloadSerializer
-                    //    .Deserialize(stream, tmeta, context)
-                    //    .Map(value => (IDiaValue)value),
+                    DiaType.Symbol => SymbolPayloadSerializer
+                        .Deserialize(stream, tmeta, context)
+                        .Map(value => (IDiaValue)value),
 
-                    //DiaType.Blob => IntPayloadSerializer
-                    //    .Deserialize(stream, tmeta, context)
-                    //    .Map(value => (IDiaValue)value),
+                    DiaType.String => StringPayloadSerializer
+                        .Deserialize(stream, tmeta, context)
+                        .Map(value => (IDiaValue)value),
 
-                    //DiaType.List => IntPayloadSerializer
-                    //    .Deserialize(stream, tmeta, context)
-                    //    .Map(value => (IDiaValue)value),
+                    DiaType.List => ListPayloadSerializer
+                        .Deserialize(stream, tmeta, context)
+                        .Map(value => (IDiaValue)value),
 
-                    //DiaType.Record => IntPayloadSerializer
-                    //    .Deserialize(stream, tmeta, context)
-                    //    .Map(value => (IDiaValue)value),
+                    DiaType.Record => RecordPayloadSerializer
+                        .Deserialize(stream, tmeta, context)
+                        .Map(value => (IDiaValue)value),
 
                     _ => throw new InvalidOperationException($"Invalid TypeMetadata found: {tmeta}")
                 });

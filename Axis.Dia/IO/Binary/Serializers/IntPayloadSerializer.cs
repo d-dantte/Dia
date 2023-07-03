@@ -22,11 +22,11 @@ namespace Axis.Dia.IO.Binary.Serializers
                 | (value.IsNull ? TypeMetadata.MetadataFlags.Null : TypeMetadata.MetadataFlags.None)
                 | (!value.IsNull && !BigInteger.Zero.Equals(value.Value!) ? TypeMetadata.MetadataFlags.Overflow : TypeMetadata.MetadataFlags.None);
 
-            var sigSign = BigInteger.IsPositive(value.Value!.Value);
+            var sigSign = value.Value?.ApplyTo(BigInteger.IsPositive);
             BigInteger byteCount =
                 value.Value is null ? 0 :
                 value.Value!.Value == 0 ? 0 :
-                value.Value!.Value.GetByteCount(sigSign);
+                value.Value!.Value.GetByteCount(sigSign!.Value);
 
             // padding byte: for positive numbers that have the last bit set, an extra byte (0x0) is padded
             // at the end of the array so it isn't seen as a negative number. e.g,
@@ -40,8 +40,8 @@ namespace Axis.Dia.IO.Binary.Serializers
                 value.Value is null ? BitSequence.Empty :
                 value.Value!.Value == 0 ? BitSequence.Empty :
                 BitSequence
-                    .Of(sigSign) // setting [D1]
-                    .Concat(BitSequence.OfSignificantBits(byteCount.ToByteArray(true))); // concatenating the byteCount
+                    .Of(sigSign!.Value) // setting [D1]
+                    .Concat(BitSequence.Of(byteCount.ToByteArray(true)).SignificantBits); // concatenating the byteCount
 
             var cmeta = VarBytes
                 .Of(cmetaBits)

@@ -33,9 +33,8 @@ namespace Axis.Dia.IO.Binary.Serializers
                     .ApplyTo(bits =>
                     {
                         var tz = TimeZoneBits(instant);
-                        return bits.Concat(tz.Sign).Concat(tz.HourBits[^2..]);
+                        return bits.AppendBit(tz.Sign).Concat(tz.HourBits[^2..]);
                     })
-                    .ApplyTo(BitSequence.Of)
             };
 
             var cmeta = VarBytes
@@ -61,7 +60,7 @@ namespace Axis.Dia.IO.Binary.Serializers
             return Result
                 .Of(typeMetadata)
 
-                // read annotations and determine how many bytes to read for the significand
+                // read annotations and convert metadata to bits
                 .Map(tmeta => (
                     IsNullValue: tmeta.IsNull,
                     MetadataBits: tmeta.CustomMetadata
@@ -72,7 +71,7 @@ namespace Axis.Dia.IO.Binary.Serializers
                         ? AnnotationSerializer.Deserialize(stream).Resolve()
                         : Array.Empty<Annotation>()))
 
-                // read and construct the decimal from the scale, and the sig
+                // read and construct the instant
                 .Map(tuple => (
                     tuple.Annotations,
                     Instant: tuple.IsNullValue

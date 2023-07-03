@@ -23,7 +23,7 @@ namespace Axis.Dia.IO.Binary.Serializers
                 | (value.IsNull ? TypeMetadata.MetadataFlags.Null : TypeMetadata.MetadataFlags.None)
                 | (!string.IsNullOrEmpty(value.Value) ? TypeMetadata.MetadataFlags.Overflow : TypeMetadata.MetadataFlags.None);
 
-            BigInteger charCount = string.IsNullOrEmpty(value.Value) ? 0 : value.Value!.Length;
+            BigInteger? charCount = string.IsNullOrEmpty(value.Value) ? null : value.Value!.Length;
 
             var typeMetadata = TypeMetadata.Of(
                 DiaType.Symbol,

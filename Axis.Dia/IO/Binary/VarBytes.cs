@@ -232,6 +232,9 @@ namespace Axis.Dia.IO.Binary
 
         private static IEnumerable<bool> AddOverflowBits(BitSequence bits)
         {
+            if (bits.IsEmpty)
+                yield break;
+
             int count = 0;
             var lastBitIndex = bits.Length - 1;
             for (int cnt = 0; cnt < bits.Length; cnt++)

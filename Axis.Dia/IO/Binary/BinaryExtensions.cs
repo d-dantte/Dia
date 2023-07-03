@@ -32,6 +32,11 @@ namespace Axis.Dia.IO.Binary
             return bits.Concat(BitSequence.Of(addendum));
         }
 
+        internal static BitSequence AppendBit(this BitSequence bits, bool bit)
+        {
+            return bits.Concat(BitSequence.Of(bit));
+        }
+
         /// <summary>
         /// Attempts to convert an array of custom metadata into a <see cref="VarBytes"/> instance.
         /// </summary>
@@ -181,7 +186,7 @@ namespace Axis.Dia.IO.Binary
 
             return useSignificantBits
                 ? BitSequence
-                    .OfSignificantBits(rawByteArray)
+                    .Of(rawByteArray).SignificantBits
                     .ApplyTo(VarBytes.Of)
                 : BitSequence
                     .Of(rawByteArray)
