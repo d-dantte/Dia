@@ -6,6 +6,7 @@ using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using System.Numerics;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Axis.Dia.Tests.IO.Binary.Serializers
 {
@@ -89,6 +90,49 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
                 .ToByteArray()
                 .ApplyTo(bytes => new BigInteger(bytes, true));
             Assert.AreEqual(text.Length, charCount);
+        }
+
+        [TestMethod]
+        public void Deserialize_Test()
+        {
+            var nullValue = ClobValue.Null();
+            var bytes = ClobPayloadSerializer
+                .Serialize(nullValue, new Dia.IO.Binary.BinarySerializerContext())
+                .Resolve();
+            var result = ClobPayloadSerializer.Deserialize(
+                new MemoryStream(),
+                TypeMetadata.Of(bytes[0]),
+                new Dia.IO.Binary.BinarySerializerContext());
+            Assert.IsTrue(result.IsDataResult());
+            var resultValue = result.Resolve();
+            Assert.AreEqual(nullValue, resultValue);
+
+
+            ClobValue value = "";
+            bytes = ClobPayloadSerializer
+                .Serialize(value, new Dia.IO.Binary.BinarySerializerContext())
+                .Resolve();
+            result = ClobPayloadSerializer.Deserialize(
+                new MemoryStream(),
+                TypeMetadata.Of(bytes[0]),
+                new Dia.IO.Binary.BinarySerializerContext());
+            Assert.IsTrue(result.IsDataResult());
+            resultValue = result.Resolve();
+            Assert.AreEqual(value, resultValue);
+
+
+            var text = RandomText();
+            value = ClobValue.Of(text, "annotation1", "annotation2");
+            bytes = ClobPayloadSerializer
+                .Serialize(value, new Dia.IO.Binary.BinarySerializerContext())
+                .Resolve();
+            result = ClobPayloadSerializer.Deserialize(
+                new MemoryStream(bytes[(CmetaCount(text.Length) + 1)..]),
+                TypeMetadata.Of(bytes[0], ToCmeta(bytes, CmetaCount(text.Length))),
+                new Dia.IO.Binary.BinarySerializerContext());
+            Assert.IsTrue(result.IsDataResult());
+            resultValue = result.Resolve();
+            Assert.AreEqual(value, resultValue);
         }
 
         private static int CmetaCount(int charCount)

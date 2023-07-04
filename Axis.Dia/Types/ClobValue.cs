@@ -76,7 +76,7 @@ namespace Axis.Dia.Types
         #region ValueEquatable
         public bool ValueEquals(ClobValue other)
         {
-            return _value == other._value;
+            return EqualityComparer<string>.Default.Equals(_value, other._value);
         }
         #endregion
 
