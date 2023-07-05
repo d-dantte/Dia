@@ -9,6 +9,9 @@ using System.Numerics;
 
 namespace Axis.Dia.IO.Binary.Serializers
 {
+    /// <summary>
+    /// TODO: fix this so the default value of InstantValue yields a single byte when serialized
+    /// </summary>
     internal class InstantPayloadSerializer :
         IPayloadSerializer<InstantValue>,
         IPayloadProvider<InstantValue>

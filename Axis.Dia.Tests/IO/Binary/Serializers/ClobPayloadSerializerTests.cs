@@ -6,6 +6,7 @@ using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using System.Numerics;
+using System.Text;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Axis.Dia.Tests.IO.Binary.Serializers
@@ -53,7 +54,7 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
         public void Serialize_Tests()
         {
             var nullValue = ClobValue.Null();
-            var result = ClobPayloadSerializer.Serialize(nullValue, new Dia.IO.Binary.BinarySerializerContext());
+            var result = ClobPayloadSerializer.Serialize(nullValue, new BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             var data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -62,7 +63,7 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
 
             var text = "";
             var value = ClobValue.Of(text);
-            result = ClobPayloadSerializer.Serialize(value, new Dia.IO.Binary.BinarySerializerContext());
+            result = ClobPayloadSerializer.Serialize(value, new BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -70,7 +71,7 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
 
 
             value = ClobValue.Of(text, "annotation1", "annotation2");
-            result = ClobPayloadSerializer.Serialize(value, new Dia.IO.Binary.BinarySerializerContext());
+            result = ClobPayloadSerializer.Serialize(value, new BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(48, data.Length);
@@ -80,7 +81,7 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
 
             text = RandomText();
             value = ClobValue.Of(text);
-            result = ClobPayloadSerializer.Serialize(value, new Dia.IO.Binary.BinarySerializerContext());
+            result = ClobPayloadSerializer.Serialize(value, new BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(CmetaCount(text.Length) + 1 + (text.Length * 2), data.Length);
@@ -97,12 +98,12 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
         {
             var nullValue = ClobValue.Null();
             var bytes = ClobPayloadSerializer
-                .Serialize(nullValue, new Dia.IO.Binary.BinarySerializerContext())
+                .Serialize(nullValue, new BinarySerializerContext())
                 .Resolve();
             var result = ClobPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new Dia.IO.Binary.BinarySerializerContext());
+                new BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             var resultValue = result.Resolve();
             Assert.AreEqual(nullValue, resultValue);
@@ -110,26 +111,27 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
 
             ClobValue value = "";
             bytes = ClobPayloadSerializer
-                .Serialize(value, new Dia.IO.Binary.BinarySerializerContext())
+                .Serialize(value, new BinarySerializerContext())
                 .Resolve();
             result = ClobPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new Dia.IO.Binary.BinarySerializerContext());
+                new BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
 
 
-            var text = RandomText();
+            var text = AllChars();
             value = ClobValue.Of(text, "annotation1", "annotation2");
             bytes = ClobPayloadSerializer
-                .Serialize(value, new Dia.IO.Binary.BinarySerializerContext())
+                .Serialize(value, new BinarySerializerContext())
                 .Resolve();
+            var cmetaCount = CmetaCount(text.Length);
             result = ClobPayloadSerializer.Deserialize(
-                new MemoryStream(bytes[(CmetaCount(text.Length) + 1)..]),
-                TypeMetadata.Of(bytes[0], ToCmeta(bytes, CmetaCount(text.Length))),
-                new Dia.IO.Binary.BinarySerializerContext());
+                new MemoryStream(bytes[(cmetaCount + 1)..]),
+                TypeMetadata.Of(bytes[0], ToCmeta(bytes, cmetaCount)),
+                new BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -137,11 +139,8 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
 
         private static int CmetaCount(int charCount)
         {
-            return charCount switch
-            {
-                < 127 => 1,
-                >= 127 => 2
-            };
+            var bitCount = Convert.ToString(charCount, 2).Length;
+            return Math.DivRem(bitCount, 7, out var rem) + (rem > 0 ? 1 : 0);
         }
 
         private static string RandomText()
@@ -153,6 +152,17 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
                 .Batch(2)
                 .Select(charBytes => BitConverter.ToChar(charBytes.ToArray()))
                 .ApplyTo(chars => new string(chars.ToArray()));
+        }
+
+        private static string AllChars()
+        {
+            var chars = new char[ushort.MaxValue];
+            for(ushort cnt = 0; cnt < ushort.MaxValue; cnt++)
+            {
+                chars[cnt] = (char)cnt;
+            }
+
+            return new string(chars);
         }
 
         private static CustomMetadata[] ToCmeta(byte[] bytes, int cmetaCount)

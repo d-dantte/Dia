@@ -219,5 +219,23 @@ namespace Axis.Dia.IO.Binary
 
             return sequence[..(index + 1)];
         }
+
+        internal static byte[] ToRawByteArray(this string @string)
+        {
+            ArgumentNullException.ThrowIfNull(@string);
+
+            return @string
+                .Select(BitConverter.GetBytes)
+                .SelectMany()
+                .ToArray();
+        }
+
+        internal static string StringFromRawBytes(this byte[] bytes)
+        {
+            return bytes
+                .Batch(2)
+                .Select(duo => BitConverter.ToChar(duo.ToArray()))
+                .ApplyTo(chars => new string(chars.ToArray()));
+        }
     }
 }

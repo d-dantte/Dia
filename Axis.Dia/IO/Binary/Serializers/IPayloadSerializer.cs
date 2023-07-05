@@ -1,5 +1,6 @@
 ﻿using Axis.Dia.Contracts;
 using Axis.Dia.IO.Binary.Metadata;
+using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
 
 namespace Axis.Dia.IO.Binary.Serializers
@@ -27,45 +28,7 @@ namespace Axis.Dia.IO.Binary.Serializers
 
     internal static class PayloadSerializer
     {
-        // May never need this method
-        internal static IResult<TDiaValue> Deserialize<TDiaValue>(
-            byte[] bytes,
-            BinarySerializerContext context,
-            Func<Stream, BinarySerializerContext, IResult<TDiaValue>> deserializer)
-            where TDiaValue : IDiaValue
-        {
-            ArgumentNullException.ThrowIfNull(bytes);
-            ArgumentNullException.ThrowIfNull(deserializer);
-
-            var memoryStream = new MemoryStream(bytes);
-            var result = deserializer.Invoke(memoryStream, context);
-
-            if (memoryStream.Position < memoryStream.Length)
-                throw new PartialConsumptionException(
-                    memoryStream.Position,
-                    memoryStream.Length);
-
-            else return result;
-        }
-
-        internal static bool TrySerialize<TDiaValue>(
-            this TDiaValue value,
-            BinarySerializerContext context,
-            out IResult<byte[]> result)
-            where TDiaValue : IDiaValue
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static bool TryDeserialize<TDiaValue>(
-            this Stream stream,
-            BinarySerializerContext context,
-            out IResult<TDiaValue> result)
-            where TDiaValue : IDiaValue
-        {
-            throw new NotImplementedException();
-        }
-
+        #region Metadata
         internal static IResult<TypeMetadata> DeserializeTypeMetadataResult(
             this Stream stream)
             => stream.ReadVarBytesResult().Map(TypeMetadata.Of);
@@ -74,8 +37,9 @@ namespace Axis.Dia.IO.Binary.Serializers
             this Stream stream,
             out IResult<TypeMetadata> result)
             => (result = DeserializeTypeMetadataResult(stream)) is IResult<TypeMetadata>.DataResult;
+        #endregion
 
-
+        #region DiaValue
         internal static IResult<IDiaValue> DeserializeDiaValueResult(
             this Stream stream,
             BinarySerializerContext context)
@@ -133,6 +97,43 @@ namespace Axis.Dia.IO.Binary.Serializers
             BinarySerializerContext context,
             out IResult<IDiaValue> result)
             => (result = DeserializeDiaValueResult(stream, context)) is IResult<IDiaValue>.DataResult;
+
+        internal static IResult<byte[]> SerializeDiaValueResult(
+            this IDiaValue value,
+            BinarySerializerContext context)
+        {
+            return value.Type switch
+            {
+                DiaType.Bool => BoolPayloadSerializer.Serialize((BoolValue)value, context),
+
+                DiaType.Instant => InstantPayloadSerializer.Serialize((InstantValue)value, context),
+
+                DiaType.Int => IntPayloadSerializer.Serialize((IntValue)value, context),
+
+                DiaType.Decimal => DecimalPayloadSerializer.Serialize((DecimalValue)value, context),
+
+                DiaType.Blob => BlobPayloadSerializer.Serialize((BlobValue)value, context),
+
+                DiaType.Clob => ClobPayloadSerializer.Serialize((ClobValue)value, context),
+
+                DiaType.Symbol => SymbolPayloadSerializer.Serialize((SymbolValue)value, context),
+
+                DiaType.String => StringPayloadSerializer.Serialize((StringValue)value, context),
+
+                DiaType.List => ListPayloadSerializer.Serialize((ListValue)value, context),
+
+                DiaType.Record => RecordPayloadSerializer.Serialize((RecordValue)value, context),
+
+                _ => throw new InvalidOperationException($"Invalid DiaType found: {value.Type}")
+            };
+        }
+
+        internal static bool TrySerializeDiaValueResult(
+            this IDiaValue value,
+            BinarySerializerContext context,
+            out IResult<byte[]> result)
+            => (result = SerializeDiaValueResult(value, context)) is IResult<byte[]>.DataResult;
+        #endregion
     }
 
 }

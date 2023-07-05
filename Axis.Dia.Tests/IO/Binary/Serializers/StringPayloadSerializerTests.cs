@@ -94,16 +94,51 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
         [TestMethod]
         public void Desrialize_Tests()
         {
+            var nullValue = StringValue.Null();
+            var bytes = StringPayloadSerializer
+                .Serialize(nullValue, new BinarySerializerContext())
+                .Resolve();
+            var result = StringPayloadSerializer.Deserialize(
+                new MemoryStream(),
+                TypeMetadata.Of(bytes[0]),
+                new BinarySerializerContext());
+            Assert.IsTrue(result.IsDataResult());
+            var resultValue = result.Resolve();
+            Assert.AreEqual(nullValue, resultValue);
 
+
+            StringValue value = "";
+            bytes = StringPayloadSerializer
+                .Serialize(value, new BinarySerializerContext())
+                .Resolve();
+            result = StringPayloadSerializer.Deserialize(
+                new MemoryStream(),
+                TypeMetadata.Of(bytes[0]),
+                new BinarySerializerContext());
+            Assert.IsTrue(result.IsDataResult());
+            resultValue = result.Resolve();
+            Assert.AreEqual(value, resultValue);
+
+
+            var text = AllChars();
+            value = StringValue.Of(text, "annotation1", "annotation2");
+            bytes = StringPayloadSerializer
+                .Serialize(value, new BinarySerializerContext())
+                .Resolve();
+            var cmetaCount = CmetaCount(text.Length);
+            result = StringPayloadSerializer.Deserialize(
+                new MemoryStream(bytes[(cmetaCount + 1)..]),
+                TypeMetadata.Of(bytes[0], ToCmeta(bytes, cmetaCount)),
+                new BinarySerializerContext());
+            Assert.IsTrue(result.IsDataResult());
+            resultValue = result.Resolve();
+            Assert.AreEqual(value, resultValue);
         }
 
         private static int CmetaCount(int charCount)
         {
-            return charCount switch
-            {
-                < 127 => 1,
-                >= 127 => 2
-            };
+            var bitCount = Convert.ToString(charCount, 2).Length;
+            return Math.DivRem(bitCount, 7, out var rem) + (rem > 0 ? 1 : 0);
         }
 
         private static string RandomText()
@@ -115,6 +150,17 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
                 .Batch(2)
                 .Select(charBytes => BitConverter.ToChar(charBytes.ToArray()))
                 .ApplyTo(chars => new string(chars.ToArray()));
+        }
+
+        private static string AllChars()
+        {
+            var chars = new char[ushort.MaxValue];
+            for (ushort cnt = 0; cnt < ushort.MaxValue; cnt++)
+            {
+                chars[cnt] = (char)cnt;
+            }
+
+            return new string(chars);
         }
 
         private static CustomMetadata[] ToCmeta(byte[] bytes, int cmetaCount)

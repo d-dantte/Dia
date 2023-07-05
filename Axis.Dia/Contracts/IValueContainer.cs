@@ -14,5 +14,9 @@ namespace Axis.Dia.Contracts
         /// Creates a new, empty version of this container
         /// </summary>
         abstract static TSelf Empty(params Annotation[] attributes);
+
+        bool IsEmpty { get; }
+
+        int Count { get; }
     }
 }

@@ -117,6 +117,10 @@ namespace Axis.Dia.Types
         {
             return new RecordValue(Array.Empty<Property>(), annotations);
         }
+
+        public bool IsEmpty => _valueMap?.Count == 0;
+
+        public int Count => _valueMap?.Count ?? -1;
         #endregion
 
         #region ValueEquatable
@@ -247,8 +251,6 @@ namespace Axis.Dia.Types
 
             return _valueMap!.ContainsKey(propertyName);
         }
-
-        public int Count() => _valueMap?.Count ?? throw new InvalidOperationException("Record is null");
 
         public SymbolValue[]? Keys => _symbolMap?.Values.ToArray();
 

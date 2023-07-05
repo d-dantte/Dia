@@ -65,6 +65,13 @@ namespace Axis.Dia.Types
             Annotation[] annotations,
             params IDiaValue[] values)
             => new ListValue(values, annotations);
+
+        public static ListValue Of(
+            IEnumerable<IDiaValue>? values,
+            Annotation[] annotations)
+            => new ListValue(values, annotations);
+
+        public static ListValue Of(params IDiaValue[] values) => new ListValue(values);
         #endregion
 
         #region DeepCopyable
@@ -82,6 +89,10 @@ namespace Axis.Dia.Types
         {
             return new ListValue(Array.Empty<IDiaValue>(), annotations);
         }
+
+        public bool IsEmpty => _value?.Count == 0;
+
+        public int Count => _value?.Count ?? -1;
         #endregion
 
         #region ValueEquatable
@@ -156,7 +167,6 @@ namespace Axis.Dia.Types
         #endregion
 
         #region List members
-        public int? Count() => _value?.Count ?? 0;
 
         public ListValue AddValue(IDiaValue value)
         {

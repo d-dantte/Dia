@@ -210,10 +210,10 @@ namespace Axis.Dia.Tests.Types
             Assert.ThrowsException<ArgumentNullException>(() => value["stuff", null] = "stuff");
 
             value["key"] = "first value";
-            Assert.AreEqual(1, value.Count());
+            Assert.AreEqual(1, value.Count);
 
             value["key2", "help"] = "second value";
-            Assert.AreEqual(2, value.Count());
+            Assert.AreEqual(2, value.Count);
 
             var key = value.Keys!.FirstOrDefault(k => k.Annotations.Any(ann => ann.Text == "help"));
             Assert.IsNotNull(key);
@@ -228,7 +228,7 @@ namespace Axis.Dia.Tests.Types
                 ["2", "yes"] = false,
                 ["3"] = DateTimeOffset.Now
             };
-            Assert.AreEqual(3, value.Count());
+            Assert.AreEqual(3, value.Count);
         }
 
         [TestMethod]
@@ -344,7 +344,7 @@ namespace Axis.Dia.Tests.Types
                 () => record.TryAdd(SymbolValue.Of("stuff"), null));
 
             Assert.IsTrue(record.TryAdd(SymbolValue.Of("new.key"), SymbolValue.Of("new.value")));
-            Assert.AreEqual(4, record.Count());
+            Assert.AreEqual(4, record.Count);
             Assert.IsTrue(record.TryGetKeySymbol("new.key", out _));
         }
 
@@ -364,11 +364,11 @@ namespace Axis.Dia.Tests.Types
 
             Assert.IsFalse(record.TryRemove(SymbolValue.Of("new.key"), out var value));
             Assert.IsNull(value);
-            Assert.AreEqual(3, record.Count());
+            Assert.AreEqual(3, record.Count);
 
             Assert.IsTrue(record.TryRemove(SymbolValue.Of("1"), out value));
             Assert.IsNotNull(value);
-            Assert.AreEqual(2, record.Count());
+            Assert.AreEqual(2, record.Count);
         }
 
         [TestMethod]

@@ -4,7 +4,7 @@ using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using System.Numerics;
-using System.Text;
+
 
 namespace Axis.Dia.IO.Binary.Serializers
 {
@@ -47,7 +47,7 @@ namespace Axis.Dia.IO.Binary.Serializers
             return Result
                 .Of(typeMetadata)
 
-                // read annotations and determine how many bytes/chars to read for the symbol
+                // read annotations and determine how many bytes/chars to read for the String
                 .Map(tmeta => (
                     tmeta.IsNull,
                     CharCount: tmeta.CustomMetadataCount > 0
@@ -57,14 +57,14 @@ namespace Axis.Dia.IO.Binary.Serializers
                         ? AnnotationSerializer.Deserialize(stream).Resolve()
                         : Array.Empty<Annotation>()))
 
-                // read and construct the symbol
+                // read and construct the String
                 .Map(tuple => (
                     tuple.Annotations,
                     Bytes: tuple.IsNull ? null :
                         tuple.CharCount == 0 ? "" :
                         stream
                             .ReadExactBytesResult(tuple.CharCount * 2)
-                            .Map(Encoding.Unicode.GetString)
+                            .Map(BinaryExtensions.StringFromRawBytes)
                             .Resolve()))
 
                 // construct the SymbolValue
@@ -79,7 +79,7 @@ namespace Axis.Dia.IO.Binary.Serializers
                 var annotationResult = AnnotationSerializer.Serialize(value.Annotations);
                 var clobDataResult = (value.Value?.Length ?? 0) == 0
                     ? Result.Of(Array.Empty<byte>)
-                    : Result.Of(() => Encoding.Unicode.GetBytes(value.Value!));
+                    : Result.Of(() => value.Value!.ToRawByteArray());
 
                 return typeMetadataResult
 

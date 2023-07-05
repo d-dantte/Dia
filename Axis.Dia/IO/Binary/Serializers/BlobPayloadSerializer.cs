@@ -46,7 +46,7 @@ namespace Axis.Dia.IO.Binary.Serializers
             return Result
                 .Of(typeMetadata)
 
-                // read annotations and determine how many bytes/chars to read for the symbol
+                // read annotations and determine how many bytes/chars to read for the Blob
                 .Map(tmeta => (
                     tmeta.IsNull,
                     ByteCount: tmeta.CustomMetadataCount > 0
@@ -56,7 +56,7 @@ namespace Axis.Dia.IO.Binary.Serializers
                         ? AnnotationSerializer.Deserialize(stream).Resolve()
                         : Array.Empty<Annotation>()))
 
-                // read and construct the symbol
+                // read and construct the Blob
                 .Map(tuple => (
                     tuple.Annotations,
                     Bytes: tuple.IsNull ? null:
