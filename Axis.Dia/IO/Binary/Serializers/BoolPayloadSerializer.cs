@@ -51,7 +51,10 @@ namespace Axis.Dia.IO.Binary.Serializers
                 // construct the BoolValue
                 .Map(meta => BoolValue.Of(
                     meta.TypeMetadata.IsNull ? null : meta.TypeMetadata.IsCustomFlagSet,
-                    meta.Annotations));
+                    meta.Annotations))
+
+                // if the value could not be deserialized, creates an instance of ValueDeserializationException
+                .MapError(PayloadSerializer.TranslateValueError<BoolValue>);
         }
 
         public static IResult<byte[]> Serialize(

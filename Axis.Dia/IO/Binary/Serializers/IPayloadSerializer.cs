@@ -2,6 +2,7 @@
 using Axis.Dia.IO.Binary.Metadata;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
+using Axis.Luna.Extensions;
 
 namespace Axis.Dia.IO.Binary.Serializers
 {
@@ -31,7 +32,7 @@ namespace Axis.Dia.IO.Binary.Serializers
         #region Metadata
         internal static IResult<TypeMetadata> DeserializeTypeMetadataResult(
             this Stream stream)
-            => stream.ReadVarBytesResult().Map(TypeMetadata.Of);
+            => stream.ReadVarBytesResult().Map(TypeMetadata.Of).MapError(TranslateTypeMetadataError);
 
         internal static bool TryDeserializeTypeMetadataResult(
             this Stream stream,
@@ -134,6 +135,22 @@ namespace Axis.Dia.IO.Binary.Serializers
             out IResult<byte[]> result)
             => (result = SerializeDiaValueResult(value, context)) is IResult<byte[]>.DataResult;
         #endregion
+
+        internal static TypeMetadata TranslateTypeMetadataError(ResultException exception)
+        {
+            return exception.InnerException switch
+            {
+                EndOfStreamException eos => eos.Throw<TypeMetadata>(),
+                null => throw new Exception("Translation error: ResultException had no cause."),
+                _ => throw new ValueDeserializationException(exception.InnerException!)
+            };
+        }
+
+        internal static TDiaValue TranslateValueError<TDiaValue>(ResultException exception)
+        {
+            var cause = exception?.InnerException ?? throw new Exception("Translation error: ResultException had no cause.");
+            throw new ValueDeserializationException(cause);
+        }
     }
 
 }

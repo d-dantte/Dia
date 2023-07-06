@@ -386,6 +386,19 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
             Assert.AreEqual(value, resultValue);
 
 
+            value = -11.12212m;
+            bytes = DecimalPayloadSerializer
+                .Serialize(value, new Dia.IO.Binary.BinarySerializerContext())
+                .Resolve();
+            result = DecimalPayloadSerializer.Deserialize(
+                new MemoryStream(bytes[2..]),
+                TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
+                new Dia.IO.Binary.BinarySerializerContext());
+            Assert.IsTrue(result.IsDataResult());
+            resultValue = result.Resolve();
+            Assert.AreEqual(value, resultValue);
+
+
             value = -65.536m;
             bytes = DecimalPayloadSerializer
                 .Serialize(value, new Dia.IO.Binary.BinarySerializerContext())

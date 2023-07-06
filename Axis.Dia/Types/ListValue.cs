@@ -68,7 +68,7 @@ namespace Axis.Dia.Types
 
         public static ListValue Of(
             IEnumerable<IDiaValue>? values,
-            Annotation[] annotations)
+            params Annotation[] annotations)
             => new ListValue(values, annotations);
 
         public static ListValue Of(params IDiaValue[] values) => new ListValue(values);

@@ -100,6 +100,13 @@ namespace Axis.Dia.Types
             Annotation[] annotations,
             params (SymbolValue key, IDiaValue value)[]? values)
             => new RecordValue(values, annotations);
+
+        public static RecordValue Of(
+            IEnumerable<Property>? values,
+            params Annotation[] annotations)
+            => new RecordValue(values, annotations);
+
+        public static RecordValue Of(params Property[] values) => new RecordValue(values);
         #endregion
 
         #region DeepCopyable

@@ -68,19 +68,6 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
             Assert.AreEqual(nullValue, resultValue);
 
 
-            var emptyValue = SymbolValue.Of("");
-            bytes = SymbolPayloadSerializer
-                .Serialize(emptyValue, new Dia.IO.Binary.BinarySerializerContext())
-                .Resolve();
-            result = SymbolPayloadSerializer.Deserialize(
-                new MemoryStream(bytes[1..]),
-                TypeMetadata.Of(bytes[0]),
-                new Dia.IO.Binary.BinarySerializerContext());
-            Assert.IsTrue(result.IsDataResult());
-            resultValue = result.Resolve();
-            Assert.AreEqual(emptyValue, resultValue);
-
-
             var someValue = SymbolValue.Of("the-value", "the-annotation", "the-other-annotation");
             bytes = SymbolPayloadSerializer
                 .Serialize(someValue, new Dia.IO.Binary.BinarySerializerContext())

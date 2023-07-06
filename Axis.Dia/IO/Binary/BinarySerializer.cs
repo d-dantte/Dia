@@ -1,4 +1,8 @@
-﻿using Axis.Dia.Types;
+﻿using Axis.Dia.Contracts;
+using Axis.Dia.IO.Binary.Serializers;
+using Axis.Dia.Types;
+using Axis.Luna.Common.Results;
+using Axis.Luna.Extensions;
 
 namespace Axis.Dia.IO.Binary
 {
@@ -9,9 +13,15 @@ namespace Axis.Dia.IO.Binary
         /// </summary>
         /// <param name="packet"></param>
         /// <returns></returns>
-        public static byte[] Serialize(ValuePacket packet)
+        public static IResult<byte[]> Serialize(ValuePacket packet, BinarySerializerContext? context = null)
         {
-            throw new NotImplementedException();
+            context ??= new BinarySerializerContext();
+            return packet.Values
+                .Select(value => PayloadSerializer.SerializeDiaValueResult(value, context))
+                .Fold()
+                .Map(v => v.Aggregate(
+                    Array.Empty<byte>(),
+                    ArrayExtensions.ConcatWith));
         }
 
         /// <summary>
@@ -19,9 +29,24 @@ namespace Axis.Dia.IO.Binary
         /// </summary>
         /// <param name="packetStream"></param>
         /// <returns></returns>
-        public static ValuePacket Deserialize(Stream packetStream)
+        public static IResult<ValuePacket> Deserialize(Stream packetStream, BinarySerializerContext? context = null)
         {
-            throw new NotImplementedException();
+            context ??= new BinarySerializerContext();
+            var valueList = new List<IResult<IDiaValue>>();
+            IResult<IDiaValue> result;
+            while (packetStream.TryDeserializeDiaValueResult(context, out result))
+            {
+                valueList.Add(result);
+            }
+
+            if (result is IResult<IDiaValue>.ErrorResult errorResult)
+            {
+                if (errorResult.Cause().InnerException is EndOfStreamException)
+                    return valueList.Fold().Map(ValuePacket.Of);
+
+                else return result.Map(_ => default(ValuePacket));
+            }
+            else return Result.Of<ValuePacket>(new Exception("Fatal error: Packet Deserialization failed"));
         }
     }
 }

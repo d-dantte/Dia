@@ -5,6 +5,7 @@ namespace Axis.Dia.IO.Binary
 {
     public static class StreamExtensions
     {
+        #region Read single byte
         public static IResult<byte> ReadByteResult(this Stream stream)
         {
             return Result
@@ -16,27 +17,32 @@ namespace Axis.Dia.IO.Binary
             this Stream stream,
             out IResult<byte> result)
             => (result = ReadByteResult(stream)) is IResult<byte>.DataResult;
+        #endregion
 
 
+        #region Read Exact Bytes
         public static IResult<byte[]> ReadExactBytesResult(this Stream stream, int byteCount)
         {
             return Result.Of(() =>
             {
                 var bytes = new byte[byteCount];
                 var readCount = stream.Read(bytes);
-                return readCount != byteCount
-                    ? throw new EndOfStreamException()
-                    : bytes;
+                return
+                    readCount == byteCount ? bytes :
+                    readCount == 0 ? throw new EndOfStreamException() :
+                    throw new PartialReadException(bytes[0..readCount]);
             });
         }
 
-        public static bool TryReadExactBytesrESULT(
+        public static bool TryReadExactBytesResult(
             this Stream stream,
             int byteCount,
             out IResult<byte[]> result)
             => (result = ReadExactBytesResult(stream, byteCount)) is IResult<byte[]>.DataResult;
+        #endregion
 
 
+        #region Read VarBytes
         public static IResult<VarBytes> ReadVarBytesResult(this Stream stream)
         {
             return Result.Of(() =>
@@ -50,12 +56,10 @@ namespace Axis.Dia.IO.Binary
 
                     if (data < 0)
                     {
-                        var ex = new EndOfStreamException();
+                        if (bytes.Count == 0)
+                            throw new EndOfStreamException();
 
-                        if (bytes.Count > 0)
-                            ex.Data[PartialDataKey] = bytes.ToArray();
-
-                        throw ex;
+                        else throw new PartialReadException(bytes.ToArray());
                     }
 
                     bytes.Add((byte)data);
@@ -70,16 +74,17 @@ namespace Axis.Dia.IO.Binary
             this Stream stream,
             out IResult<VarBytes> result)
             => (result = ReadVarBytesResult(stream)) is IResult<VarBytes>.DataResult;
+        #endregion
 
 
-        private static readonly string PartialDataKey = "Axis.Dia.IO.Binary.VarBytePartialData";
-        public static byte[]? PartialData(this EndOfStreamException exception)
-        {
-            ArgumentNullException.ThrowIfNull(exception);
+        //private static readonly string PartialDataKey = "Axis.Dia.IO.Binary.VarBytePartialData";
+        //public static byte[]? PartialData(this EndOfStreamException exception)
+        //{
+        //    ArgumentNullException.ThrowIfNull(exception);
 
-            return exception.Data.TryGetValue(PartialDataKey, out var data)
-                ? (byte[])data
-                : null;
-        }
+        //    return exception.Data.TryGetValue(PartialDataKey, out var data)
+        //        ? (byte[])data
+        //        : null;
+        //}
     }
 }

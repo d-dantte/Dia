@@ -1,23 +1,30 @@
 ﻿using Axis.Dia.Contracts;
+using Axis.Luna.Extensions;
 
 namespace Axis.Dia.Types
 {
     public readonly struct ValuePacket
     {
-        private readonly List<IDiaValue> values;
+        private readonly List<IDiaValue>? values;
 
-        public IDiaValue[]? Values => values?.ToArray();
+        public IDiaValue[] Values => values?.ToArray() ?? Array.Empty<IDiaValue>();
 
         public ValuePacket(IEnumerable<IDiaValue> values)
+        : this(values.ToArray())
         {
-            this.values = values?
-                .ToList()
-                ?? throw new ArgumentNullException(nameof(values));
         }
 
         public ValuePacket(params IDiaValue[] values)
-        : this((IEnumerable<IDiaValue>)values)
         {
+            this.values = values?
+                .ThrowIfAny(
+                    value => value is null,
+                    new ArgumentException($"{nameof(values)} cannot contain null"))
+                .ToList();
         }
+
+        public static ValuePacket Of(params IDiaValue[] values) => new ValuePacket(values);
+
+        public static ValuePacket Of(IEnumerable<IDiaValue> values) => new ValuePacket(values);
     }
 }

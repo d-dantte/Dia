@@ -93,7 +93,10 @@ namespace Axis.Dia.IO.Binary.Serializers
                             .Resolve()))
 
                 // construct the IntValue
-                .Map(tuple => IntValue.Of(tuple.BigInt, tuple.Annotations));
+                .Map(tuple => IntValue.Of(tuple.BigInt, tuple.Annotations))
+
+                // if the value could not be deserialized, creates an instance of ValueDeserializationException
+                .MapError(PayloadSerializer.TranslateValueError<IntValue>);
         }
 
         public static IResult<byte[]> Serialize(IntValue value, BinarySerializerContext context)

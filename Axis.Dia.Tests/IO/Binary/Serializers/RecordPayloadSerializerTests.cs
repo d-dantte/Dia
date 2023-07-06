@@ -5,93 +5,91 @@ using Axis.Dia.IO.Binary.Serializers;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Common.Utils;
-using Axis.Luna.Extensions;
-using System.Numerics;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Axis.Dia.Tests.IO.Binary.Serializers
 {
     [TestClass]
-    public class ListPayloadSerializerTests
+    public class RecordPayloadSerializerTests
     {
         [TestMethod]
         public void CreatePayload_Tests()
         {
-            var nullValue = ListValue.Null();
-            var payload = ListPayloadSerializer.CreatePayload(nullValue);
+            var nullValue = RecordValue.Null();
+            var payload = RecordPayloadSerializer.CreatePayload(nullValue);
 
             Assert.IsTrue(payload.TypeMetadata.IsNull);
             Assert.IsFalse(payload.TypeMetadata.IsAnnotated);
             Assert.IsFalse(payload.TypeMetadata.IsCustomFlagSet);
             Assert.IsFalse(payload.TypeMetadata.IsOverflowFlagSet);
             Assert.AreEqual(0, payload.TypeMetadata.CustomMetadataCount);
-            Assert.AreEqual(DiaType.List, payload.TypeMetadata.Type);
+            Assert.AreEqual(DiaType.Record, payload.TypeMetadata.Type);
 
-            var value = ListValue.Empty();
-            payload = ListPayloadSerializer.CreatePayload(value);
+
+            var emptyValue = RecordValue.Empty();
+            payload = RecordPayloadSerializer.CreatePayload(emptyValue);
 
             Assert.IsFalse(payload.TypeMetadata.IsNull);
             Assert.IsFalse(payload.TypeMetadata.IsAnnotated);
             Assert.IsFalse(payload.TypeMetadata.IsCustomFlagSet);
             Assert.IsFalse(payload.TypeMetadata.IsOverflowFlagSet);
             Assert.AreEqual(0, payload.TypeMetadata.CustomMetadataCount);
-            Assert.AreEqual(DiaType.List, payload.TypeMetadata.Type);
+            Assert.AreEqual(DiaType.Record, payload.TypeMetadata.Type);
 
-            value = ListValue.Of(
+
+            var value = RecordValue.Of(
                 ArrayUtil.Of<Annotation>("a", "b"),
-                BoolValue.Of(true),
-                IntValue.Null(),
-                InstantValue.Of(DateTimeOffset.Now, "xyz", "abc"),
-                ListValue.Empty());
-            payload = ListPayloadSerializer.CreatePayload(value);
+                KeyValuePair.Create(SymbolValue.Of("first"), (IDiaValue)BoolValue.Of(true)),
+                KeyValuePair.Create(SymbolValue.Of("second"), (IDiaValue)IntValue.Null()),
+                KeyValuePair.Create(SymbolValue.Of("third"), (IDiaValue)InstantValue.Of(DateTimeOffset.Now, "xyz", "abc")),
+                KeyValuePair.Create(SymbolValue.Of("fourth"), (IDiaValue)RecordValue.Empty()));
+            payload = RecordPayloadSerializer.CreatePayload(value);
 
             Assert.IsFalse(payload.TypeMetadata.IsNull);
             Assert.IsTrue(payload.TypeMetadata.IsAnnotated);
             Assert.IsFalse(payload.TypeMetadata.IsCustomFlagSet);
             Assert.IsTrue(payload.TypeMetadata.IsOverflowFlagSet);
-            Assert.AreEqual(CmetaCount(value.Count), payload.TypeMetadata.CustomMetadataCount);
-            Assert.AreEqual(DiaType.List, payload.TypeMetadata.Type);
+            Assert.AreEqual(1, payload.TypeMetadata.CustomMetadataCount);
+            Assert.AreEqual(DiaType.Record, payload.TypeMetadata.Type);
         }
 
         [TestMethod]
         public void Serialize_Tests()
         {
-            var nullValue = ListValue.Null();
-            var result = ListPayloadSerializer.Serialize(nullValue, new BinarySerializerContext());
+            var nullValue = RecordValue.Null();
+            var result = RecordPayloadSerializer.Serialize(nullValue, new BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             var data = result.Resolve();
             Assert.AreEqual(1, data.Length);
-            Assert.AreEqual(42, data[0]);
+            Assert.AreEqual(43, data[0]);
 
-
-            var value = ListValue.Empty();
-            result = ListPayloadSerializer.Serialize(value, new BinarySerializerContext());
+            var value = RecordValue.Empty();
+            result = RecordPayloadSerializer.Serialize(value, new BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(1, data.Length);
-            Assert.AreEqual(10, data[0]); // tmeta
+            Assert.AreEqual(11, data[0]); // tmeta
 
-            value = ListValue.Of(
+            value = RecordValue.Of(
                 ArrayUtil.Of<Annotation>("a", "b"),
-                BoolValue.Of(true),
-                IntValue.Null(),
-                InstantValue.Of(DateTimeOffset.Parse("2023/07/05 09:52:37"), "xyz", "abc"),
-                ListValue.Empty());
-            result = ListPayloadSerializer.Serialize(value, new BinarySerializerContext());
+                KeyValuePair.Create(SymbolValue.Of("first"), (IDiaValue)BoolValue.Of(true)),
+                KeyValuePair.Create(SymbolValue.Of("second"), (IDiaValue)IntValue.Null()),
+                KeyValuePair.Create(SymbolValue.Of("third"), (IDiaValue)InstantValue.Of(DateTimeOffset.Parse("2023/07/05 09:52:37"), "xyz", "abc")),
+                KeyValuePair.Create(SymbolValue.Of("fourth"), (IDiaValue)RecordValue.Empty()));
+            result = RecordPayloadSerializer.Serialize(value, new BinarySerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
-            Assert.AreEqual(38, data.Length);
-            Assert.AreEqual(154, data[0]); // tmeta
+            Assert.AreEqual(68, data.Length);
+            Assert.AreEqual(155, data[0]); // tmeta
         }
 
         [TestMethod]
         public void Desrialize_Tests()
         {
-            var nullValue = ListValue.Null();
-            var bytes = ListPayloadSerializer
+            var nullValue = RecordValue.Null();
+            var bytes = RecordPayloadSerializer
                 .Serialize(nullValue, new BinarySerializerContext())
                 .Resolve();
-            var result = ListPayloadSerializer.Deserialize(
+            var result = RecordPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
                 new BinarySerializerContext());
@@ -100,11 +98,11 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
             Assert.AreEqual(nullValue, resultValue);
 
 
-            ListValue value = ListValue.Empty();
-            bytes = ListPayloadSerializer
+            RecordValue value = RecordValue.Empty();
+            bytes = RecordPayloadSerializer
                 .Serialize(value, new BinarySerializerContext())
                 .Resolve();
-            result = ListPayloadSerializer.Deserialize(
+            result = RecordPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
                 new BinarySerializerContext());
@@ -113,17 +111,17 @@ namespace Axis.Dia.Tests.IO.Binary.Serializers
             Assert.AreEqual(value, resultValue);
 
 
-            value = ListValue.Of(
+            value = RecordValue.Of(
                 ArrayUtil.Of<Annotation>("a", "b"),
-                BoolValue.Of(true),
-                IntValue.Null(),
-                InstantValue.Of(DateTimeOffset.Parse("2023/07/05 09:52:37"), "xyz", "abc"),
-                ListValue.Empty());
-            bytes = ListPayloadSerializer
+                KeyValuePair.Create(SymbolValue.Of("first"), (IDiaValue)BoolValue.Of(true)),
+                KeyValuePair.Create(SymbolValue.Of("second"), (IDiaValue)IntValue.Null()),
+                KeyValuePair.Create(SymbolValue.Of("third"), (IDiaValue)InstantValue.Of(DateTimeOffset.Parse("2023/07/05 09:52:37"), "xyz", "abc")),
+                KeyValuePair.Create(SymbolValue.Of("fourth"), (IDiaValue)RecordValue.Empty()));
+            bytes = RecordPayloadSerializer
                 .Serialize(value, new BinarySerializerContext())
                 .Resolve();
             var cmetaCount = CmetaCount(value.Count);
-            result = ListPayloadSerializer.Deserialize(
+            result = RecordPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[(cmetaCount + 1)..]),
                 TypeMetadata.Of(bytes[0], ToCmeta(bytes, cmetaCount)),
                 new BinarySerializerContext());

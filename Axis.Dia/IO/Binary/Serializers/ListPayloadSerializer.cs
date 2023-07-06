@@ -66,7 +66,10 @@ namespace Axis.Dia.IO.Binary.Serializers
                             .Resolve()))
 
                 // construct the List
-                .Map(tuple => ListValue.Of(tuple.Items, tuple.Annotations));
+                .Map(tuple => ListValue.Of(tuple.Items, tuple.Annotations))
+
+                // if the value could not be deserialized, creates an instance of ValueDeserializationException
+                .MapError(PayloadSerializer.TranslateValueError<ListValue>);
         }
 
         public static IResult<byte[]> Serialize(ListValue value, BinarySerializerContext context)

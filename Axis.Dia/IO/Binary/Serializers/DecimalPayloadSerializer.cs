@@ -102,19 +102,24 @@ namespace Axis.Dia.IO.Binary.Serializers
                                     .ReadVarBytesResult()
                                     .Map(vb => BitSequence.Of(vb.ToByteArray()))
                                     .Map(bs => bs.SignificantBits())
-                                    .Map(bs => (int)new BigInteger(bs.ToByteArray(), tuple.IsPositiveScale))
+                                    .Map(bs => (int)new BigInteger(bs.ToByteArray(), true))
+                                    .Map(scale => scale * (tuple.IsPositiveScale ? 1 : -1))
                                     .Resolve(),
                             significand: tuple.SignificandByteCount == 0
                                 ? 0
                                 : stream
                                     .ReadExactBytesResult(tuple.SignificandByteCount)
-                                    .Map(bytes => new BigInteger(bytes, tuple.IsPositiveValue))
+                                    .Map(bytes => new BigInteger(bytes, true))
+                                    .Map(sig => sig * (tuple.IsPositiveValue ? 1 : -1))
                                     .Resolve())))
 
                 // construct the DecimalValue
                 .Map(tuple => DecimalValue.Of(
                     tuple.Decimal,
-                    tuple.Annotations));
+                    tuple.Annotations))
+
+                // if the value could not be deserialized, creates an instance of ValueDeserializationException
+                .MapError(PayloadSerializer.TranslateValueError<DecimalValue>);
         }
 
         public static IResult<byte[]> Serialize(DecimalValue value, BinarySerializerContext context)

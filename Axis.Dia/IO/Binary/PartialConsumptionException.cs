@@ -1,28 +1,17 @@
-﻿using Axis.Luna.Extensions;
-
-namespace Axis.Dia.IO.Binary
+﻿namespace Axis.Dia.IO.Binary
 {
     /// <summary>
-    /// When a byte array is supplied to the "Deserialization" process, it is expected that the entirety of the array
-    /// MUST be used in creating the intended type. If the intended type is created, and all of the bytes aren't used,
-    /// this exception is thrown - an indication that some runtime miscalculation has occured.
+    /// This exception signals that the total number of bytes expected to be read were not read before encountering 
+    /// the end of the stream.
     /// </summary>
-    public class PartialConsumptionException: Exception
+    public class PartialReadException : Exception
     {
-        public long ConsumedByteCount { get; }
+        public byte[] PartialData { get; }
 
-        public long TotalByteCount { get; }
-
-        public PartialConsumptionException(long consumedByteCount, long totalByteCount)
-        : base($"The was only partially consumed. Expected consumption: {totalByteCount}, Actual consumption: {consumedByteCount}")
+        public PartialReadException(byte[] partialData)
+        : base($"Expected byte-count could not be read from the stream. Partial read count: {partialData?.Length ?? -1}")
         {
-            ConsumedByteCount = consumedByteCount.ThrowIf(
-                c => c < 0,
-                _ => new ArgumentOutOfRangeException(nameof(consumedByteCount)));
-
-            TotalByteCount = totalByteCount.ThrowIf(
-                c => c <= 0,
-                _ => new ArgumentOutOfRangeException(nameof(totalByteCount)));
+            PartialData = partialData ?? throw new ArgumentNullException(nameof(partialData));
         }
     }
 }

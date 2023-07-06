@@ -67,7 +67,10 @@ namespace Axis.Dia.IO.Binary.Serializers
                             .Resolve()))
 
                 // construct the SymbolValue
-                .Map(tuple => ClobValue.Of(tuple.Bytes, tuple.Annotations));
+                .Map(tuple => ClobValue.Of(tuple.Bytes, tuple.Annotations))
+
+                // if the value could not be deserialized, creates an instance of ValueDeserializationException
+                .MapError(PayloadSerializer.TranslateValueError<ClobValue>);
         }
 
         public static IResult<byte[]> Serialize(ClobValue value, BinarySerializerContext context)

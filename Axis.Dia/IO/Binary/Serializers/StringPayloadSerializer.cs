@@ -68,7 +68,10 @@ namespace Axis.Dia.IO.Binary.Serializers
                             .Resolve()))
 
                 // construct the SymbolValue
-                .Map(tuple => StringValue.Of(tuple.Bytes, tuple.Annotations));
+                .Map(tuple => StringValue.Of(tuple.Bytes, tuple.Annotations))
+
+                // if the value could not be deserialized, creates an instance of ValueDeserializationException
+                .MapError(PayloadSerializer.TranslateValueError<StringValue>);
         }
 
         public static IResult<byte[]> Serialize(StringValue value, BinarySerializerContext context)

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Folder Include="Conversion\" />
+    <Folder Include="IO\Text\Serializers\" />
   </ItemGroup>
 
   <ItemGroup>

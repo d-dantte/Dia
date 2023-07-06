@@ -59,12 +59,15 @@ namespace Axis.Dia.IO.Binary.Serializers
                 // read and construct the Blob
                 .Map(tuple => (
                     tuple.Annotations,
-                    Bytes: tuple.IsNull ? null:
-                        tuple.ByteCount == 0 ? Array.Empty<byte>():
+                    Bytes: tuple.IsNull ? null :
+                        tuple.ByteCount == 0 ? Array.Empty<byte>() :
                         stream.ReadExactBytesResult(tuple.ByteCount).Resolve()))
 
                 // construct the SymbolValue
-                .Map(tuple => BlobValue.Of(tuple.Bytes, tuple.Annotations));
+                .Map(tuple => BlobValue.Of(tuple.Bytes, tuple.Annotations))
+
+                // if the value could not be deserialized, creates an instance of ValueDeserializationException
+                .MapError(PayloadSerializer.TranslateValueError<BlobValue>);
         }
 
         public static IResult<byte[]> Serialize(BlobValue value, BinarySerializerContext context)

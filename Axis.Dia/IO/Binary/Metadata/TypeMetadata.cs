@@ -90,6 +90,11 @@ namespace Axis.Dia.IO.Binary.Metadata
         public DiaType Type => (DiaType)(IsDefault ? 0 : metadata[0] & TypeMask);
 
         /// <summary>
+        /// Checks that the <see cref="DiaType"/> represented by the metadata byte is defined on the enum.
+        /// </summary>
+        public bool IsValidateDiaType => !Enum.IsDefined(Type);
+
+        /// <summary>
         /// The metadata
         /// </summary>
         public VarBytes Metadata => metadata;
