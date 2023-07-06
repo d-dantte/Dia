@@ -1,4 +1,4 @@
-﻿using Axis.Dia.Contracts;
+using Axis.Dia.Contracts;
 using Axis.Dia.IO.Binary;
 using Axis.Dia.IO.Binary.Metadata;
 using Axis.Dia.IO.Binary.Serializers;
