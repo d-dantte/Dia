@@ -7,7 +7,7 @@ using Axis.Luna.Extensions;
 namespace Axis.Dia.IO.Binary.Serializers
 {
     internal interface IPayloadSerializer<TDiaValue>
-     where TDiaValue: IDiaValue
+    where TDiaValue: IDiaValue
     {
         /// <summary>
         /// 

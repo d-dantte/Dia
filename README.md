@@ -397,8 +397,8 @@ with new line, and another \n escaped new ilne"
         This string has the special new-line escape that \
         essentially \"swallows\" all white-space characters \
         up until the next non-whitespace character, or the \
-        end of the text. to use a regular back-slash, do this \\
-        in this case, all of the white space preceeding the regular \
+        end of the text. to use a regular back-slash, do this '\\'.
+        In this case, all of the white spaces preceeding the regular \
         back-slash are included in the text.
 "
 ```

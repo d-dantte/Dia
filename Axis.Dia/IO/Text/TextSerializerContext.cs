@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Axis.Dia.IO.Text
 {
-    internal class TextSerialzerContext
+    public class TextSerializerContext
     {
     }
 }

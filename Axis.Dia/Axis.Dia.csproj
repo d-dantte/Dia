@@ -8,7 +8,10 @@
 
   <ItemGroup>
     <Folder Include="Conversion\" />
-    <Folder Include="IO\Text\Serializers\" />
+    <Folder Include="IO\Text\Pulsar\EscapeMatchers\" />
+    <Folder Include="IO\Text\Pulsar\Validators\" />
+    <Folder Include="IO\Text\Pulsar\Terminals\" />
+    <Folder Include="IO\Text\Pulsar\Rules\" />
   </ItemGroup>
 
   <ItemGroup>
