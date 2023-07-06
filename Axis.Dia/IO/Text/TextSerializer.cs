@@ -41,7 +41,7 @@ namespace Axis.Dia.IO.Text
         /// </summary>
         /// <param name="diaText"></param>
         /// <returns></returns>
-        public static IResult<ValuePacket> DeserializePacket(string diaText)
+        public static IResult<ValuePacket> ParsePacket(string text)
         {
 
         }
@@ -66,7 +66,7 @@ namespace Axis.Dia.IO.Text
             };
         }
 
-        public static IResult<IDiaValue> DeserializeDiaValue(string value)
+        public static IResult<IDiaValue> ParseDiaValue(string text)
         {
 
         }

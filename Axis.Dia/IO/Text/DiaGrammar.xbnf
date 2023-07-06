@@ -107,26 +107,26 @@ $dia-string -> +[$annotation-list.? ?[$null-string $singleline-string $multiline
 $null-string -> "null.string"
 $singleline-string -> @Singleline-DQDString
 $multiline-string -> +[$block-space.? $ml-string].+
-$ml-string -> @Multiline-3SQDString
+$ml-string -> @Multiline-DQDString
 
 
 # Symbols
 $dia-symbol -> +[$annotation-list.? ?[$null-symbol $quoted-symbol $identifier]]
 $null-symbol -> "null.symbol"
 $quoted-symbol -> @Singleline-SQDString
-$identifier -> @Dia-identifier
+$identifier -> @DiaIdentifier
 
 
 # Blob
 $dia-blob -> +[$annotation-list.? ?[$null-blob $blob-text-value]]
 $null-blob -> "null.blob"
-$blob-text-value -> @Blob-value
+$blob-text-value -> @BlobValue
 
 
 # Clob
 $dia-clob -> +[$annotation-list.? ?[$null-clob $clob-text-value]]
 $null-clob -> "null.clob"
-$clob-text-value -> @Clob-value
+$clob-text-value -> @ClobValue
 
 
 # List

@@ -1,7 +1,7 @@
 ﻿using Axis.Dia.Contracts;
 using Axis.Luna.Common.Results;
 
-namespace Axis.Dia.IO.Text.Serializers
+namespace Axis.Dia.IO.Text.Parsers
 {
     public interface IValueSerializer<TDiaValue>
     where TDiaValue : IDiaValue
@@ -20,6 +20,6 @@ namespace Axis.Dia.IO.Text.Serializers
         /// <param name="text">The text</param>
         /// <param name="context">The serializer contet</param>
         /// <returns>The <see cref="TDiaValue"/> instance.</returns>
-        abstract static IResult<TDiaValue> Deserialize(String text, TextSerializerContext? context = null);
+        abstract static IResult<TDiaValue> Parse(string text, TextSerializerContext? context = null);
     }
 }

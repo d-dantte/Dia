@@ -6,8 +6,6 @@ using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using System.Numerics;
-using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Axis.Dia.Tests.IO.Binary.Serializers
 {
