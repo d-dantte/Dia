@@ -14,7 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{55AE1BB6-89E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{2EEBCFFF-A11A-4E22-9DF0-193A1BC07C14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axis.Dia.Tests", "Axis.Dia.Tests\Axis.Dia.Tests.csproj", "{E3B2D64A-9FD0-4CB6-B968-5DB3D193A7E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia.Tests", "Axis.Dia.Tests\Axis.Dia.Tests.csproj", "{E3B2D64A-9FD0-4CB6-B968-5DB3D193A7E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

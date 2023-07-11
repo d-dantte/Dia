@@ -420,7 +420,7 @@ The following escape sequences are supported:
 | \\\\            | Backslash                                                                                   |
 | \NL             | Escape whitespaces. A backslash followed by a new line, and arbitrary number of whitespaces |
 | \xHH            | 1 byte char escape                                                                          |
-| \uHHHH          | 2 byte char escape                                                                         |
+| \uHHHH          | 2 byte char escape                                                                          |
 
 #### _Binary Representation_
 

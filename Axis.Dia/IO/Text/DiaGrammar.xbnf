@@ -7,7 +7,7 @@
 $packet -> ?[
 	+[$block-space.?  EOF]
 	+[$block-space.? $dia-value +[$block-space $dia-value].* $block-space.? EOF]]
-		
+
 
 # Ion Value
 $dia-value -> ?[
@@ -15,10 +15,10 @@ $dia-value -> ?[
 	$dia-record
 	$dia-list
 	$dia-string
-	$dia-timestamp
+	$dia-instant
 	$dia-decimal $dia-int
 	$dia-bool $dia-symbol]
-	
+
 
 # Spaces
 $block-space -> ?[$char-space $block-comment $line-comment].+
@@ -38,20 +38,20 @@ $line-comment-content -> /^[^\r\n]*\z/
 
 
 # Annotation
-$annotatdia-list -> +[$annotation '::' $block-space.?].+
+$annotation-list -> +[$annotation '::' $block-space.?].+
 $annotation -> ?[$quoted-symbol $identifier]
 
 
 # Bool
 # NOTE: single-quoted strings ignore case.
-$dia-bool -> +[$annotatdia-list.? ?[$null-bool $true-bool $false-bool]]
+$dia-bool -> +[$annotation-list.? ?[$null-bool $true-bool $false-bool]]
 $null-bool -> "null.bool"
 $true-bool -> 'true'
 $false-bool -> 'false'
 
 
 # Int
-$dia-int -> +[$annotatdia-list.? ?[$null-int $int-number]]
+$dia-int -> +[$annotation-list.? ?[$null-int $int-number]]
 $int-number -> +[$negative-sign.? $int-notation]
 $negative-sign -> '-'
 $int-notation -> ?[$binary-int $hex-int $regular-int]
@@ -68,29 +68,30 @@ $regular-decimal -> +[$negative-sign.? $regular-int '.' $dia-digits.?]
 $scientific-decimal -> +[
 	$negative-sign.? $regular-int
 	+['.' $dia-digits.?].?
-	'D' $number-sign.? $dia-digits]
+	'E' $number-sign.? $dia-digits]
 $dia-digits -> /^\d(_?\d)*\z/.2,+
+$number-sign -> ?['+' '-']
 
 
 # Timestamp
 # NOTE: Investigate using recognition thresholds to stop shorter presisions from greedily recognizing failed subsets of
 # longer presisions. e.g, '2007-02-23T20:14:33.Z' should fail, but is greedily recognized as a 'day-precision'
-$dia-timestamp -> +[$annotation-list.? ?[
+$dia-instant -> +[$annotation-list.? ?[
 	$null-timestamp $millisecond-precision $second-precision
 	$minute-precision $day-precision $month-precision
 	$year-precision]]
 $null-timestamp -> "null.timestamp"
 $millisecond-precision -> +[
-	$year $minus $month $minus $day $date-delimiter
-	$hour $colon $minute $colon $second $dot
+	$year '-' $month '-' $day $date-delimiter
+	$hour ':' $minute ':' $second '.'
 	$millisecond $time-zone-offset]>12
-$second-precision -> +[$year $minus $month $minus $day $date-delimiter $hour $colon $minute $colon $second $time-zone-offset]>10
-$minute-precision -> +[$year $minus $month $minus $day $date-delimiter $hour $colon $minute $time-zone-offset]>7
-$day-precision -> +[$year $minus $month $minus $day $date-delimiter.?]
-$month-precision -> +[$year $minus $month $date-delimiter]
+$second-precision -> +[$year '-' $month '-' $day $date-delimiter $hour ':' $minute ':' $second $time-zone-offset]>10
+$minute-precision -> +[$year '-' $month '-' $day $date-delimiter $hour ':' $minute $time-zone-offset]>7
+$day-precision -> +[$year '-' $month '-' $day $date-delimiter.?]
+$month-precision -> +[$year '-' $month $date-delimiter]
 $year-precision -> +[$year $date-delimiter]
 $time-zone-offset -> ?[$utc-offset $minute-precision-offset]
-$minute-precision-offset -> +[?[$plus $minus] $hour $colon $minute]
+$minute-precision-offset -> +[?['+' '-'] $hour ':' $minute]
 $utc-offset -> "Z"
 $date-delimiter -> "T"
 $year -> /^\d{4,}\z/.4,+
@@ -114,7 +115,7 @@ $ml-string -> @Multiline-DQDString
 $dia-symbol -> +[$annotation-list.? ?[$null-symbol $quoted-symbol $identifier]]
 $null-symbol -> "null.symbol"
 $quoted-symbol -> @Singleline-SQDString
-$identifier -> @DiaIdentifier
+$identifier -> @SymbolIdentifier
 
 
 # Blob
@@ -137,7 +138,7 @@ $list-value -> +[
 		$block-space.?
 		$dia-value +[
 			$block-space.?
-			$comma
+			','
 			$block-space.?
 			$dia-value
 		].*
@@ -154,41 +155,15 @@ $record-value -> +[
 		$block-space.?
 		$record-field +[
 			$block-space.?
-			$comma
+			','
 			$block-space.?
 			$record-field
 		].*
 	].?
 	$block-space.? '}'
 ]
-$record-field -> +[$field-name $block-space.? $colon $block-space.? $dia-value]
+$record-field -> +[$field-name $block-space.? ':' $block-space.? $dia-value]
 $field-name -> ?[
 	$singleline-string
 	$dia-symbol]
 
-
-# General terminals
-$ampersand -> '&'
-$star -> '*'
-$plus -> '+'
-$minus -> '-'
-$dot -> '.'
-$comma -> ','
-$f-slash -> '/'
-$s-colon -> ';'
-$less -> '<'
-$equals -> '='
-$greater -> '>'
-$q-mark -> '?'
-$at -> '@'
-$caret -> '^'
-$b-tick -> '`'
-$pipe -> '|'
-$tilde -> '~'
-$colon -> ':'
-$l-brace -> '{'
-$r-brace -> '}'
-$l-bracket -> '['
-$r-bracket -> ']'
-$l-parantheses -> '('
-$r-parantheses -> ')'

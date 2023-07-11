@@ -7,18 +7,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Conversion\" />
-    <Folder Include="IO\Text\Pulsar\EscapeMatchers\" />
-    <Folder Include="IO\Text\Pulsar\Validators\" />
-    <Folder Include="IO\Text\Pulsar\Terminals\" />
-    <Folder Include="IO\Text\Pulsar\Rules\" />
+    <None Remove="IO\Text\DiaGrammar.xbnf" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Axis.Luna.Common" Version="6.0.17" />
-    <PackageReference Include="Axis.Luna.Extensions" Version="6.0.15" />
-    <PackageReference Include="Axis.Pulsar.Grammar" Version="0.7.16" />
-    <PackageReference Include="Axis.Pulsar.Languages" Version="0.7.13" />
+    <EmbeddedResource Include="IO\Text\DiaGrammar.xbnf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Conversion\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Axis.Luna.Common" Version="6.0.18" />
+    <PackageReference Include="Axis.Luna.Extensions" Version="6.0.18" />
+    <PackageReference Include="Axis.Pulsar.Grammar" Version="0.7.18" />
+    <PackageReference Include="Axis.Pulsar.Languages" Version="0.7.18" />
   </ItemGroup>
 
 </Project>

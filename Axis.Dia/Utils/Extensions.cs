@@ -1,9 +1,10 @@
-﻿using Axis.Luna.Extensions;
+﻿using Axis.Luna.Common.Results;
+using Axis.Luna.Extensions;
 using System.Numerics;
 
 namespace Axis.Dia.Utils
 {
-    public static class Extensions
+    internal static class Extensions
     {
         internal static bool IsNull<TValue>(this TValue value) => value is null;
 
@@ -99,7 +100,7 @@ namespace Axis.Dia.Utils
             }
         }
 
-        public static TItem[] JoinWith<TItem>(this TItem[] first, TItem[] second)
+        internal static TItem[] JoinWith<TItem>(this TItem[] first, TItem[] second)
         {
             ArgumentNullException.ThrowIfNull(first);
             ArgumentNullException.ThrowIfNull(second);
@@ -112,7 +113,7 @@ namespace Axis.Dia.Utils
             return combinedArray;
         }
 
-        public static IEnumerable<TOut> Repeat<TOut>(
+        internal static IEnumerable<TOut> Repeat<TOut>(
             this BigInteger count,
             Func<BigInteger, TOut> func)
         {
@@ -128,6 +129,53 @@ namespace Axis.Dia.Utils
             }
         }
 
-        public static IEnumerable<BigInteger> Repeat(this BigInteger count) => count.Repeat(i => i);
+        internal static IEnumerable<TOut> Repeat<TOut>(
+            this int count,
+            Func<int, TOut> func)
+        {
+            ArgumentNullException.ThrowIfNull(func);
+
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+
+            int index = 0;
+            while (index++ < count)
+            {
+                yield return func.Invoke(index);
+            }
+        }
+
+        internal static IEnumerable<TOut> Repeat<TOut>(
+            this long count,
+            Func<long, TOut> func)
+        {
+            ArgumentNullException.ThrowIfNull(func);
+
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+
+            long index = 0;
+            while (index++ < count)
+            {
+                yield return func.Invoke(index);
+            }
+        }
+
+        internal static IEnumerable<BigInteger> Repeat(this BigInteger count) => count.Repeat(i => i);
+
+        internal static IResult<TOut> Cast<TIn, TOut>(this IResult<TIn> result) => result.Map(r => r.As<TOut>());
+
+        internal static string Reverse(this string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)
+                || value.Length == 1)
+                return value;
+
+            else
+                return value
+                    .ToCharArray()
+                    .With(Array.Reverse)
+                    .ApplyTo(array => new string(array));
+        }
     }
 }

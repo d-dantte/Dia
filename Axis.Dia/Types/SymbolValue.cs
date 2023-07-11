@@ -18,7 +18,7 @@ namespace Axis.Dia.Types
         IEquatable<SymbolValue>,
         IValueEquatable<SymbolValue, string>
     {
-        private static readonly Regex IdentifierPattern = new(
+        public static readonly Regex IdentifierPattern = new(
             "^[a-zA-Z_](([.-])?[a-zA-Z0-9_])*\\z",
             RegexOptions.Compiled);
 

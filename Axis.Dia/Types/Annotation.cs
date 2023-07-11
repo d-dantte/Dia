@@ -104,12 +104,12 @@ namespace Axis.Dia.Types
         /// </summary>
         /// <param name="attribute">the output attribute</param>
         /// <returns>true if this is an attribute and the deconstruction is successful, false otherwise.</returns>
-        public bool TryGetAttribute(out KeyValuePair<string, string> attribute)
+        public bool TryGetAttribute(out Attribute attribute)
         {
             var kvpMatch = AttributePattern.Match(_value);
             if (kvpMatch.Success)
             {
-                attribute = KeyValuePair.Create(
+                attribute = new Attribute(
                     kvpMatch.Groups["key"].Value,
                     EscapeSequenceGroup.SymbolEscapeGroup.Unescape(kvpMatch.Groups["value"].Value)!);
                 return true;
@@ -134,6 +134,54 @@ namespace Axis.Dia.Types
 
             identifier = null!;
             return false;
+        }
+        #endregion
+
+        #region nested type
+        public readonly struct Attribute
+        {
+            /// <summary>
+            /// The key
+            /// </summary>
+            public string Key { get; }
+
+            /// <summary>
+            /// The value
+            /// </summary>
+            public string Value { get; }
+
+            /// <summary>
+            /// Creates a new instance of the attribute.
+            /// </summary>
+            /// <param name="key">The key - cannot be null</param>
+            /// <param name="value">The value - cannot be null</param>
+            /// <exception cref="ArgumentNullException">If any of the arguments is null</exception>
+            public Attribute(string key, string value)
+            {
+                Key = key ?? throw new ArgumentNullException(nameof(key));
+                Value = value ?? throw new ArgumentNullException(nameof(value));
+            }
+
+            public override bool Equals([NotNullWhen(true)] object? obj)
+            {
+                return obj is Attribute other
+                    && Key.Equals(other.Key)
+                    && Value.Equals(other.Value);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Key, Value);
+            }
+
+            public override string ToString()
+            {
+                return $"[{Key}: {Value}]";
+            }
+
+            public static bool operator ==(Attribute a, Attribute b) => a.Equals(b);
+
+            public static bool operator !=(Attribute a, Attribute b) => !(a == b);
         }
         #endregion
     }
