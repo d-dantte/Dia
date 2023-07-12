@@ -9,7 +9,7 @@ $packet -> ?[
 	+[$block-space.? $dia-value +[$block-space $dia-value].* $block-space.? EOF]]
 
 
-# Ion Value
+# Values
 $dia-value -> ?[
 	$dia-clob $dia-blob
 	$dia-record
@@ -77,10 +77,10 @@ $number-sign -> ?['+' '-']
 # NOTE: Investigate using recognition thresholds to stop shorter presisions from greedily recognizing failed subsets of
 # longer presisions. e.g, '2007-02-23T20:14:33.Z' should fail, but is greedily recognized as a 'day-precision'
 $dia-instant -> +[$annotation-list.? ?[
-	$null-timestamp $millisecond-precision $second-precision
+	$null-instant $millisecond-precision $second-precision
 	$minute-precision $day-precision $month-precision
 	$year-precision]]
-$null-timestamp -> "null.timestamp"
+$null-instant -> "null.instant"
 $millisecond-precision -> +[
 	$year '-' $month '-' $day $date-delimiter
 	$hour ':' $minute ':' $second '.'

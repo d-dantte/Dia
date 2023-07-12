@@ -108,11 +108,58 @@ namespace Axis.Dia.Types
         }
         #endregion
 
+        #region Misc
+
+        public InstantValue Copy(Precision precision = Precision.Millisecond)
+        {
+            if (Value is null)
+                return Null(_annotations);
+
+            var ts = Value.Value;
+            var milliseconds = int.Parse(ts.ToString("ffffff")) / 1000d;
+            var dateTime = precision switch
+            {
+                Precision.Year => new DateTimeOffset(ts.Year, 1, 1, 0, 0, 0, Value.Value.Offset),
+                Precision.Month => new DateTimeOffset(ts.Year, ts.Month, 1, 0, 0, 0, Value.Value.Offset),
+                Precision.Day => new DateTimeOffset(ts.Year, ts.Month, ts.Day, 0, 0, 0, Value.Value.Offset),
+                Precision.Minute => new DateTimeOffset(ts.Year, ts.Month, ts.Day, ts.Hour, ts.Minute, 0, Value.Value.Offset),
+                Precision.Second => new DateTimeOffset(ts.Year, ts.Month, ts.Day, ts.Hour, ts.Minute, ts.Second, Value.Value.Offset),
+                Precision.Millisecond => new DateTimeOffset(ts.Year, ts.Month, ts.Day, ts.Hour, ts.Minute, ts.Second, Value.Value.Offset) + TimeSpan.FromMilliseconds(milliseconds),
+                _ => throw new ArgumentException($"Invalid precision: {precision}")
+            };
+
+            return Of(dateTime, _annotations);
+        }
+
+        public InstantValue SwitchOffset(TimeSpan newOffset)
+        {
+            if (Value is null)
+                return new InstantValue(null, _annotations);
+
+            return new InstantValue(
+                new DateTimeOffset(Value.Value.DateTime, newOffset),
+                _annotations);
+        }
+        #endregion
+
         #region operators
 
         public static bool operator ==(InstantValue lhs, InstantValue rhs) => lhs.Equals(rhs);
 
         public static bool operator !=(InstantValue lhs, InstantValue rhs) => !(lhs != rhs);
+        #endregion
+
+
+        #region Nested types
+        public enum Precision
+        {
+            Year,
+            Month,
+            Day,
+            Minute,
+            Second,
+            Millisecond
+        }
         #endregion
     }
 }

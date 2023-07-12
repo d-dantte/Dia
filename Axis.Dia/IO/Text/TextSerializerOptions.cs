@@ -106,6 +106,8 @@
         public record DecimalOptions
         {
             public bool UseExponentNotation { get; set; }
+
+            public int MaxPrecision { get; set; } = 64;
         }
 
         public record TimestampOptions
