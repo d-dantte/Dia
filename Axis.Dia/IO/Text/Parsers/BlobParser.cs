@@ -78,7 +78,7 @@ namespace Axis.Dia.IO.Text.Parsers
 
                     TextLineStyle.Multiline => Convert
                         .ToBase64String(value.Value!)
-                        .Batch(blobOptions.LineBreakPoint)
+                        .Batch(blobOptions.MaxLineLength)
                         .Select(chars => new string(chars.ToArray()))
                         .ApplyTo(lines => WrapLines(lines.ToArray(), context)),
                     _ => throw new ArgumentException($"Invalid line style: {blobOptions.LineStyle}")

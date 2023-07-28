@@ -43,7 +43,7 @@ namespace Axis.Dia.Utils
 
 
         private static readonly EscapeSequenceGroup _symbolEscape = new SymbolEscapeSequenceGroup();
-        private static readonly EscapeSequenceGroup _stringEscape = new StringEscapeSequenceGroup();
+        private static readonly EscapeSequenceGroup _stringEscape = new SinglelineStringEscapeSequenceGroup();
 
         /// <summary>
         /// 
@@ -53,6 +53,15 @@ namespace Axis.Dia.Utils
         /// <summary>
         /// 
         /// </summary>
-        public static EscapeSequenceGroup StringEscapeGroup => _stringEscape;
+        public static EscapeSequenceGroup SinglelineStringEscapeGroup => _stringEscape;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="alignmentSpaceCount"></param>
+        /// <returns></returns>
+        public static EscapeSequenceGroup MultilineStringEscapeGroup(
+            ushort? alignmentSpaceCount = null)
+            => new MultilineStringEscapeSequenceGroup(alignmentSpaceCount);
     }
 }

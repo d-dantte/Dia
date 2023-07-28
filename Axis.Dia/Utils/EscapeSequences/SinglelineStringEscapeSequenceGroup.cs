@@ -4,14 +4,14 @@ using System.Text.RegularExpressions;
 
 namespace Axis.Dia.Utils.EscapeSequences
 {
-    public class StringEscapeSequenceGroup : EscapeSequenceGroup
+    public class SinglelineStringEscapeSequenceGroup : EscapeSequenceGroup
     {
         private static readonly Regex GreedyLinePattern = new(@"\\(?'gl'\r?\n\s*)", RegexOptions.Compiled);
-        private static readonly Regex WSPattern = new(@"\\(?'ws'[0abfntrv\\""\n])", RegexOptions.Compiled);
+        private static readonly Regex AsciiPattern = new(@"\\(?'ws'[0abfntrv\\""\n])", RegexOptions.Compiled);
         private static readonly Regex Hex2Pattern = new(@"\\x(?'hex'[a-fA-F0-9]{2})", RegexOptions.Compiled);
         private static readonly Regex Hex4Pattern = new(@"\\u(?'hex'[a-fA-F0-9]{4})", RegexOptions.Compiled);
 
-        public override string Name => "DiaStringEscapeSequences";
+        public override string Name => "SinglelineStringEscapeSequences";
 
         public override string? Escape(string? value)
         {
@@ -64,7 +64,7 @@ namespace Axis.Dia.Utils.EscapeSequences
 
         private string UnescapeWS(string value)
         {
-            return WSPattern.Replace(value, match => match.Groups["ws"].Value switch
+            return AsciiPattern.Replace(value, match => match.Groups["ws"].Value switch
             {
                 "0" => "\0",
                 "a" => "\a",

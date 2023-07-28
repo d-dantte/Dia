@@ -117,17 +117,35 @@
 
         public record StringOptions
         {
-            private ushort lineBreakPoint = 100;
+            private ushort maxLineLength = 150;
 
+            /// <summary>
+            /// Text line style.
+            /// </summary>
             public TextLineStyle LineStyle { get; set; }
 
-            public ushort LineBreakPoint
+            /// <summary>
+            /// Maximum number of text characters in each line. Words that cause a line to exceed this
+            /// boundary are placed on a new line. If a single word is longer than the boundary, it is placed
+            /// on it's own line.
+            /// </summary>
+            public ushort MaxLineLength
             {
-                get => lineBreakPoint;
-                set => lineBreakPoint = value == 0
-                    ? throw new ArgumentException("Line break cannot be 0")
+                get => maxLineLength;
+                set => maxLineLength = value == 0
+                    ? throw new ArgumentException("Maximum line length cannot be 0")
                     : value;
             }
+
+            /// <summary>
+            /// Indicates that text in <see cref="TextLineStyle.Multiline"/> mode should be aligned
+            /// </summary>
+            public bool IsTextAligned { get; set; }
+
+            /// <summary>
+            /// Number of spaces to use when aligning text in <see cref="TextLineStyle.Multiline"/> mode.
+            /// </summary>
+            public ushort AlignmentIndentation { get; set; } = 8;
         }
 
         public record BlobOptions: StringOptions
