@@ -83,6 +83,8 @@ namespace Axis.Dia.Types
         : this(null, annotations)
         { }
 
+        public static SymbolValue Of(string? value) => Of(value, Array.Empty<Annotation>());
+
         public static SymbolValue Of(string? value, params Annotation[] annotations) => new SymbolValue(value, annotations);
 
         public static implicit operator SymbolValue(string? value) => Of(value);

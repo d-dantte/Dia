@@ -68,6 +68,8 @@ namespace Axis.Dia.Types
         public static implicit operator IntValue(long value) => new IntValue(value);
         public static implicit operator IntValue(ulong value) => new IntValue(value);
 
+        public static IntValue Of(BigInteger? value) => Of(value, Array.Empty<Annotation>());
+
         public static IntValue Of(
             BigInteger? value,
             params Annotation[] annotations)

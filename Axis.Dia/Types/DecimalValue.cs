@@ -79,6 +79,8 @@ namespace Axis.Dia.Types
         public static implicit operator DecimalValue(double value) => new DecimalValue(value);
         public static implicit operator DecimalValue(decimal value) => new DecimalValue(value);
 
+        public static DecimalValue Of(BigDecimal? value) => Of(value, Array.Empty<Annotation>());
+
         public static DecimalValue Of(
             BigDecimal? value,
             params Annotation[] annotations)

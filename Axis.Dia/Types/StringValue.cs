@@ -57,6 +57,8 @@ namespace Axis.Dia.Types
         public static implicit operator StringValue(char[] value) => new StringValue(new string(value));
         public static implicit operator StringValue(Span<char> value) => new StringValue(new string(value));
 
+        public static StringValue Of(string? value) => Of(value, Array.Empty<Annotation>());
+
         public static StringValue Of(
             string? value,
             params Annotation[] annotations)

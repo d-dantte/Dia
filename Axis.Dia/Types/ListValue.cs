@@ -61,6 +61,8 @@ namespace Axis.Dia.Types
 
         public static implicit operator ListValue(IDiaValue[]? value) => new ListValue(value);
 
+        public static ListValue Of(IEnumerable<IDiaValue>? value) => Of(value, Array.Empty<Annotation>());
+
         public static ListValue Of(
             Annotation[] annotations,
             params IDiaValue[] values)

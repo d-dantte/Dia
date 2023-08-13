@@ -7,15 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="IO\Text\DiaGrammar.xbnf" />
+    <None Remove="Convert\Text\DiaGrammar.xbnf" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="IO\Text\DiaGrammar.xbnf" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Conversion\" />
+    <EmbeddedResource Include="Convert\Text\DiaGrammar.xbnf" />
   </ItemGroup>
 
   <ItemGroup>

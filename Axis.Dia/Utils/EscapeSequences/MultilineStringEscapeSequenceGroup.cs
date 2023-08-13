@@ -1,4 +1,4 @@
-﻿using Axis.Dia.IO.Text;
+﻿using Axis.Dia.Convert.Text;
 using Axis.Luna.Extensions;
 using Axis.Pulsar.Grammar;
 using System.Globalization;

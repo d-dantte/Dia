@@ -49,6 +49,8 @@ namespace Axis.Dia.Types
 
         public static implicit operator BoolValue(bool? value) => new BoolValue(value);
 
+        public static BoolValue Of(bool? value) => Of(value, Array.Empty<Annotation>());
+
         public static BoolValue Of(
             bool? value,
             params Annotation[] annotations)

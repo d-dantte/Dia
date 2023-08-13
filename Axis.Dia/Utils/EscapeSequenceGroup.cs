@@ -44,6 +44,7 @@ namespace Axis.Dia.Utils
 
         private static readonly EscapeSequenceGroup _symbolEscape = new SymbolEscapeSequenceGroup();
         private static readonly EscapeSequenceGroup _stringEscape = new SinglelineStringEscapeSequenceGroup();
+        private static readonly EscapeSequenceGroup _clobEscape = new ClobEscapeSequenceGroup();
 
         /// <summary>
         /// 
@@ -54,6 +55,11 @@ namespace Axis.Dia.Utils
         /// 
         /// </summary>
         public static EscapeSequenceGroup SinglelineStringEscapeGroup => _stringEscape;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static EscapeSequenceGroup ClobEscapeGroup => _clobEscape;
 
         /// <summary>
         /// 

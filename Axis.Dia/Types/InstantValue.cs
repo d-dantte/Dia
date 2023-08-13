@@ -55,6 +55,8 @@ namespace Axis.Dia.Types
         public static implicit operator InstantValue(DateTime value) => new InstantValue(value);
         public static implicit operator InstantValue(TimeSpan value) => new InstantValue(DateTimeOffset.Now + value);
 
+        public static InstantValue Of(DateTimeOffset? value) => Of(value, Array.Empty<Annotation>());
+
         public static InstantValue Of(
             DateTimeOffset? value,
             params Annotation[] annotations)
@@ -116,7 +118,7 @@ namespace Axis.Dia.Types
                 return Null(_annotations);
 
             var ts = Value.Value;
-            var milliseconds = int.Parse(ts.ToString("ffffff")) / 1000d;
+            var milliseconds = int.Parse(ts.ToString("fffffff")) / 10000d;
             var dateTime = precision switch
             {
                 Precision.Year => new DateTimeOffset(ts.Year, 1, 1, 0, 0, 0, Value.Value.Offset),

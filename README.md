@@ -513,19 +513,32 @@ In the same manner as with [strings](#String), data is store as unicode, so the 
 
 
 ### <a id="Clob"></a> _7. Clob_
-The clob is similar to the symbol: It is a sequence of ascii characters. Clobs can be used for all sorts of data representations - a good
-example is for representing and transmitting scripts, or other textual infomration.
+The Clob type represents a sequence of unicode characters whose meaning is left for the interpretation of the applications/systems that utilize it.
 
 #### _Text Representation_
-Clob values are represented textually as a delimiter-enclosed sequence of printable ascii characters, and escape sequences. Enclosing delimiters
-are `<<` and `>>`
+The textual representation of Clobs are identical to the `multi-line` string representation with one exception: they have an extra escape sequence -
+owing to the distinct enclosing delimiters. Enclosing delimiters are `<<` and `>>`.
 
-Escape sequences supported are all listed [here](#Escapes), excluding `\NL`, but including `\>`.
+Escape sequences supported are all listed [here](#Escapes), including `\>>`, and while the `\NL` escape sequence is supported, the version
+that accepts alignment parameters is not recognized for clobs.
 
 Examples:
 ```
+example 1
 <<
     clob stuff. Can be anything at all, however, use of the greater-than symbol \> must be escaped.
+>>
+
+example 2
+<<\
+   all of the white-spaces preceeding the '\\' are ignored.
+>>
+
+example 3
+<<
+    function asString(x) {
+        return x.toString("some values come here, even \\n new lines are accepted");
+    }
 >>
 ```
 

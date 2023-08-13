@@ -75,30 +75,30 @@ namespace Axis.Dia.Utils
             }
         }
 
-        internal static IEnumerable<TItem> JoinUsing<TItem>(
-            this IEnumerable<IEnumerable<TItem>> items,
-            params TItem[] delimiter)
-        {
-            return items
-                .Join(delimiter)
-                .SelectMany();
-        }
+        //internal static IEnumerable<TItem> JoinUsing<TItem>(
+        //    this IEnumerable<IEnumerable<TItem>> items,
+        //    params TItem[] delimiter)
+        //{
+        //    return items
+        //        .Join(delimiter)
+        //        .SelectMany();
+        //}
 
-        private static IEnumerable<IEnumerable<TItem>> Join<TItem>(
-            this IEnumerable<IEnumerable<TItem>> items,
-            params TItem[] delimiter)
-        {
-            using var enumerator = items.GetEnumerator();
+        //private static IEnumerable<IEnumerable<TItem>> Join<TItem>(
+        //    this IEnumerable<IEnumerable<TItem>> items,
+        //    params TItem[] delimiter)
+        //{
+        //    using var enumerator = items.GetEnumerator();
 
-            if (enumerator.MoveNext())
-                yield return enumerator.Current;
+        //    if (enumerator.MoveNext())
+        //        yield return enumerator.Current;
 
-            while (enumerator.MoveNext())
-            {
-                yield return delimiter;
-                yield return enumerator.Current;
-            }
-        }
+        //    while (enumerator.MoveNext())
+        //    {
+        //        yield return delimiter;
+        //        yield return enumerator.Current;
+        //    }
+        //}
 
         internal static TItem[] JoinWith<TItem>(this TItem[] first, TItem[] second)
         {

@@ -91,6 +91,8 @@ namespace Axis.Dia.Types
 
         public static implicit operator RecordValue((SymbolValue key, IDiaValue value)[]? value) => new RecordValue(value);
 
+        public static RecordValue Of(IEnumerable<Property>? value) => Of(value, Array.Empty<Annotation>());
+
         public static RecordValue Of(
             Annotation[] annotations,
             params Property[]? values)
@@ -233,6 +235,30 @@ namespace Axis.Dia.Types
 
                 _ = _symbolMap!.Remove(propertyName.Value!, out _);
                 _symbolMap![propertyName.Value!] = propertyName;
+            }
+
+            get
+            {
+                if (IsNull)
+                    throw new InvalidOperationException("Record is null");
+
+                if (propertyName.IsNull)
+                    throw new ArgumentException($"Invalid {nameof(propertyName)}: '{propertyName}'");
+
+                if(_valueMap!.TryGetValue(propertyName.Value!, out var value))
+                {
+                    if (propertyName.HasAnnotations())
+                    {
+                        if (_symbolMap![propertyName.Value!].Equals(propertyName))
+                            return value;
+
+                        else throw new KeyNotFoundException($"{propertyName}");
+                    }
+
+                    return value;
+                }
+
+                throw new KeyNotFoundException($"{propertyName}");
             }
         }
 

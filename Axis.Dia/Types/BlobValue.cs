@@ -50,6 +50,8 @@ namespace Axis.Dia.Types
         public static implicit operator BlobValue(byte[]? value) => new BlobValue(value);
         public static implicit operator BlobValue(Span<byte> value) => new BlobValue(value.ToArray());
 
+        public static BlobValue Of(byte[]? value) => Of(value, Array.Empty<Annotation>());
+
         public static BlobValue Of(byte[]? value, params Annotation[] annotations) => new BlobValue(value, annotations);
         #endregion
 

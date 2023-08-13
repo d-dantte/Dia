@@ -33,10 +33,10 @@ namespace Axis.Dia.Types
         #region Constructors
 
         /// <summary>
-        /// NOTE: the string assumes that its <paramref name="value"/> consists of an unescaped, raw sequence of characters.
+        /// Create a new clob value
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="annotations"></param>
+        /// <param name="value">The unescaped string</param>
+        /// <param name="annotations">The annotation collection</param>
         public ClobValue(string? value, params Annotation[] annotations)
         {
             ArgumentNullException.ThrowIfNull(annotations);
@@ -56,6 +56,8 @@ namespace Axis.Dia.Types
         public static implicit operator ClobValue(string? value) => new ClobValue(value);
         public static implicit operator ClobValue(char[] value) => new ClobValue(new string(value));
         public static implicit operator ClobValue(Span<char> value) => new ClobValue(new string(value));
+
+        public static ClobValue Of(string? value) => Of(value, Array.Empty<Annotation>());
 
         public static ClobValue Of(
             string? value,
