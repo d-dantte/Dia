@@ -11,7 +11,7 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
         [TestMethod]
         public void SerializeTests()
         {
-            var context = new TextSerializerContext();
+            var context = new SerializerContext();
 
             #region Null
             var decimalValue = DecimalValue.Null();
@@ -67,14 +67,15 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             var value1 = new DecimalValue(1000);
             var value2 = new DecimalValue(-1000, "stuff", "$other_stuff");
             var value3 = new DecimalValue(0.000006557m, "stuff", "$other_stuff");
-            var context = new TextSerializerContext();
+            var context = new ParserContext();
+            var scontext = new SerializerContext();
 
             // no exponent
-            context.Options.Decimals.UseExponentNotation = false;
-            var ntext = DecimalParser.Serialize(nvalue, context);
-            var text1 = DecimalParser.Serialize(value1, context);
-            var text2 = DecimalParser.Serialize(value2, context);
-            var text3 = DecimalParser.Serialize(value3, context);
+            scontext.Options.Decimals.UseExponentNotation = false;
+            var ntext = DecimalParser.Serialize(nvalue, scontext);
+            var text1 = DecimalParser.Serialize(value1, scontext);
+            var text2 = DecimalParser.Serialize(value2, scontext);
+            var text3 = DecimalParser.Serialize(value3, scontext);
 
             var nresult = TextSerializer.ParseValue(ntext.Resolve(), context);
             var result1 = TextSerializer.ParseValue(text1.Resolve(), context);
@@ -87,11 +88,11 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             Assert.AreEqual(value3, result3.Resolve());
 
             // exponent
-            context.Options.Decimals.UseExponentNotation = true;
-            ntext = DecimalParser.Serialize(nvalue, context);
-            text1 = DecimalParser.Serialize(value1, context);
-            text2 = DecimalParser.Serialize(value2, context);
-            text3 = DecimalParser.Serialize(value3, context);
+            scontext.Options.Decimals.UseExponentNotation = true;
+            ntext = DecimalParser.Serialize(nvalue, scontext);
+            text1 = DecimalParser.Serialize(value1, scontext);
+            text2 = DecimalParser.Serialize(value2, scontext);
+            text3 = DecimalParser.Serialize(value3, scontext);
 
             nresult = TextSerializer.ParseValue(ntext.Resolve(), context);
             result1 = TextSerializer.ParseValue(text1.Resolve(), context);

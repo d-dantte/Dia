@@ -3,7 +3,6 @@ using Axis.Dia.Convert.Binary.Metadata;
 using Axis.Dia.Types;
 using Axis.Dia.Utils;
 using Axis.Luna.Common.Results;
-using Axis.Luna.Common.Utils;
 using Axis.Luna.Extensions;
 
 namespace Axis.Dia.Convert.Binary.Serializers
@@ -30,7 +29,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
         public static IResult<BoolValue> Deserialize(
             Stream stream,
             TypeMetadata typeMetadata,
-            BinarySerializerContext context)
+            DeserializerContext context)
         {
             ArgumentNullException.ThrowIfNull(stream);
             ArgumentNullException.ThrowIfNull(context);
@@ -59,7 +58,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
 
         public static IResult<byte[]> Serialize(
             BoolValue value,
-            BinarySerializerContext context)
+            SerializerContext context)
         {
             try
             {

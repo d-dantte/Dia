@@ -181,7 +181,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         public void Serialize_Tests()
         {
             var nullValue = DecimalValue.Null();
-            var result = DecimalPayloadSerializer.Serialize(nullValue, new Dia.Convert.Binary.BinarySerializerContext());
+            var result = DecimalPayloadSerializer.Serialize(nullValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             var data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -189,7 +189,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             DecimalValue zeroValue = 0;
-            result = DecimalPayloadSerializer.Serialize(zeroValue, new Dia.Convert.Binary.BinarySerializerContext());
+            result = DecimalPayloadSerializer.Serialize(zeroValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -197,7 +197,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             DecimalValue oneValue = 1;
-            result = DecimalPayloadSerializer.Serialize(oneValue, new Dia.Convert.Binary.BinarySerializerContext());
+            result = DecimalPayloadSerializer.Serialize(oneValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(4, data.Length);
@@ -208,7 +208,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             oneValue = DecimalValue.Of(1, "annotation1", "annotation2");
-            result = DecimalPayloadSerializer.Serialize(oneValue, new Dia.Convert.Binary.BinarySerializerContext());
+            result = DecimalPayloadSerializer.Serialize(oneValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(51, data.Length);
@@ -218,7 +218,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             DecimalValue otherInt = 122.2m;
-            result = DecimalPayloadSerializer.Serialize(otherInt, new Dia.Convert.Binary.BinarySerializerContext());
+            result = DecimalPayloadSerializer.Serialize(otherInt, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(5, data.Length);
@@ -232,7 +232,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             otherInt = 65.536m;
-            result = DecimalPayloadSerializer.Serialize(otherInt, new Dia.Convert.Binary.BinarySerializerContext());
+            result = DecimalPayloadSerializer.Serialize(otherInt, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(6, data.Length);
@@ -246,7 +246,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
             Assert.AreEqual(1, data[5]);
 
             otherInt = BigDecimal.Parse("18446744073709551616").Resolve();
-            result = DecimalPayloadSerializer.Serialize(otherInt, new Dia.Convert.Binary.BinarySerializerContext());
+            result = DecimalPayloadSerializer.Serialize(otherInt, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(12, data.Length);
@@ -263,7 +263,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
                     "18446744073709551616000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
                     + "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
                 .Resolve();
-            result = DecimalPayloadSerializer.Serialize(otherInt, new Dia.Convert.Binary.BinarySerializerContext());
+            result = DecimalPayloadSerializer.Serialize(otherInt, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(13, data.Length);
@@ -308,7 +308,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
                     + "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
                     + "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001")
                 .Resolve();
-            result = DecimalPayloadSerializer.Serialize(otherInt, new Dia.Convert.Binary.BinarySerializerContext());
+            result = DecimalPayloadSerializer.Serialize(otherInt, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(1365, data.Length);
@@ -336,12 +336,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         {
             var nullValue = DecimalValue.Null();
             var bytes = DecimalPayloadSerializer
-                .Serialize(nullValue, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(nullValue, new SerializerContext())
                 .Resolve();
             var result = DecimalPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             var resultValue = result.Resolve();
             Assert.AreEqual(nullValue, resultValue);
@@ -349,12 +349,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             DecimalValue value = 0;
             bytes = DecimalPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = DecimalPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -362,12 +362,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = 1;
             bytes = DecimalPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = DecimalPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -375,12 +375,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = 1565.4345m;
             bytes = DecimalPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = DecimalPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -388,12 +388,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = -11.12212m;
             bytes = DecimalPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = DecimalPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -401,12 +401,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = -65.536m;
             bytes = DecimalPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = DecimalPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -446,12 +446,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
                     + "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
                 .Resolve();
             bytes = DecimalPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = DecimalPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -491,12 +491,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
                     + "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
                 .Resolve();
             bytes = DecimalPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = DecimalPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -536,12 +536,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
                     + "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002")
                 .Resolve();
             bytes = DecimalPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = DecimalPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[3..]),
                 TypeMetadata.Of(bytes[0], bytes[1], bytes[2]),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);

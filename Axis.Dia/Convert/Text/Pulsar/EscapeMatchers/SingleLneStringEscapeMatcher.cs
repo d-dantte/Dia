@@ -4,7 +4,7 @@ using static Axis.Pulsar.Grammar.Language.Rules.CustomTerminals.DelimitedString;
 
 namespace Axis.Dia.Convert.Text.Pulsar.EscapeMatchers
 {
-    public class SingleLneStringEscapeMatcher : IEscapeSequenceMatcher
+    public class SingleLineStringEscapeMatcher : IEscapeSequenceMatcher
     {
         private readonly Regex B1HexPattern = new Regex("^x[a-fA-F0-9]{2}$", RegexOptions.Compiled);
 

@@ -11,12 +11,12 @@
         /// <summary>
         /// POCOs that, in addition to hosting regular properties, also implement the <see cref="IDictionary{TKey, TValue}"/> type
         /// </summary>
-        ComplexMap,
+        //ComplexMap,
 
         /// <summary>
         /// POCOs that, in addition to hosting regular properties, also implement the <see cref="IEnumerable{T}"/> type.
         /// </summary>
-        ComplexCollection,
+        //ComplexCollection,
 
         /// <summary>
         /// POCOs that implement the <see cref="IDictionary{TKey, TValue}"/> type

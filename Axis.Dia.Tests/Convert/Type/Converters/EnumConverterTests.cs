@@ -1,85 +1,146 @@
-﻿using Axis.Dia.Convert.Type.Converters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
+﻿using Axis.Dia.Contracts;
+using Axis.Dia.Convert.Type;
+using Axis.Dia.Convert.Type.Converters;
+using Axis.Dia.Convert.Type.Exceptions;
+using Axis.Dia.Types;
+using Axis.Luna.Common.Results;
 
 namespace Axis.Dia.Tests.Convert.Type.Converters
 {
     [TestClass]
     public class EnumConverterTests
     {
-        private static readonly EnumConverter converter = new EnumConverter();
+        private static readonly EnumTypeConverter converter = new EnumTypeConverter();
 
-        //[TestMethod]
-        //public void CanConvertToDia_Tests()
-        //{
-        //    var canConvert = converter.CanConvert(typeof(SampleEnum), SampleEnum.One);
-        //    Assert.IsTrue(canConvert);
+        [TestMethod]
+        public void CanConvertToDia_Tests()
+        {
+            var canConvert = converter.CanConvert(typeof(SampleEnum));
+            Assert.IsTrue(canConvert);
 
-        //    Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(null, SampleEnum.One));
-        //}
+            canConvert = converter.CanConvert(typeof(object));
+            Assert.IsFalse(canConvert);
+            canConvert = converter.CanConvert(typeof(Array));
+            Assert.IsFalse(canConvert);
 
-        //[TestMethod]
-        //public void CanConvertToClr_Tests()
-        //{
-        //    var canConvert = converter.CanConvert(typeof(SampleEnum), IonTextSymbol.Null());
-        //    Assert.IsTrue(canConvert);
+            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(null));
+        }
 
-        //    Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(null, IonTextSymbol.Null()));
-        //    Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(typeof(IonTypes), null));
-        //}
+        [TestMethod]
+        public void CanConvertToClr_Tests()
+        {
+            var canConvert = converter.CanConvert(DiaType.Symbol, typeof(SampleEnum));
+            Assert.IsTrue(canConvert);
 
-        //[TestMethod]
-        //public void ToClr_Tests()
-        //{
-        //    var options = new ConversionContext(ConversionOptionsBuilder.NewBuilder().Build());
-        //    var enumType = typeof(IonTypes);
-        //    var @string = new IonString("Sexp");
-        //    var identifier = new IonTextSymbol("Sexp");
+            canConvert = converter.CanConvert(DiaType.Symbol, typeof(object));
+            Assert.IsFalse(canConvert);
 
-        //    var value = converter.ToClr(enumType, @string, options);
-        //    Assert.AreEqual(IonTypes.Sexp, value);
+            foreach (var diaType in Enum.GetValues<DiaType>().Where(t => !DiaType.Symbol.Equals(t)))
+            {
+                canConvert = converter.CanConvert(diaType, typeof(SampleEnum));
+                Assert.IsFalse(canConvert);
+            }
 
-        //    value = converter.ToClr(enumType, identifier, options);
-        //    Assert.AreEqual(IonTypes.Sexp, value);
+            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(DiaType.Symbol, null));
+        }
 
-        //    Assert.ThrowsException<ArgumentNullException>(() => converter.ToClr(null, @string, options));
+        [TestMethod]
+        public void ToClr_Tests()
+        {
+            var options = Dia.Convert.Type.Clr.ConverterOptionsBuilder.NewBuilder().Build();
 
-        //    var invalidEnum = new IonString("Bleh");
-        //    Assert.ThrowsException<ArgumentException>(() => converter.ToClr(enumType, invalidEnum, options));
+            Assert.ThrowsException<ArgumentNullException>(() => converter.ToClr(SymbolValue.Of("Three"), null,
+                new Dia.Convert.Type.Clr.ConverterContext(
+                    options,
+                    new ObjectPath(typeof(object)))));
+            Assert.ThrowsException<ArgumentNullException>(() => converter.ToClr(null, typeof(SampleEnum),
+                new Dia.Convert.Type.Clr.ConverterContext(
+                    options,
+                    new ObjectPath(typeof(SampleEnum)))));
+            Assert.ThrowsException<ArgumentException>(() => converter.ToClr(
+                SymbolValue.Of("non identifier symbol"),
+                typeof(SampleEnum),
+                new Dia.Convert.Type.Clr.ConverterContext(
+                    options,
+                    new ObjectPath(typeof(SampleEnum)))));
 
-        //    var nullEnum = IIonValue.NullOf(IonTypes.TextSymbol);
-        //    Assert.ThrowsException<ArgumentException>(() => converter.ToClr(enumType, nullEnum, options));
-        //}
+            var result = converter.ToClr(BoolValue.Null(), typeof(SampleEnum),
+                new Dia.Convert.Type.Clr.ConverterContext(
+                    options,
+                    new ObjectPath(typeof(SampleEnum))));
+            Assert.IsTrue(result.IsErrorResult());
+            var errorResult = result.AsError();
+            Assert.IsTrue(errorResult.Cause().InnerException is IncompatibleClrConversionException);
 
-        //[TestMethod]
-        //public void ToIon_Tests()
-        //{
-        //    var options = new ConversionContext(ConversionOptionsBuilder.NewBuilder().Build());
-        //    var enumType = typeof(IonTypes);
-        //    var result = converter.ToIon(enumType, IonTypes.Blob, options);
-        //    var ion = (IonTextSymbol)result;
+            result = converter.ToClr(SymbolValue.Of("Stuff"), typeof(object),
+                new Dia.Convert.Type.Clr.ConverterContext(
+                    options,
+                    new ObjectPath(typeof(object))));
+            Assert.IsTrue(result.IsErrorResult());
+            errorResult = result.AsError();
+            Assert.IsTrue(errorResult.Cause().InnerException is IncompatibleClrConversionException);
 
-        //    Assert.IsNotNull(result);
-        //    Assert.AreEqual(IonTypes.Blob.ToString(), ion.Value);
 
-        //    result = converter.ToIon(enumType, null, options);
-        //    ion = (IonTextSymbol)result;
+            result = converter.ToClr(SymbolValue.Of("Instant"), typeof(DiaType),
+                new Dia.Convert.Type.Clr.ConverterContext(
+                    options,
+                    new ObjectPath(typeof(DiaType))));
+            Assert.IsTrue(result.IsDataResult());
+            Assert.AreEqual(DiaType.Instant, result.Resolve());
 
-        //    Assert.IsNotNull(result);
-        //    Assert.IsTrue(ion.IsNull);
-        //}
 
-        //public enum SampleEnum
-        //{
-        //    One,
-        //    Two,
-        //    Three,
-        //    Four,
-        //    Five
-        //}
+            result = converter.ToClr(SymbolValue.Of("Two"), typeof(SampleEnum),
+                new Dia.Convert.Type.Clr.ConverterContext(
+                    options,
+                    new ObjectPath(typeof(SampleEnum))));
+            Assert.IsTrue(result.IsDataResult());
+            Assert.AreEqual(SampleEnum.Two, result.Resolve());
+        }
+
+        [TestMethod]
+        public void ToDia_Tests()
+        {
+            var options = Dia.Convert.Type.Dia.ConverterOptionsBuilder.NewBuilder().Build();
+
+            Assert.ThrowsException<ArgumentNullException>(() => converter.ToDia(null, false,
+                new Dia.Convert.Type.Dia.ConverterContext(
+                    options,
+                    new ObjectPath(typeof(object)))));
+            Assert.ThrowsException<ArgumentException>(() => converter.ToDia(typeof(bool), 43,
+                new Dia.Convert.Type.Dia.ConverterContext(
+                    options,
+                    new ObjectPath(typeof(bool)))));
+
+            var result = converter.ToDia(typeof(SampleEnum), 43,
+                new Dia.Convert.Type.Dia.ConverterContext(
+                    options,
+                    new ObjectPath(typeof(SampleEnum))));
+            Assert.IsTrue(result.IsErrorResult());
+            var errorResult = result.AsError();
+            Assert.IsTrue(errorResult.Cause().InnerException is TypeMismatchException);
+
+            result = converter.ToDia(typeof(DiaType), DiaType.Decimal,
+                new Dia.Convert.Type.Dia.ConverterContext(
+                    options,
+                    new ObjectPath(typeof(DiaType))));
+            Assert.IsTrue(result.IsDataResult());
+            Assert.AreEqual(SymbolValue.Of("Decimal"), result.Resolve());
+
+            result = converter.ToDia(typeof(SampleEnum), SampleEnum.Four,
+                new Dia.Convert.Type.Dia.ConverterContext(
+                    options,
+                    new ObjectPath(typeof(SampleEnum))));
+            Assert.IsTrue(result.IsDataResult());
+            Assert.AreEqual(SymbolValue.Of("Four"), result.Resolve());
+        }
+
+        public enum SampleEnum
+        {
+            One,
+            Two,
+            Three,
+            Four,
+            Five
+        }
     }
 }

@@ -7,6 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia", "Axis.Dia\Axis.D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".items", ".items", "{94C7D9F0-468D-4712-AB5B-AC9166D4E4DC}"
 	ProjectSection(SolutionItems) = preProject
+		Backlog.md = Backlog.md
 		README.md = README.md
 	EndProjectSection
 EndProject

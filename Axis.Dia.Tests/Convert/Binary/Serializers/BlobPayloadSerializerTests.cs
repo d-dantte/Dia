@@ -52,7 +52,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         public void Serialize_Tests()
         {
             var nullValue = BlobValue.Null();
-            var result = BlobPayloadSerializer.Serialize(nullValue, new Dia.Convert.Binary.BinarySerializerContext());
+            var result = BlobPayloadSerializer.Serialize(nullValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             var data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -61,7 +61,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             var bytes = new byte[0];
             var value = BlobValue.Of(bytes);
-            result = BlobPayloadSerializer.Serialize(value, new Dia.Convert.Binary.BinarySerializerContext());
+            result = BlobPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -69,7 +69,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             value = BlobValue.Of(bytes, "annotation1", "annotation2");
-            result = BlobPayloadSerializer.Serialize(value, new Dia.Convert.Binary.BinarySerializerContext());
+            result = BlobPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(48, data.Length);
@@ -79,7 +79,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             bytes = RandomBytes();
             value = BlobValue.Of(bytes);
-            result = BlobPayloadSerializer.Serialize(value, new Dia.Convert.Binary.BinarySerializerContext());
+            result = BlobPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(CmetaCount(bytes.Length) + 1 + bytes.Length, data.Length);
@@ -96,12 +96,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         {
             var nullValue = BlobValue.Null();
             var bytes = BlobPayloadSerializer
-                .Serialize(nullValue, new BinarySerializerContext())
+                .Serialize(nullValue, new SerializerContext())
                 .Resolve();
             var result = BlobPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             var resultValue = result.Resolve();
             Assert.AreEqual(nullValue, resultValue);
@@ -110,12 +110,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
             var initialBytes = new byte[0];
             BlobValue value = initialBytes;
             bytes = BlobPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = BlobPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -125,12 +125,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
             var cmetaCount = CmetaCount(initialBytes.Length);
             value = initialBytes;
             bytes = BlobPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = BlobPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[(cmetaCount + 1)..]),
                 TypeMetadata.Of(bytes[0], ToCmeta(bytes, cmetaCount)),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);

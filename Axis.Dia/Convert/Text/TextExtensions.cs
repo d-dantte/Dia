@@ -14,9 +14,7 @@ namespace Axis.Dia.Convert.Text
             var annotationNode = valueRoot
                 .FindNodes(AnnotationParser.GrammarSymbol)
                 .FirstOrDefault();
-            var valueNode = annotationNode is null
-                ? valueRoot.FirstNode()
-                : valueRoot.NodeAt(1);
+            var valueNode = valueRoot.LastNode();
 
             return (annotationNode, valueNode);
         }

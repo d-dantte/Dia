@@ -20,21 +20,21 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             options.Strings.AlignmentIndentation = 5;
 
             var value = StringValue.Of(Text);
-            var result = StringParser.Serialize(value, new TextSerializerContext(options));
+            var result = StringParser.Serialize(value, new SerializerContext(options));
             Assert.IsTrue(result.IsDataResult());
             var text = result.Resolve();
             Console.WriteLine(text);
             Assert.AreEqual(MLResultText, text);
 
             value = StringValue.Of(Text, "fgh", "fghjk");
-            result = StringParser.Serialize(value, new TextSerializerContext(options));
+            result = StringParser.Serialize(value, new SerializerContext(options));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
             Assert.AreEqual($"fgh::fghjk::{MLResultText}", text);
 
             value = StringValue.Null();
-            result = StringParser.Serialize(value, new TextSerializerContext(options));
+            result = StringParser.Serialize(value, new SerializerContext(options));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
@@ -45,21 +45,21 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             options.Strings.LineStyle = TextSerializerOptions.TextLineStyle.Singleline;
 
             value = StringValue.Of(Text);
-            result = StringParser.Serialize(value, new TextSerializerContext(options));
+            result = StringParser.Serialize(value, new SerializerContext(options));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
             Assert.AreEqual(SLResultText, text[1..^1]);
 
             value = StringValue.Of(Text, "fgh", "fghjk");
-            result = StringParser.Serialize(value, new TextSerializerContext(options));
+            result = StringParser.Serialize(value, new SerializerContext(options));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
             Assert.AreEqual($"fgh::fghjk::\"{SLResultText}\"", text);
 
             value = StringValue.Null();
-            result = StringParser.Serialize(value, new TextSerializerContext(options));
+            result = StringParser.Serialize(value, new SerializerContext(options));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
@@ -88,22 +88,22 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             #region Singleline
             options.Strings.LineStyle = TextSerializerOptions.TextLineStyle.Singleline;
             var value = StringValue.Null("ann1", "ann2");
-            var textResult = StringParser.Serialize(value, new TextSerializerContext(options));
-            var valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new TextSerializerContext(options)));
+            var textResult = StringParser.Serialize(value, new SerializerContext(options));
+            var valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new ParserContext()));
             var result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = StringValue.Of("The lame pink unicorn flew over enraged pigs", "ann1");
-            textResult = StringParser.Serialize(value, new TextSerializerContext(options));
-            valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new TextSerializerContext(options)));
+            textResult = StringParser.Serialize(value, new SerializerContext(options));
+            valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new ParserContext()));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = StringValue.Of("The lame pink unicorn flew over \tenraged pigs", "ann1");
-            textResult = StringParser.Serialize(value, new TextSerializerContext(options));
-            valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new TextSerializerContext(options)));
+            textResult = StringParser.Serialize(value, new SerializerContext(options));
+            valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new ParserContext()));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
@@ -112,22 +112,22 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             #region Multiline
             options.Strings.LineStyle = TextSerializerOptions.TextLineStyle.Multiline;
             value = StringValue.Null("ann1", "ann2");
-            textResult = StringParser.Serialize(value, new TextSerializerContext(options));
-            valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new TextSerializerContext(options)));
+            textResult = StringParser.Serialize(value, new SerializerContext(options));
+            valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new ParserContext()));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = StringValue.Of("The lame pink unicorn flew over enraged pigs", "ann1");
-            textResult = StringParser.Serialize(value, new TextSerializerContext(options));
-            valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new TextSerializerContext(options)));
+            textResult = StringParser.Serialize(value, new SerializerContext(options));
+            valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new ParserContext()));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = StringValue.Of("The lame pink unicorn flew over \tenraged pigs", "ann1");
-            textResult = StringParser.Serialize(value, new TextSerializerContext(options));
-            valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new TextSerializerContext(options)));
+            textResult = StringParser.Serialize(value, new SerializerContext(options));
+            valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new ParserContext()));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);

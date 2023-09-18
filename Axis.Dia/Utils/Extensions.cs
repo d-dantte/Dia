@@ -1,4 +1,7 @@
-﻿using Axis.Luna.Common.Results;
+﻿using Axis.Dia.Contracts;
+using Axis.Dia.Exceptions;
+using Axis.Dia.Types;
+using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using System.Numerics;
 
@@ -6,6 +9,12 @@ namespace Axis.Dia.Utils
 {
     internal static class Extensions
     {
+        public static ReferenceValue ToRef<TDiaValue>(this IDiaReferable<TDiaValue> addressable)
+        where TDiaValue: IDiaReferable<TDiaValue>, IDiaValue
+        {
+            return ReferenceValue.Of(addressable);
+        }
+
         internal static bool IsNull<TValue>(this TValue value) => value is null;
 
         internal static bool NullOrTrue<TValue>(
@@ -75,30 +84,13 @@ namespace Axis.Dia.Utils
             }
         }
 
-        //internal static IEnumerable<TItem> JoinUsing<TItem>(
-        //    this IEnumerable<IEnumerable<TItem>> items,
-        //    params TItem[] delimiter)
-        //{
-        //    return items
-        //        .Join(delimiter)
-        //        .SelectMany();
-        //}
 
-        //private static IEnumerable<IEnumerable<TItem>> Join<TItem>(
-        //    this IEnumerable<IEnumerable<TItem>> items,
-        //    params TItem[] delimiter)
-        //{
-        //    using var enumerator = items.GetEnumerator();
-
-        //    if (enumerator.MoveNext())
-        //        yield return enumerator.Current;
-
-        //    while (enumerator.MoveNext())
-        //    {
-        //        yield return delimiter;
-        //        yield return enumerator.Current;
-        //    }
-        //}
+        internal static IResult<TOut> FoldInto<TItem, TOut>(
+            this IEnumerable<IResult<TItem>> results,
+            Func<IEnumerable<TItem>, TOut> aggregator)
+        {
+            return results.Fold().Map(aggregator);
+        }
 
         internal static TItem[] JoinWith<TItem>(this TItem[] first, TItem[] second)
         {
@@ -107,8 +99,8 @@ namespace Axis.Dia.Utils
 
             var combinedArray = new TItem[first.Length + second.Length];
 
-            Buffer.BlockCopy(first, 0, combinedArray, 0, first.Length);
-            Buffer.BlockCopy(second, 0, combinedArray, first.Length, second.Length);
+            Array.Copy(first, 0, combinedArray, 0, first.Length);
+            Array.Copy(second, 0, combinedArray, first.Length, second.Length);
 
             return combinedArray;
         }
@@ -176,6 +168,80 @@ namespace Axis.Dia.Utils
                     .ToCharArray()
                     .With(Array.Reverse)
                     .ApplyTo(array => new string(array));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <exception cref="ReferenceNormalizationException"></exception>
+        public static void NormalizeReferences(this IDiaValue value)
+        {
+            if (!value.TryNormalizeReferences(out var references))
+                throw new ReferenceNormalizationException(value, references);
+        }
+
+
+        /// <summary>
+        /// Ensures that all <see cref="ReferenceValue"/> instances in the document are linkable, then goes ahead to link them
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="unlinkableReferences"></param>
+        /// <returns></returns>
+        public static bool TryNormalizeReferences(this IDiaValue value, out IDiaReference[] unlinkableReferences)
+        {
+            var refMap = new Dictionary<Guid, UnlinkedRefInfo>();
+            LinkChildReferences(value, refMap);
+
+            // gather unlinkable refs
+            unlinkableReferences = refMap
+                .Where(kvp => !kvp.Value.IsNormalizable)
+                .SelectMany(kvp => kvp.Value.BoxedReferences)
+                .SelectAs<IDiaReference>()
+                .ToArray();
+
+            // link normalizable references
+            refMap
+                .Where(kvp => kvp.Value.IsNormalizable)
+                .SelectMany(kvp => kvp.Value.BoxedReferences.Select(@ref => (Ref: @ref, kvp.Value)))
+                .ForAll(linkPair => linkPair.Ref.ReboxAs(ReferenceValue.Of(
+                    linkPair.Ref.As<IDiaReference>().ValueAddress,
+                    linkPair.Value.AddressProvider!,
+                    linkPair.Ref.Annotations)));
+
+            return unlinkableReferences.Length == 0;
+        }
+
+        private static void LinkChildReferences(IDiaValue value, Dictionary<Guid, UnlinkedRefInfo> refMap)
+        {
+            if (value is IDiaAddressProvider addressProvider
+                && (!refMap.TryGetValue(addressProvider.Address, out var info) || !info.IsNormalizable))
+            {
+                if (info is null)
+                    refMap[addressProvider.Address] = info = new UnlinkedRefInfo();
+
+                info.AddressProvider = addressProvider;
+
+                if (value is ListValue list && list.Count > 0)
+                    list.Value!.ForAll(item => LinkChildReferences(item, refMap));
+
+                else if (value is RecordValue record && record.Count > 0)
+                    record.Value!.ForAll(item => LinkChildReferences(item.Value!, refMap));
+            }
+            else if (value is IDiaReference referenceValue && referenceValue.Value is null)
+            {
+                info = refMap.GetOrAdd(referenceValue.ValueAddress, _ => new UnlinkedRefInfo());
+                info.BoxedReferences.Add(value); //<-- crucial that we add the original boxed version
+            }
+        }
+
+        internal class UnlinkedRefInfo
+        {
+            internal IDiaAddressProvider? AddressProvider { get; set; }
+
+            internal List<IDiaValue> BoxedReferences { get; } = new List<IDiaValue>();
+
+            internal bool IsNormalizable => AddressProvider is not null;
         }
     }
 }

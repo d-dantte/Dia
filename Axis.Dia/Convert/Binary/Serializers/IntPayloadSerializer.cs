@@ -34,7 +34,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
             // -64 => [1100-0000] => [1100-0000] // no padding is done here
             //
             // with the above in mind,
-            // 1. if value is positive, set the cmeta[0][D1] bit to 1, else leave it at zero
+            // 1. if value is positive, set the cmeta[0][D1] bit to 1, else leave it as zero
             // 2. concat `BitSequence.OfSignificantBits(byteCount.ToByteArray(true))` to cmeta from [D2..]
             var cmetaBits =
                 value.Value is null ? BitSequence.Empty :
@@ -58,7 +58,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
         public static IResult<IntValue> Deserialize(
             Stream stream,
             TypeMetadata typeMetadata,
-            BinarySerializerContext context)
+            DeserializerContext context)
         {
             ArgumentNullException.ThrowIfNull(stream);
             ArgumentNullException.ThrowIfNull(context);
@@ -99,7 +99,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
                 .MapError(PayloadSerializer.TranslateValueError<IntValue>);
         }
 
-        public static IResult<byte[]> Serialize(IntValue value, BinarySerializerContext context)
+        public static IResult<byte[]> Serialize(IntValue value, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 

@@ -24,7 +24,7 @@ namespace Axis.Dia.Convert.Type
         /// <param name="sourceInstance">The value to be converted</param>
         /// <param name="context">The context</param>
         /// <returns>The converted instance result</returns>
-        IResult<object?> ToClr(IDiaValue sourceInstance, System.Type destinationType, TypeConverterContext context);
+        IResult<object?> ToClr(IDiaValue sourceInstance, System.Type destinationType, Clr.ConverterContext context);
     }
 
     /// <summary>
@@ -46,10 +46,6 @@ namespace Axis.Dia.Convert.Type
         /// <param name="sourceInstance">The source instance</param>
         /// <param name="context">The context</param>
         /// <returns>The converted instance result</returns>
-        IResult<IDiaValue> ToDia(System.Type sourceType, object? sourceInstance, TypeConverterContext context);
+        IResult<IDiaValue> ToDia(System.Type sourceType, object? sourceInstance, Dia.ConverterContext context);
     }
-
-    //public interface ITypeConverter
-    //{
-    //}
 }

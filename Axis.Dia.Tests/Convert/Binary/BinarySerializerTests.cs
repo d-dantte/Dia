@@ -95,7 +95,7 @@ namespace Axis.Dia.Tests.Convert.Binary
                 ["the"] = ClobValue.Of("very plenty", "one", "two"),
                 ["things"] = BlobValue.Of(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 })
             };
-            result = PayloadSerializer.SerializeDiaValueResult(value, new BinarySerializerContext());
+            result = PayloadSerializer.SerializeDiaValueResult(value, new SerializerContext());
             stream = result
                 .Map(bytes => new MemoryStream(bytes))
                 .Resolve();

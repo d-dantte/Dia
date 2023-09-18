@@ -38,6 +38,7 @@ namespace Axis.Dia.Utils
         public static implicit operator ValueWrapper(byte[] value) => new ValueWrapper(new BlobValue(value));
         public static implicit operator ValueWrapper(Span<byte> value) => new ValueWrapper(new BlobValue(value.ToArray()));
         public static implicit operator ValueWrapper(IDiaValue[] value) => new ValueWrapper(new ListValue(value));
+        public static implicit operator ValueWrapper(Guid value) => new ValueWrapper(ReferenceValue.Of(value));
 
 
         public static implicit operator ValueWrapper(bool? value) => new ValueWrapper(new BoolValue(value));
@@ -70,5 +71,6 @@ namespace Axis.Dia.Utils
         public static implicit operator ValueWrapper(BlobValue value) => new ValueWrapper(value);
         public static implicit operator ValueWrapper(ListValue value) => new ValueWrapper(value);
         public static implicit operator ValueWrapper(RecordValue value) => new ValueWrapper(value);
+        public static implicit operator ValueWrapper(ReferenceValue value) => new ValueWrapper(value);
     }
 }

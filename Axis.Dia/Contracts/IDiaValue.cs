@@ -5,7 +5,7 @@ namespace Axis.Dia.Contracts
     /// <summary>
     /// The base contract for Dia values
     /// </summary>
-    public interface IDiaValue: IDiaType
+    public interface IDiaValue: IDiaType, IAnnotatable
     {
         #region NullOf
         /// <summary>
@@ -39,11 +39,6 @@ namespace Axis.Dia.Contracts
         /// Indicating if the value is null (default).
         /// </summary>
         bool IsNull { get; }
-
-        /// <summary>
-        /// The attribute list
-        /// </summary>
-        Annotation[] Annotations { get; }
         #endregion
     }
 }

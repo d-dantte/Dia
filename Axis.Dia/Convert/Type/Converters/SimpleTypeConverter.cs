@@ -1,16 +1,22 @@
 ﻿using Axis.Dia.Contracts;
+using Axis.Dia.Convert.Type.Exceptions;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Numerics;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
+using System.Collections.Immutable;
 using System.Numerics;
 
 namespace Axis.Dia.Convert.Type.Converters
 {
     /// <summary>
-    /// Converts dia primitives into the clr types, and vice-versa.
+    /// Converts dia simple-types into the clr types, and vice-versa.
+    /// <para/>
+    /// This converter needs not participate in reference tracking during Clr conversion, because any reference to the
+    /// simple type will be dereferenced and converted, bearing in mind that since all simple types are self-contained, there is
+    /// no chance of a cyclic reference error occuring.
     /// </summary>
-    internal class PrimitiveConverter : IClrConverter, IDiaConverter
+    internal class SimpleTypeConverter : IClrConverter, IDiaConverter
     {
         #region IClrConverter
         public bool CanConvert(DiaType sourceType, System.Type destinationType)
@@ -27,6 +33,7 @@ namespace Axis.Dia.Convert.Type.Converters
                 DiaType.String => destinationType.IsString(),
                 DiaType.Clob => destinationType.IsString(),
                 DiaType.Symbol => destinationType.IsEnumType(out _) || destinationType.IsString(),
+                DiaType.Blob => destinationType.IsByteSequenceType(out _),
                 _ => false
             };
         }
@@ -47,23 +54,30 @@ namespace Axis.Dia.Convert.Type.Converters
         public IResult<object?> ToClr(
             IDiaValue sourceInstance,
             System.Type destinationType,
-            TypeConverterContext context)
+            Clr.ConverterContext context)
         {
+            if (sourceInstance is null)
+                throw new ArgumentNullException(nameof(sourceInstance));
+
             if (destinationType is null)
                 throw new ArgumentNullException(nameof(destinationType));
 
-            if (sourceInstance is null)
-                throw new ArgumentNullException(nameof(sourceInstance));
+            if (!sourceInstance.Type.IsSimpleDiaType())
+                throw new ArgumentException($"Invalid source type: {sourceInstance.Type}");
+
+            if (!CanConvert(sourceInstance.Type, destinationType))
+                return Result.Of<object?>(new IncompatibleClrConversionException(
+                    sourceInstance.Type,
+                    destinationType));
 
             if (sourceInstance.IsNull)
                 return Result.Of((object?)null);
 
             if (destinationType.IsBoolean(out _))
             {
-                if (!DiaType.Bool.Equals(sourceInstance.Type))
-                    return Result.Of<object?>(new ArgumentException($"Invalid dia type: {sourceInstance.Type}, expected: {DiaType.Bool}"));
-
-                return Result.Of<object?>(sourceInstance.As<BoolValue>().Value);
+                return sourceInstance
+                    .As<BoolValue>()
+                    .ApplyTo(v =>Result.Of<object?>(v.Value));
             }
 
             if (destinationType.IsString())
@@ -73,15 +87,18 @@ namespace Axis.Dia.Convert.Type.Converters
                     StringValue @string => Result.Of<object?>(@string.Value),
                     SymbolValue symbol => Result.Of<object?>(symbol.Value),
                     ClobValue clob => Result.Of<object?>(clob.Value),
-                    _ => Result.Of<object?>(new ArgumentException($"Invalid dia type: {sourceInstance.Type}, "
-                        + $"expected: '{DiaType.String}', or '{DiaType.Symbol}', or '{DiaType.Clob}'"))
+                    _ => Result.Of<object?>(new IncompatibleClrConversionException(
+                        sourceInstance.Type,
+                        destinationType))
                 };
             }
 
             if (destinationType.IsIntegral(out var type))
             {
                 if (!DiaType.Int.Equals(sourceInstance.Type))
-                    return Result.Of<object?>(new ArgumentException($"Invalid dia type: {sourceInstance.Type}, expected: {DiaType.Int}"));
+                    return Result.Of<object?>(new IncompatibleClrConversionException(
+                        sourceInstance.Type,
+                        destinationType));
 
                 var bigInt = sourceInstance.As<IntValue>().Value!;
 
@@ -100,7 +117,9 @@ namespace Axis.Dia.Convert.Type.Converters
             if (destinationType.IsDecimal(out type))
             {
                 if (!DiaType.Decimal.Equals(sourceInstance.Type))
-                    return Result.Of<object?>(new ArgumentException($"Invalid dia type: {sourceInstance.Type}, expected: {DiaType.Decimal}"));
+                    return Result.Of<object?>(new IncompatibleClrConversionException(
+                        sourceInstance.Type,
+                        destinationType));
 
                 var bigDecimal = sourceInstance.As<DecimalValue>().Value!;
                 return Result.Of<object?>(
@@ -114,7 +133,9 @@ namespace Axis.Dia.Convert.Type.Converters
             if (destinationType.IsDateTime(out type))
             {
                 if (!DiaType.Instant.Equals(sourceInstance.Type))
-                    return Result.Of<object?>(new ArgumentException($"Invalid dia type: {sourceInstance.Type}, expected: {DiaType.Instant}"));
+                    return Result.Of<object?>(new IncompatibleClrConversionException(
+                        sourceInstance.Type,
+                        destinationType));
 
                 var timestamp = sourceInstance.As<InstantValue>().Value!;
                 return Result.Of<object?>(typeof(DateTime).Equals(type) 
@@ -122,7 +143,57 @@ namespace Axis.Dia.Convert.Type.Converters
                     : (object)timestamp);
             }
 
-            return Result.Of<object?>(new InvalidOperationException($"Invalid primitive destinatdia type: {destinationType}"));
+            #region byte sequence types
+            if (typeof(byte[]).Equals(destinationType))
+            {
+                return sourceInstance switch
+                {
+                    BlobValue blob => Result.Of<object?>(blob.Value!.Clone()),
+                    _ => Result.Of<object?>(new IncompatibleClrConversionException(
+                        sourceInstance.Type,
+                        destinationType))
+                };
+            }
+
+            if (typeof(ImmutableArray<byte>).Equals(destinationType)
+                || typeof(ImmutableArray<byte>?).Equals(destinationType))
+            {
+                return sourceInstance switch
+                {
+                    BlobValue blob => Result.Of<object?>(ImmutableArray.Create(blob.Value!)),
+                    _ => Result.Of<object?>(new IncompatibleClrConversionException(
+                        sourceInstance.Type,
+                        destinationType))
+                };
+            }
+
+            if (typeof(ImmutableList<byte>).Equals(destinationType))
+            {
+                return sourceInstance switch
+                {
+                    BlobValue blob => Result.Of<object?>(ImmutableList.Create(blob.Value!)),
+                    _ => Result.Of<object?>(new IncompatibleClrConversionException(
+                        sourceInstance.Type,
+                        destinationType))
+                };
+            }
+
+            if (typeof(List<byte>).Equals(destinationType))
+            {
+                return sourceInstance switch
+                {
+                    BlobValue blob => Result.Of<object?>(new List<byte>(blob.Value!)),
+                    _ => Result.Of<object?>(new IncompatibleClrConversionException(
+                        sourceInstance.Type,
+                        destinationType))
+                };
+            }
+            #endregion
+
+            return Result.Of<object?>(
+                new IncompatibleClrConversionException(
+                    sourceInstance.Type,
+                    destinationType));
         }
         #endregion
 
@@ -136,6 +207,8 @@ namespace Axis.Dia.Convert.Type.Converters
                 || sourceType.IsDecimal(out _)
                 || sourceType.IsDateTime(out _)
                 || sourceType.IsIntegral(out _)
+                || sourceType.IsEnumType(out _)
+                || sourceType.IsByteSequenceType(out _)
                 || sourceType.IsString();
         }
 
@@ -152,17 +225,20 @@ namespace Axis.Dia.Convert.Type.Converters
         /// <exception cref="ArgumentException">
         ///     If the conversion fails
         /// </exception>
-        public IResult<IDiaValue> ToDia(System.Type sourceType, object? sourceInstance, TypeConverterContext context)
+        public IResult<IDiaValue> ToDia(System.Type sourceType, object? sourceInstance, Dia.ConverterContext context)
         {
             if (sourceType is null)
                 throw new ArgumentNullException(nameof(sourceType));
+
+            if (!CanConvert(sourceType))
+                return Result.Of<IDiaValue>(new UnknownClrSourceTypeException(sourceType));
 
             if (sourceType.IsBoolean(out _))
                 return sourceInstance switch
                 {
                     null => Result.Of<IDiaValue>(BoolValue.Null()),
                     bool @bool => Result.Of<IDiaValue>(BoolValue.Of(@bool)),
-                    _ => Result.Of<IDiaValue>(new ArgumentException($"Invalid instance: {sourceInstance.GetType()}"))
+                    _ => Result.Of<IDiaValue>(new TypeMismatchException(sourceType, sourceInstance.GetType()))
                 };
 
             if (sourceType.IsString())
@@ -170,7 +246,7 @@ namespace Axis.Dia.Convert.Type.Converters
                 {
                     null => Result.Of<IDiaValue>(StringValue.Null()),
                     string @string => Result.Of<IDiaValue>(StringValue.Of(@string)),
-                    _ => Result.Of<IDiaValue>(new ArgumentException($"Invalid instance: {sourceInstance.GetType()}"))
+                    _ => Result.Of<IDiaValue>(new TypeMismatchException(sourceType, sourceInstance.GetType()))
                 };
 
             if (sourceType.IsIntegral(out _))
@@ -186,7 +262,7 @@ namespace Axis.Dia.Convert.Type.Converters
                     long @long => Result.Of<IDiaValue>(IntValue.Of(@long)),
                     ulong @ulong => Result.Of<IDiaValue>(IntValue.Of(@ulong)),
                     BigInteger bi => Result.Of<IDiaValue>(IntValue.Of(bi)),
-                    _ => Result.Of<IDiaValue>(new ArgumentException($"Invalid instance: {sourceInstance.GetType()}"))
+                    _ => Result.Of<IDiaValue>(new TypeMismatchException(sourceType, sourceInstance.GetType()))
                 };
 
             if (sourceType.IsDecimal(out _))
@@ -198,7 +274,7 @@ namespace Axis.Dia.Convert.Type.Converters
                     double @double => Result.Of<IDiaValue>(DecimalValue.Of(@double)),
                     decimal @decimal => Result.Of<IDiaValue>(DecimalValue.Of(@decimal)),
                     BigDecimal bd => Result.Of<IDiaValue>(DecimalValue.Of(bd)),
-                    _ => Result.Of<IDiaValue>(new ArgumentException($"Invalid instance: {sourceInstance.GetType()}"))
+                    _ => Result.Of<IDiaValue>(new TypeMismatchException(sourceType, sourceInstance.GetType()))
                 };
 
             if (sourceType.IsDateTime(out _))
@@ -207,15 +283,21 @@ namespace Axis.Dia.Convert.Type.Converters
                     null => Result.Of<IDiaValue>(InstantValue.Null()),
                     DateTime datetime => Result.Of<IDiaValue>(InstantValue.Of(datetime)),
                     DateTimeOffset datetime => Result.Of<IDiaValue>(InstantValue.Of(datetime)),
-                    _ => Result.Of<IDiaValue>(new ArgumentException($"Invalid instance: {sourceInstance.GetType()}"))
+                    _ => Result.Of<IDiaValue>(new TypeMismatchException(sourceType, sourceInstance.GetType()))
                 };
 
-            return Result.Of<IDiaValue>(
-                new InvalidOperationException(
-                    string.Format(
-                        "Conversion failed for type: {0}, instance: {1}",
-                        sourceInstance?.GetType() ?? sourceType,
-                        sourceInstance?.ToString() ?? "null")));
+            if (sourceType.IsByteSequenceType(out _))
+                return sourceInstance switch
+                {
+                    null => Result.Of<IDiaValue>(BlobValue.Null()),
+                    byte[] value => Result.Of<IDiaValue>(BlobValue.Of(value)),
+                    ImmutableArray<byte> value => Result.Of<IDiaValue>(BlobValue.Of(value.ToArray())),
+                    ImmutableList<byte> value => Result.Of<IDiaValue>(BlobValue.Of(value.ToArray())),
+                    List<byte> value => Result.Of<IDiaValue>(BlobValue.Of(value.ToArray())),
+                    _ => Result.Of<IDiaValue>(new TypeMismatchException(sourceType, sourceInstance.GetType()))
+                };
+
+            return Result.Of<IDiaValue>(new UnknownClrSourceTypeException(sourceType));
         }
         #endregion
     }

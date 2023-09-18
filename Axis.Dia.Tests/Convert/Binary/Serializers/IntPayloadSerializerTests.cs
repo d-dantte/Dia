@@ -1,4 +1,5 @@
-﻿using Axis.Dia.Convert.Binary.Metadata;
+﻿using Axis.Dia.Convert.Binary;
+using Axis.Dia.Convert.Binary.Metadata;
 using Axis.Dia.Convert.Binary.Serializers;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
@@ -173,7 +174,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         public void Serialize_Tests()
         {
             var nullValue = IntValue.Null();
-            var result = IntPayloadSerializer.Serialize(nullValue, new Dia.Convert.Binary.BinarySerializerContext());
+            var result = IntPayloadSerializer.Serialize(nullValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             var data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -181,7 +182,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             IntValue zeroValue = 0;
-            result = IntPayloadSerializer.Serialize(zeroValue, new Dia.Convert.Binary.BinarySerializerContext());
+            result = IntPayloadSerializer.Serialize(zeroValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -189,7 +190,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             IntValue oneValue = 1;
-            result = IntPayloadSerializer.Serialize(oneValue, new Dia.Convert.Binary.BinarySerializerContext());
+            result = IntPayloadSerializer.Serialize(oneValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(3, data.Length);
@@ -199,7 +200,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             oneValue = IntValue.Of(1, "annotation1", "annotation2");
-            result = IntPayloadSerializer.Serialize(oneValue, new Dia.Convert.Binary.BinarySerializerContext());
+            result = IntPayloadSerializer.Serialize(oneValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(50, data.Length);
@@ -209,7 +210,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             IntValue otherInt = -1222;
-            result = IntPayloadSerializer.Serialize(otherInt, new Dia.Convert.Binary.BinarySerializerContext());
+            result = IntPayloadSerializer.Serialize(otherInt, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(4, data.Length);
@@ -220,7 +221,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             otherInt = 65536;
-            result = IntPayloadSerializer.Serialize(otherInt, new Dia.Convert.Binary.BinarySerializerContext());
+            result = IntPayloadSerializer.Serialize(otherInt, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(5, data.Length);
@@ -231,7 +232,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
             Assert.AreEqual(1, data[4]);
 
             otherInt = BigInteger.Parse("18446744073709551616");
-            result = IntPayloadSerializer.Serialize(otherInt, new Dia.Convert.Binary.BinarySerializerContext());
+            result = IntPayloadSerializer.Serialize(otherInt, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(11, data.Length);
@@ -242,7 +243,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
             otherInt = BigInteger.Parse(
                 "18446744073709551616000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
                 + "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-            result = IntPayloadSerializer.Serialize(otherInt, new Dia.Convert.Binary.BinarySerializerContext());
+            result = IntPayloadSerializer.Serialize(otherInt, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(95, data.Length);
@@ -281,7 +282,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
                 + "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
                 + "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
                 + "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-            result = IntPayloadSerializer.Serialize(otherInt, new Dia.Convert.Binary.BinarySerializerContext());
+            result = IntPayloadSerializer.Serialize(otherInt, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(1363, data.Length);
@@ -295,12 +296,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         {
             var nullValue = IntValue.Null();
             var bytes = IntPayloadSerializer
-                .Serialize(nullValue, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(nullValue, new SerializerContext())
                 .Resolve();
             var result = IntPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             var resultValue = result.Resolve();
             Assert.AreEqual(nullValue, resultValue);
@@ -308,12 +309,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             IntValue value = 0;
             bytes = IntPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = IntPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -321,12 +322,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = 1;
             bytes = IntPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = IntPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -334,12 +335,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = -1222;
             bytes = IntPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = IntPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -347,12 +348,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = IntValue.Of(65536, "annotation of the gods");
             bytes = IntPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = IntPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -390,12 +391,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
                 + "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
                 + "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
             bytes = IntPayloadSerializer
-                .Serialize(value, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = IntPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[3..]),
                 TypeMetadata.Of(bytes[0], bytes[1], bytes[2]),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);

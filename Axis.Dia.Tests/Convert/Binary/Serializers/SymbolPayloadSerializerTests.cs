@@ -1,4 +1,5 @@
-﻿using Axis.Dia.Convert.Binary.Metadata;
+﻿using Axis.Dia.Convert.Binary;
+using Axis.Dia.Convert.Binary.Metadata;
 using Axis.Dia.Convert.Binary.Serializers;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
@@ -36,14 +37,14 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         public void Serialize_Tests()
         {
             var nullValue = SymbolValue.Null();
-            var result = SymbolPayloadSerializer.Serialize(nullValue, new Dia.Convert.Binary.BinarySerializerContext());
+            var result = SymbolPayloadSerializer.Serialize(nullValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             var data = result.Resolve();
             Assert.AreEqual(1, data.Length);
             Assert.AreEqual(39, data[0]);
 
             SymbolValue someValue = SymbolValue.Of("the-value", "the-annotation", "the-other-annotation");
-            result = SymbolPayloadSerializer.Serialize(someValue, new Dia.Convert.Binary.BinarySerializerContext());
+            result = SymbolPayloadSerializer.Serialize(someValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(82, data.Length);
@@ -57,12 +58,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         {
             var nullValue = SymbolValue.Null();
             var bytes = SymbolPayloadSerializer
-                .Serialize(nullValue, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(nullValue, new SerializerContext())
                 .Resolve();
             var result = SymbolPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[1..]),
                 TypeMetadata.Of(bytes[0]),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             var resultValue = result.Resolve();
             Assert.AreEqual(nullValue, resultValue);
@@ -70,12 +71,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             var someValue = SymbolValue.Of("the-value", "the-annotation", "the-other-annotation");
             bytes = SymbolPayloadSerializer
-                .Serialize(someValue, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(someValue, new SerializerContext())
                 .Resolve();
             result = SymbolPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(someValue, resultValue);

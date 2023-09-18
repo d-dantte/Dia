@@ -11,12 +11,20 @@ namespace Axis.Dia.Types
         IDeepCopyable<IntValue>,
         INullable<IntValue>,
         IEquatable<IntValue>,
-        IValueEquatable<IntValue, BigInteger>
+        IValueEquatable<IntValue>,
+        IDiaReferable<IntValue>
     {
         #region Local members
         private readonly BigInteger? _value;
+        private readonly Guid _address;
 
         private readonly Annotation[] _annotations;
+        #endregion
+
+        #region DiaReference
+        public Guid Address => _address;
+
+        public IntValue RelocateValue(Guid newAddress) => new(newAddress, _value, Annotations);
         #endregion
 
         #region StructValue
@@ -32,10 +40,11 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Constructors
-        public IntValue(BigInteger? value, params Annotation[] annotations)
+        public IntValue(Guid address, BigInteger? value, params Annotation[] annotations)
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
+            _address = address.ThrowIfDefault($"Invalid {nameof(address)} value: '{address}'");
             _value = value;
             _annotations = annotations
                 .ThrowIfAny(
@@ -43,8 +52,11 @@ namespace Axis.Dia.Types
                     _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain invalid values"))
                 .ToArray();
         }
+        public IntValue(BigInteger? value, params Annotation[] annotations)
+        : this(Guid.NewGuid(), value, annotations)
+        { }
 
-        public IntValue(params Annotation[] annotations)
+            public IntValue(params Annotation[] annotations)
         : this(null, annotations)
         { }
 
@@ -70,6 +82,11 @@ namespace Axis.Dia.Types
 
         public static IntValue Of(BigInteger? value) => Of(value, Array.Empty<Annotation>());
 
+        public static IntValue Of(
+            Guid address,
+            BigInteger? value,
+            params Annotation[] annotations)
+            => new IntValue(address, value, annotations);
         public static IntValue Of(
             BigInteger? value,
             params Annotation[] annotations)

@@ -34,7 +34,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
             return new ValuePayload<RecordValue>(value, typeMetadata);
         }
 
-        public static IResult<RecordValue> Deserialize(Stream stream, TypeMetadata typeMetadata, BinarySerializerContext context)
+        public static IResult<RecordValue> Deserialize(Stream stream, TypeMetadata typeMetadata, DeserializerContext context)
         {
             ArgumentNullException.ThrowIfNull(stream);
             ArgumentNullException.ThrowIfNull(context);
@@ -74,7 +74,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
                 .MapError(PayloadSerializer.TranslateValueError<RecordValue>);
         }
 
-        public static IResult<byte[]> Serialize(RecordValue value, BinarySerializerContext context)
+        public static IResult<byte[]> Serialize(RecordValue value, SerializerContext context)
         {
             try
             {
@@ -82,11 +82,10 @@ namespace Axis.Dia.Convert.Binary.Serializers
                 var annotationResult = AnnotationSerializer.Serialize(value.Annotations);
                 var recordDataResult = (value.Value?.Length ?? 0) == 0
                     ? Result.Of(Array.Empty<byte>)
-                    : Result.Of(() => value.Value!
+                    : Result.Bind(() => value.Value!
                         .Select(item => SerializeProperty(item, context))
                         .Fold()
-                        .Map(bytes => bytes.SelectMany().ToArray())
-                        .Resolve());
+                        .Map(bytes => bytes.SelectMany().ToArray()));
 
                 return typeMetadataResult
 
@@ -108,7 +107,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
 
         private static IResult<byte[]> SerializeProperty(
             Property property,
-            BinarySerializerContext context)
+            SerializerContext context)
         {
             if (property.Key.IsNull || string.Empty.Equals(property.Key.Value))
                 throw new ArgumentException($"Invalid property symbol: {property.Key}");
@@ -121,7 +120,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
                 .Map(bytes => bytes.ToArray());
         }
 
-        private static IResult<Property> DeserializeProperty(Stream stream, BinarySerializerContext context)
+        private static IResult<Property> DeserializeProperty(Stream stream, DeserializerContext context)
         {
             return PayloadSerializer
                 .DeserializeTypeMetadataResult(stream)

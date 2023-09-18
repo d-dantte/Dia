@@ -17,13 +17,21 @@ namespace Axis.Dia.Types
         IDeepCopyable<RecordValue>,
         INullable<RecordValue>,
         IEquatable<RecordValue>,
-        IValueEquatable<RecordValue, Property[]>
+        IValueEquatable<RecordValue>,
+        IDiaReferable<RecordValue>
     {
         #region Local members
         private readonly Dictionary<string, SymbolValue>? _symbolMap;
         private readonly Dictionary<string, IDiaValue>? _valueMap;
+        private readonly Guid _address;
 
         private readonly Annotation[] _annotations;
+        #endregion
+
+        #region DiaReference
+        public Guid Address => _address;
+
+        public RecordValue RelocateValue(Guid newAddress) => new(newAddress, Value, Annotations);
         #endregion
 
         #region RefValue
@@ -44,10 +52,14 @@ namespace Axis.Dia.Types
 
         #region Constructors
 
-        public RecordValue(IEnumerable<Property>? value, params Annotation[] annotations)
+        public RecordValue(
+            Guid address,
+            IEnumerable<Property>? value,
+            params Annotation[] annotations)
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
+            _address = address.ThrowIfDefault(new ArgumentException($"Invalid Guid supplied: '{address}'"));
             _annotations = annotations
                 .ThrowIfAny(
                     ann => ann.IsDefault,
@@ -69,6 +81,14 @@ namespace Axis.Dia.Types
                     .Select(kvp => (Key: kvp.Key.Value!, Value: kvp.Key))
                     .ToDictionary(pair => pair.Key, pair => pair.Value);
             }
+        }
+
+
+        public RecordValue(
+            IEnumerable<Property>? value,
+            params Annotation[] annotations)
+            : this(Guid.NewGuid(), value, annotations)
+        {
         }
 
         public RecordValue(
@@ -108,11 +128,17 @@ namespace Axis.Dia.Types
             params Annotation[] annotations)
             => new RecordValue(values, annotations);
 
+        public static RecordValue Of(
+            Guid address,
+            IEnumerable<Property>? values,
+            params Annotation[] annotations)
+            => new RecordValue(address, values, annotations);
+
         public static RecordValue Of(params Property[] values) => new RecordValue(values);
         #endregion
 
         #region DeepCopyable
-        public RecordValue DeepCopy() => new RecordValue(Value, Annotations);
+        public RecordValue DeepCopy() => new(Value, Annotations);
         #endregion
 
         #region Nullable
@@ -379,6 +405,27 @@ namespace Axis.Dia.Types
 
             return _valueMap!.TryGetValue(propertyName.Value!, out value);
 
+        }
+
+        public bool TryGet<TDiaValue>(SymbolValue propertyName, out TDiaValue? value)
+        where TDiaValue : IDiaValue
+        {
+            try
+            {
+                if (TryGet(propertyName, out var rawValue))
+                {
+                    value = rawValue.As<TDiaValue>();
+                    return true;
+                }
+
+                value = default;
+                return false;
+            }
+            catch
+            {
+                value = default;
+                return false;
+            }
         }
         #endregion
     }

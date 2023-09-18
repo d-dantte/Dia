@@ -20,21 +20,21 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             var options = new TextSerializerOptions();
 
             var value = ClobValue.Null();
-            var result = ClobParser.Serialize(value, new TextSerializerContext(options));
+            var result = ClobParser.Serialize(value, new SerializerContext(options));
             Assert.IsTrue(result.IsDataResult());
             var text = result.Resolve();
             Console.WriteLine(text);
             Assert.AreEqual("null.clob", text);
 
             value = ClobValue.Of(Text);
-            result = ClobParser.Serialize(value, new TextSerializerContext(options));
+            result = ClobParser.Serialize(value, new SerializerContext(options));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
             Assert.AreEqual($"<<\\{Environment.NewLine}{Text}\\{Environment.NewLine}>>", text);
 
             value = ClobValue.Of(Text, "fgh", "fghjk");
-            result = ClobParser.Serialize(value, new TextSerializerContext(options));
+            result = ClobParser.Serialize(value, new SerializerContext(options));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
@@ -46,16 +46,16 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
         {
             var options = new TextSerializerOptions();
             var value = ClobValue.Null("ann1", "ann2");
-            var textResult = ClobParser.Serialize(value, new TextSerializerContext(options));
-            var valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new TextSerializerContext(options)));
+            var textResult = ClobParser.Serialize(value, new SerializerContext(options));
+            var valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new ParserContext()));
             var valueInstance = valueResult.Resolve();
             Assert.IsNotNull(value);
             Assert.AreEqual(value, valueInstance);
 
 
             value = ClobValue.Of(Text);
-            textResult = ClobParser.Serialize(value, new TextSerializerContext(options));
-            valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new TextSerializerContext(options)));
+            textResult = ClobParser.Serialize(value, new SerializerContext(options));
+            valueResult = textResult.Bind(txt => TextSerializer.ParseValue(txt, new ParserContext()));
             valueInstance = valueResult.Resolve();
             Assert.IsNotNull(value);
             Assert.AreEqual(value, valueInstance);

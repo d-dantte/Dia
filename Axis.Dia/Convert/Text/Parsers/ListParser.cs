@@ -19,9 +19,10 @@ namespace Axis.Dia.Convert.Text.Parsers
 
         public static string GrammarSymbol => SymbolNameDiaList;
 
-        public static IResult<ListValue> Parse(CSTNode symbolNode, TextSerializerContext? context = null)
+        public static IResult<ListValue> Parse(CSTNode symbolNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(symbolNode);
+            ArgumentNullException.ThrowIfNull(context);
 
             if (!GrammarSymbol.Equals(symbolNode.SymbolName))
                 throw new ArgumentException(
@@ -30,8 +31,6 @@ namespace Axis.Dia.Convert.Text.Parsers
 
             try
             {
-                context ??= new TextSerializerContext();
-
                 var (AnnotationNode, ValueNode) = symbolNode.DeconstructValue();
                 var annotationResult = AnnotationNode is null
                     ? Result.Of(Array.Empty<Annotation>())
@@ -42,7 +41,7 @@ namespace Axis.Dia.Convert.Text.Parsers
                     SymbolNameNullList => annotationResult.Map(ListValue.Null),
                     SymbolNameListValue => ValueNode
                         .FindNodes(SymbolNameDiaValue)
-                        .Select(node => TextSerializer.ParseValue(node, context.IndentContext()))
+                        .Select(node => TextSerializer.ParseValue(node, context))
                         .Fold()
                         .Combine(
                             annotationResult,
@@ -60,9 +59,9 @@ namespace Axis.Dia.Convert.Text.Parsers
         }
 
 
-        public static IResult<string> Serialize(ListValue value, TextSerializerContext? context = null)
+        public static IResult<string> Serialize(ListValue value, SerializerContext context)
         {
-            context ??= new TextSerializerContext();
+            ArgumentNullException.ThrowIfNull(context);
 
             var annotationText = AnnotationParser.Serialize(value.Annotations, context);
             var indentedContext = context.IndentContext();
@@ -81,7 +80,7 @@ namespace Axis.Dia.Convert.Text.Parsers
             {
                 true => Result.Of("null.list"),
                 false => value.Value!
-                    .Select(item => TextSerializer.SerializeValue(item, context.IndentContext()))
+                    .Select(item => TextSerializer.InternalSerializeValue(item, context.IndentContext()))
                     .Fold()
                     .Map(items => items
                         .JoinUsing(valueSeparator)

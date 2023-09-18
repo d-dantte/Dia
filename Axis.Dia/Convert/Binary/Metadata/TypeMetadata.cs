@@ -41,6 +41,8 @@ namespace Axis.Dia.Convert.Binary.Metadata
 
         public static TypeMetadata Of(VarBytes metadata) => new TypeMetadata(metadata);
 
+        public static TypeMetadata Of(byte[] varbytes) => Of(VarBytes.Of(varbytes, false));
+
         public static TypeMetadata Of(
             byte typeMetadata,
             params CustomMetadata[] customMetadata)
@@ -213,7 +215,7 @@ namespace Axis.Dia.Convert.Binary.Metadata
             /// <summary>
             /// Depends on the implementation of the <see cref="IPayloadSerializer{TDiaValue}"/>
             /// </summary>
-            Custom = 64,    //76th bit
+            Custom = 64,    //7th bit
 
             /// <summary>
             /// Indicates that a custom metadata byte follows this byte

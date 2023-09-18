@@ -12,6 +12,7 @@
         Clob,
         Blob,
         List,
-        Record
+        Record,
+        Ref
     }
 }

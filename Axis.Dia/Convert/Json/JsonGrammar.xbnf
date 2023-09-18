@@ -1,0 +1,113 @@
+﻿# Dia-flavored Json
+#
+
+# Root
+$root -> ?[$object $array]
+
+
+# Spaces
+$block-space -> ?[$char-space].+
+$char-space -> ?[$space $tab $new-line $carriage-return $form-feed $vertical-tab]
+$space -> ' '
+$tab -> '\t'
+$new-line -> '\n'
+$carriage-return -> '\r'
+$form-feed -> '\f'
+$vertical-tab -> '\v'
+
+
+# Array
+$array -> +[
+	'[' +[$block-space.? $value-metadata $block-space.? ','].? +[
+		$block-space.?
+		$json-value +[
+			$block-space.?
+			','
+			$block-space.?
+			$json-value
+		].*
+	].?
+	$block-space.? ']'
+]
+
+
+# Object
+$object -> +[
+	'{' $meta-property.? +[
+		$block-space.?
+		$object-field +[
+			$block-space.?
+			','
+			$block-space.?
+			$object-field
+		].*
+	].?
+	$block-space.? '}'
+]
+$object-field -> +[$field-name $block-space.? ':' $block-space.? $json-value]
+$field-name -> +[ '"' $name-metadata $value-content '"']
+$meta-property -> +['0$' $block-space.? ':' $block-space.? '"' $value-metadata '"']
+
+
+# Json Value
+$json-value -> ?[$null $number-value $bool-value $encoded-value $string-value $array $object]
+
+
+# Name Metadata
+$name-metadata -> +['[' $annotation-list ']']
+
+
+# Value Metadata
+$value-metadata -> +['[' $ref-index.? $declared-type $annotation-list.? ']']
+
+
+# Type Declaration
+$declared-type -> +['$' $types ';']
+$types -> ?['Bool' 'Int' 'Decimal' 'Instant' 'Blob' 'Clob' 'String' 'Symbol' 'List' 'Record']
+
+
+# Ref Index
+$ref-index -> +['#' $int-digits ';']
+
+
+# Annotation List
+$annotation-list -> +[$annotation ';'].+
+$annotation -> ?[$attribute $identifier $quoted-text]
+$quoted-text -> @SQText
+$identifier -> @Identifier
+$attribute -> +[$identifier ':' $attribute-value]
+$attribute-value -> ?[$contiguous-text $quoted-text]
+$contiguous-text -> /^[a-zA-Z0-9_\-,]\z/
+
+
+# Bool
+$bool-value -> ?['true' 'false']
+
+
+# Number Value
+$number-value -> ?[$scientific-decimal $regular-decimal $int-number]
+
+$int-number -> +[ $negative-sign.? $int-digits]
+$int-digits -> /^\d+\z/
+
+$regular-decimal -> +[$int-number '.' $int-digits.?]
+
+$scientific-decimal -> +[
+	$int-number
+	+['.' $int-digits.?].?
+	'E' $exponent-sign.? $int-digits]
+$exponent-sign -> ?['+' '-']
+$negative-sign -> '-'
+
+
+# Null
+$null -> 'null'
+
+
+#  Encoded Value
+$encoded-value -> +['"' $value-metadata $value-content '"']
+
+
+# String Value
+$string-value -> +['"' $value-content '"']
+$value-content -> @StringContent

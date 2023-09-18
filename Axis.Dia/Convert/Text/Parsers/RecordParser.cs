@@ -26,9 +26,10 @@ namespace Axis.Dia.Convert.Text.Parsers
 
         public static string GrammarSymbol => SymbolNameDiaRecord;
 
-        public static IResult<RecordValue> Parse(CSTNode symbolNode, TextSerializerContext? context = null)
+        public static IResult<RecordValue> Parse(CSTNode symbolNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(symbolNode);
+            ArgumentNullException.ThrowIfNull(context);
 
             if (!GrammarSymbol.Equals(symbolNode.SymbolName))
                 throw new ArgumentException(
@@ -37,8 +38,6 @@ namespace Axis.Dia.Convert.Text.Parsers
 
             try
             {
-                context ??= new TextSerializerContext();
-
                 var (AnnotationNode, ValueNode) = symbolNode.DeconstructValue();
                 var annotationResult = AnnotationNode is null
                     ? Result.Of(Array.Empty<Annotation>())
@@ -49,7 +48,7 @@ namespace Axis.Dia.Convert.Text.Parsers
                     SymbolNameNullRecord => annotationResult.Map(RecordValue.Null),
                     SymbolNameRecordValue => ValueNode
                         .FindNodes(SymbolNameRecordField)
-                        .Select(node => ParseField(node, context.IndentContext()))
+                        .Select(node => ParseField(node, context))
                         .Fold()
                         .Combine(
                             annotationResult,
@@ -67,9 +66,9 @@ namespace Axis.Dia.Convert.Text.Parsers
         }
 
 
-        public static IResult<string> Serialize(RecordValue value, TextSerializerContext? context = null)
+        public static IResult<string> Serialize(RecordValue value, SerializerContext context)
         {
-            context ??= new TextSerializerContext();
+            ArgumentNullException.ThrowIfNull(context);
 
             var annotationText = AnnotationParser.Serialize(value.Annotations, context);
             var indentedContext = context.IndentContext();
@@ -101,7 +100,7 @@ namespace Axis.Dia.Convert.Text.Parsers
 
         internal static IResult<string> SerializeProperty(
             KeyValuePair<SymbolValue, IDiaValue> property,
-            TextSerializerContext indentedContext)
+            SerializerContext indentedContext)
         {
             var quoteName = indentedContext.Options.Records.UseQuotedIdentifierPropertyNames;
 
@@ -120,14 +119,14 @@ namespace Axis.Dia.Convert.Text.Parsers
                     return name;
                 });
 
-            var value = TextSerializer.SerializeValue(property.Value, indentedContext);
+            var value = TextSerializer.InternalSerializeValue(property.Value, indentedContext);
 
             return name.Combine(value, (pname, pvalue) => $"{pname}:{pvalue}");
         }
 
         internal static IResult<KeyValuePair<SymbolValue, IDiaValue>> ParseField(
             CSTNode recordFieldNode,
-            TextSerializerContext context)
+            ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(recordFieldNode);
 
@@ -146,7 +145,7 @@ namespace Axis.Dia.Convert.Text.Parsers
             return name.Combine(value, KeyValuePair.Create<SymbolValue, IDiaValue>);
         }
 
-        private static IResult<SymbolValue> ParseFieldName(CSTNode nameNode, TextSerializerContext context)
+        private static IResult<SymbolValue> ParseFieldName(CSTNode nameNode, ParserContext context)
         {
             var node = nameNode
                 .FindNodes($"{SymbolNameDiaSymbol}|{SymbolNameSingleLineString}")

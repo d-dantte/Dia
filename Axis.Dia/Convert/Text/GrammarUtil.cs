@@ -43,7 +43,7 @@ namespace Axis.Dia.Convert.Text
                     SinglelineDQDString,
                     "\"",
                     new[] { "\n", "\r" },
-                    new SingleLneStringEscapeMatcher()));
+                    new SingleLineStringEscapeMatcher()));
 
             // register singleline-dqdstring
             _ = importer.RegisterTerminal(
@@ -51,7 +51,7 @@ namespace Axis.Dia.Convert.Text
                     SinglelineSQDString,
                     "\'",
                     new[] { "\n", "\r" },
-                    new SingleLneStringEscapeMatcher()));
+                    new SingleLineStringEscapeMatcher()));
 
             // register clob-value
             _ = importer.RegisterTerminal(

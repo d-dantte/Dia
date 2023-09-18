@@ -1,6 +1,7 @@
 ﻿using Axis.Dia.Contracts;
 using Axis.Dia.Convert.Binary.Serializers;
 using Axis.Dia.Types;
+using Axis.Dia.Utils;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 
@@ -13,15 +14,26 @@ namespace Axis.Dia.Convert.Binary
         /// </summary>
         /// <param name="packet"></param>
         /// <returns></returns>
-        public static IResult<byte[]> Serialize(ValuePacket packet, BinarySerializerContext? context = null)
+        public static IResult<byte[]> Serialize(ValuePacket packet, SerializerContext? context = null)
         {
-            context ??= new BinarySerializerContext();
+            context ??= new SerializerContext();
+
+            // normalize the individual values, returning an error result if failure is dected
+            foreach (var value in packet.Values)
+            {
+                try
+                {
+                    value.NormalizeReferences();
+                }
+                catch(Exception ex)
+                {
+                    return Result.Of<byte[]>(ex);
+                }
+            }
+
             return packet.Values
                 .Select(value => PayloadSerializer.SerializeDiaValueResult(value, context))
-                .Fold()
-                .Map(v => v.Aggregate(
-                    Array.Empty<byte>(),
-                    ArrayExtensions.ConcatWith));
+                .FoldInto(v => v.Aggregate(Array.Empty<byte>(), ArrayExtensions.ConcatWith));
         }
 
         /// <summary>
@@ -29,9 +41,9 @@ namespace Axis.Dia.Convert.Binary
         /// </summary>
         /// <param name="packetStream"></param>
         /// <returns></returns>
-        public static IResult<ValuePacket> Deserialize(Stream packetStream, BinarySerializerContext? context = null)
+        public static IResult<ValuePacket> Deserialize(Stream packetStream, DeserializerContext? context = null)
         {
-            context ??= new BinarySerializerContext();
+            context ??= new DeserializerContext();
             var valueList = new List<IResult<IDiaValue>>();
             IResult<IDiaValue> result;
             while (packetStream.TryDeserializeDiaValueResult(context, out result))

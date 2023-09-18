@@ -11,7 +11,7 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
         [TestMethod]
         public void SerializeTests()
         {
-            var context = new TextSerializerContext();
+            var context = new SerializerContext();
 
             #region Null
             var @int = IntValue.Null();
@@ -84,9 +84,9 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             Assert.IsTrue(annotatedText.IsDataResult());
             Assert.AreEqual("stuff::other::0X499602D2", annotatedText.Resolve());
             Assert.IsTrue(ntext.IsDataResult());
-            Assert.AreEqual("0XB669FD2E", ntext.Resolve());
+            Assert.AreEqual("-0X499602D2", ntext.Resolve());
             Assert.IsTrue(nannotatedText.IsDataResult());
-            Assert.AreEqual("stuff::other::0XB669FD2E", nannotatedText.Resolve());
+            Assert.AreEqual("stuff::other::-0X499602D2", nannotatedText.Resolve());
 
             // separator
             context.Options.Ints.UseDigitSeparator = true;
@@ -100,9 +100,9 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             Assert.IsTrue(annotatedText.IsDataResult());
             Assert.AreEqual("stuff::other::0X4996_02D2", annotatedText.Resolve());
             Assert.IsTrue(ntext.IsDataResult());
-            Assert.AreEqual("0XB669_FD2E", ntext.Resolve());
+            Assert.AreEqual("-0X4996_02D2", ntext.Resolve());
             Assert.IsTrue(nannotatedText.IsDataResult());
-            Assert.AreEqual("stuff::other::0XB669_FD2E", nannotatedText.Resolve());
+            Assert.AreEqual("stuff::other::-0X4996_02D2", nannotatedText.Resolve());
             #endregion
 
             #region SmallHex
@@ -121,8 +121,8 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
 
             Assert.AreEqual("0x499602d2", text.Resolve());
             Assert.AreEqual("stuff::other::0x499602d2", annotatedText.Resolve());
-            Assert.AreEqual("0xb669fd2e", ntext.Resolve());
-            Assert.AreEqual("stuff::other::0xb669fd2e", nannotatedText.Resolve());
+            Assert.AreEqual("-0x499602d2", ntext.Resolve());
+            Assert.AreEqual("stuff::other::-0x499602d2", nannotatedText.Resolve());
 
             // separator
             context.Options.Ints.UseDigitSeparator = true;
@@ -133,8 +133,8 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
 
             Assert.AreEqual("0x4996_02d2", text.Resolve());
             Assert.AreEqual("stuff::other::0x4996_02d2", annotatedText.Resolve());
-            Assert.AreEqual("0xb669_fd2e", ntext.Resolve());
-            Assert.AreEqual("stuff::other::0xb669_fd2e", nannotatedText.Resolve());
+            Assert.AreEqual("-0x4996_02d2", ntext.Resolve());
+            Assert.AreEqual("stuff::other::-0x4996_02d2", nannotatedText.Resolve());
             #endregion
 
             #region BigBinary
@@ -153,8 +153,8 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
 
             Assert.AreEqual("0B1100100", text.Resolve());
             Assert.AreEqual("stuff::other::0B1100100", annotatedText.Resolve());
-            Assert.AreEqual("0B10011100", ntext.Resolve());
-            Assert.AreEqual("stuff::other::0B10011100", nannotatedText.Resolve());
+            Assert.AreEqual("-0B1100100", ntext.Resolve());
+            Assert.AreEqual("stuff::other::-0B1100100", nannotatedText.Resolve());
 
             // separator
             context.Options.Ints.UseDigitSeparator = true;
@@ -165,8 +165,8 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
 
             Assert.AreEqual("0B110_0100", text.Resolve());
             Assert.AreEqual("stuff::other::0B110_0100", annotatedText.Resolve());
-            Assert.AreEqual("0B1001_1100", ntext.Resolve());
-            Assert.AreEqual("stuff::other::0B1001_1100", nannotatedText.Resolve());
+            Assert.AreEqual("-0B110_0100", ntext.Resolve());
+            Assert.AreEqual("stuff::other::-0B110_0100", nannotatedText.Resolve());
             #endregion
 
             #region SmallBinary
@@ -185,8 +185,8 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
 
             Assert.AreEqual("0b1100100", text.Resolve());
             Assert.AreEqual("stuff::other::0b1100100", annotatedText.Resolve());
-            Assert.AreEqual("0b10011100", ntext.Resolve());
-            Assert.AreEqual("stuff::other::0b10011100", nannotatedText.Resolve());
+            Assert.AreEqual("-0b1100100", ntext.Resolve());
+            Assert.AreEqual("stuff::other::-0b1100100", nannotatedText.Resolve());
 
             // separator
             context.Options.Ints.UseDigitSeparator = true;
@@ -197,8 +197,8 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
 
             Assert.AreEqual("0b110_0100", text.Resolve());
             Assert.AreEqual("stuff::other::0b110_0100", annotatedText.Resolve());
-            Assert.AreEqual("0b1001_1100", ntext.Resolve());
-            Assert.AreEqual("stuff::other::0b1001_1100", nannotatedText.Resolve());
+            Assert.AreEqual("-0b110_0100", ntext.Resolve());
+            Assert.AreEqual("stuff::other::-0b110_0100", nannotatedText.Resolve());
             #endregion
         }
 
@@ -208,22 +208,22 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             var nvalue = IntValue.Null();
             var value1 = new IntValue(1000);
             var value2 = new IntValue(-1000, "stuff", "$other_stuff");
-            var context = new TextSerializerContext();
+            var scontext = new SerializerContext();
 
             #region decimal
-            context.Options.Ints.UseDigitSeparator = false;
-            context.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.Decimal;
-            var ntext = IntParser.Serialize(nvalue, context);
-            var text1 = IntParser.Serialize(value1, context);
-            var text2 = IntParser.Serialize(value2, context);
+            scontext.Options.Ints.UseDigitSeparator = false;
+            scontext.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.Decimal;
+            var ntext = IntParser.Serialize(nvalue, scontext);
+            var text1 = IntParser.Serialize(value1, scontext);
+            var text2 = IntParser.Serialize(value2, scontext);
             var nresult = TextSerializer.ParseValue(ntext.Resolve());
             var result1 = TextSerializer.ParseValue(text1.Resolve());
             var result2 = TextSerializer.ParseValue(text2.Resolve());
 
-            context.Options.Ints.UseDigitSeparator = true;
-            context.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.Decimal;
-            text1 = IntParser.Serialize(value1, context);
-            text2 = IntParser.Serialize(value2, context);
+            scontext.Options.Ints.UseDigitSeparator = true;
+            scontext.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.Decimal;
+            text1 = IntParser.Serialize(value1, scontext);
+            text2 = IntParser.Serialize(value2, scontext);
             var result3 = TextSerializer.ParseValue(text1.Resolve());
             var result4 = TextSerializer.ParseValue(text2.Resolve());
 
@@ -235,17 +235,17 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             #endregion
 
             #region big hex
-            context.Options.Ints.UseDigitSeparator = false;
-            context.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.BigHex;
-            text1 = IntParser.Serialize(value1, context);
-            text2 = IntParser.Serialize(value2, context);
+            scontext.Options.Ints.UseDigitSeparator = false;
+            scontext.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.BigHex;
+            text1 = IntParser.Serialize(value1, scontext);
+            text2 = IntParser.Serialize(value2, scontext);
             result1 = TextSerializer.ParseValue(text1.Resolve());
             result2 = TextSerializer.ParseValue(text2.Resolve());
 
-            context.Options.Ints.UseDigitSeparator = true;
-            context.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.BigHex;
-            text1 = IntParser.Serialize(value1, context);
-            text2 = IntParser.Serialize(value2, context);
+            scontext.Options.Ints.UseDigitSeparator = true;
+            scontext.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.BigHex;
+            text1 = IntParser.Serialize(value1, scontext);
+            text2 = IntParser.Serialize(value2, scontext);
             result3 = TextSerializer.ParseValue(text1.Resolve());
             result4 = TextSerializer.ParseValue(text2.Resolve());
 
@@ -256,17 +256,17 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             #endregion
 
             #region small hex
-            context.Options.Ints.UseDigitSeparator = false;
-            context.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.SmallHex;
-            text1 = IntParser.Serialize(value1, context);
-            text2 = IntParser.Serialize(value2, context);
+            scontext.Options.Ints.UseDigitSeparator = false;
+            scontext.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.SmallHex;
+            text1 = IntParser.Serialize(value1, scontext);
+            text2 = IntParser.Serialize(value2, scontext);
             result1 = TextSerializer.ParseValue(text1.Resolve());
             result2 = TextSerializer.ParseValue(text2.Resolve());
 
-            context.Options.Ints.UseDigitSeparator = true;
-            context.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.SmallHex;
-            text1 = IntParser.Serialize(value1, context);
-            text2 = IntParser.Serialize(value2, context);
+            scontext.Options.Ints.UseDigitSeparator = true;
+            scontext.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.SmallHex;
+            text1 = IntParser.Serialize(value1, scontext);
+            text2 = IntParser.Serialize(value2, scontext);
             result3 = TextSerializer.ParseValue(text1.Resolve());
             result4 = TextSerializer.ParseValue(text2.Resolve());
 
@@ -277,17 +277,17 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             #endregion
 
             #region big binary
-            context.Options.Ints.UseDigitSeparator = false;
-            context.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.BigBinary;
-            text1 = IntParser.Serialize(value1, context);
-            text2 = IntParser.Serialize(value2, context);
+            scontext.Options.Ints.UseDigitSeparator = false;
+            scontext.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.BigBinary;
+            text1 = IntParser.Serialize(value1, scontext);
+            text2 = IntParser.Serialize(value2, scontext);
             result1 = TextSerializer.ParseValue(text1.Resolve());
             result2 = TextSerializer.ParseValue(text2.Resolve());
 
-            context.Options.Ints.UseDigitSeparator = true;
-            context.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.BigBinary;
-            text1 = IntParser.Serialize(value1, context);
-            text2 = IntParser.Serialize(value2, context);
+            scontext.Options.Ints.UseDigitSeparator = true;
+            scontext.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.BigBinary;
+            text1 = IntParser.Serialize(value1, scontext);
+            text2 = IntParser.Serialize(value2, scontext);
             result3 = TextSerializer.ParseValue(text1.Resolve());
             result4 = TextSerializer.ParseValue(text2.Resolve());
 
@@ -298,17 +298,17 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             #endregion
 
             #region small binary
-            context.Options.Ints.UseDigitSeparator = false;
-            context.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.SmallBinary;
-            text1 = IntParser.Serialize(value1, context);
-            text2 = IntParser.Serialize(value2, context);
+            scontext.Options.Ints.UseDigitSeparator = false;
+            scontext.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.SmallBinary;
+            text1 = IntParser.Serialize(value1, scontext);
+            text2 = IntParser.Serialize(value2, scontext);
             result1 = TextSerializer.ParseValue(text1.Resolve());
             result2 = TextSerializer.ParseValue(text2.Resolve());
 
-            context.Options.Ints.UseDigitSeparator = true;
-            context.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.SmallBinary;
-            text1 = IntParser.Serialize(value1, context);
-            text2 = IntParser.Serialize(value2, context);
+            scontext.Options.Ints.UseDigitSeparator = true;
+            scontext.Options.Ints.NumberFormat = TextSerializerOptions.IntFormat.SmallBinary;
+            text1 = IntParser.Serialize(value1, scontext);
+            text2 = IntParser.Serialize(value2, scontext);
             result3 = TextSerializer.ParseValue(text1.Resolve());
             result4 = TextSerializer.ParseValue(text2.Resolve());
 

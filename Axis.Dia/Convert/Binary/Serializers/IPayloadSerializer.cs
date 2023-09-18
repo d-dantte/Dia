@@ -14,7 +14,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
         /// </summary>
         /// <param name="payload"></param>
         /// <returns></returns>
-        abstract static IResult<byte[]> Serialize(TDiaValue value, BinarySerializerContext context);
+        abstract static IResult<byte[]> Serialize(TDiaValue value, SerializerContext context);
 
         /// <summary>
         /// 
@@ -24,7 +24,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
         abstract static IResult<TDiaValue> Deserialize(
             Stream stream,
             TypeMetadata typeMetadata,
-            BinarySerializerContext context);
+            DeserializerContext context);
     }
 
     internal static class PayloadSerializer
@@ -40,98 +40,140 @@ namespace Axis.Dia.Convert.Binary.Serializers
             => (result = DeserializeTypeMetadataResult(stream)) is IResult<TypeMetadata>.DataResult;
         #endregion
 
-        #region DiaValue
+        #region Deserialize
         internal static IResult<IDiaValue> DeserializeDiaValueResult(
             this Stream stream,
-            BinarySerializerContext context)
+            DeserializerContext context)
         {
             return stream
                 .DeserializeTypeMetadataResult()
-                .Bind(tmeta => tmeta.Type switch
+                .Bind(tmeta =>
                 {
-                    DiaType.Bool => BoolPayloadSerializer
-                        .Deserialize(stream, tmeta, context)
-                        .Map(value => (IDiaValue)value),
+                    if (DiaType.Ref.Equals(tmeta.Type))
+                        return RefPayloadSerializer
+                            .Deserialize(stream, tmeta, context)
+                            .MapAs<IDiaValue>();
 
-                    DiaType.Instant => InstantPayloadSerializer
-                        .Deserialize(stream, tmeta, context)
-                        .Map(value => (IDiaValue)value),
+                    else
+                    {
+                        var address = context.AllocateAddress();
+                        return tmeta.Type switch
+                        {
+                            DiaType.Bool => BoolPayloadSerializer
+                                .Deserialize(stream, tmeta, context)
+                                .Map(value => value.RelocateValue(address))
+                                .MapAs<IDiaValue>(),
 
-                    DiaType.Int => IntPayloadSerializer
-                        .Deserialize(stream, tmeta, context)
-                        .Map(value => (IDiaValue)value),
+                            DiaType.Instant => InstantPayloadSerializer
+                                .Deserialize(stream, tmeta, context)
+                                .Map(value => value.RelocateValue(address))
+                                .MapAs<IDiaValue>(),
 
-                    DiaType.Decimal => DecimalPayloadSerializer
-                        .Deserialize(stream, tmeta, context)
-                        .Map(value => (IDiaValue)value),
+                            DiaType.Int => IntPayloadSerializer
+                                .Deserialize(stream, tmeta, context)
+                                .Map(value => (IDiaValue)value),
 
-                    DiaType.Blob => BlobPayloadSerializer
-                        .Deserialize(stream, tmeta, context)
-                        .Map(value => (IDiaValue)value),
+                            DiaType.Decimal => DecimalPayloadSerializer
+                                .Deserialize(stream, tmeta, context)
+                                .Map(value => value.RelocateValue(address))
+                                .MapAs<IDiaValue>(),
 
-                    DiaType.Clob => ClobPayloadSerializer
-                        .Deserialize(stream, tmeta, context)
-                        .Map(value => (IDiaValue)value),
+                            DiaType.Blob => BlobPayloadSerializer
+                                .Deserialize(stream, tmeta, context)
+                                .Map(value => value.RelocateValue(address))
+                                .MapAs<IDiaValue>(),
 
-                    DiaType.Symbol => SymbolPayloadSerializer
-                        .Deserialize(stream, tmeta, context)
-                        .Map(value => (IDiaValue)value),
+                            DiaType.Clob => ClobPayloadSerializer
+                                .Deserialize(stream, tmeta, context)
+                                .Map(value => value.RelocateValue(address))
+                                .MapAs<IDiaValue>(),
 
-                    DiaType.String => StringPayloadSerializer
-                        .Deserialize(stream, tmeta, context)
-                        .Map(value => (IDiaValue)value),
+                            DiaType.Symbol => SymbolPayloadSerializer
+                                .Deserialize(stream, tmeta, context)
+                                .Map(value => value.RelocateValue(address))
+                                .MapAs<IDiaValue>(),
 
-                    DiaType.List => ListPayloadSerializer
-                        .Deserialize(stream, tmeta, context)
-                        .Map(value => (IDiaValue)value),
+                            DiaType.String => StringPayloadSerializer
+                                .Deserialize(stream, tmeta, context)
+                                .Map(value => value.RelocateValue(address))
+                                .MapAs<IDiaValue>(),
 
-                    DiaType.Record => RecordPayloadSerializer
-                        .Deserialize(stream, tmeta, context)
-                        .Map(value => (IDiaValue)value),
+                            DiaType.List => ListPayloadSerializer
+                                .Deserialize(stream, tmeta, context)
+                                .Map(value => value.RelocateValue(address))
+                                .MapAs<IDiaValue>(),
 
-                    _ => throw new InvalidOperationException($"Invalid TypeMetadata found: {tmeta}")
+                            DiaType.Record => RecordPayloadSerializer
+                                .Deserialize(stream, tmeta, context)
+                                .Map(value => value.RelocateValue(address))
+                                .MapAs<IDiaValue>(),
+
+                            _ => throw new InvalidOperationException($"Invalid TypeMetadata found: {tmeta}")
+                        };
+                    }
                 });
         }
 
         internal static bool TryDeserializeDiaValueResult(
             this Stream stream,
-            BinarySerializerContext context,
+            DeserializerContext context,
             out IResult<IDiaValue> result)
             => (result = DeserializeDiaValueResult(stream, context)) is IResult<IDiaValue>.DataResult;
 
+        #endregion
+
+        #region Serialize
+
         internal static IResult<byte[]> SerializeDiaValueResult(
             this IDiaValue value,
-            BinarySerializerContext context)
+            SerializerContext context)
         {
-            return value.Type switch
+            try
             {
-                DiaType.Bool => BoolPayloadSerializer.Serialize((BoolValue)value, context),
+                var @ref = value switch
+                {
+                    IDiaAddressProvider addressProvider => ReferenceValue.Of(addressProvider),
+                    IDiaReference reference => reference,
+                    _ => throw new InvalidOperationException($"Invalid vaue found: '{value}'")
+                };
 
-                DiaType.Instant => InstantPayloadSerializer.Serialize((InstantValue)value, context),
+                if (context.TrySerializeRef(@ref, out var refData))
+                    return Result.Of(refData!);
 
-                DiaType.Int => IntPayloadSerializer.Serialize((IntValue)value, context),
+                else return @ref.Value!.Type switch
+                {
+                    DiaType.Bool => BoolPayloadSerializer.Serialize((BoolValue)value, context),
 
-                DiaType.Decimal => DecimalPayloadSerializer.Serialize((DecimalValue)value, context),
+                    DiaType.Instant => InstantPayloadSerializer.Serialize((InstantValue)value, context),
 
-                DiaType.Blob => BlobPayloadSerializer.Serialize((BlobValue)value, context),
+                    DiaType.Int => IntPayloadSerializer.Serialize((IntValue)value, context),
 
-                DiaType.Clob => ClobPayloadSerializer.Serialize((ClobValue)value, context),
+                    DiaType.Decimal => DecimalPayloadSerializer.Serialize((DecimalValue)value, context),
 
-                DiaType.Symbol => SymbolPayloadSerializer.Serialize((SymbolValue)value, context),
+                    DiaType.Blob => BlobPayloadSerializer.Serialize((BlobValue)value, context),
 
-                DiaType.String => StringPayloadSerializer.Serialize((StringValue)value, context),
+                    DiaType.Clob => ClobPayloadSerializer.Serialize((ClobValue)value, context),
 
-                DiaType.List => ListPayloadSerializer.Serialize((ListValue)value, context),
+                    DiaType.Symbol => SymbolPayloadSerializer.Serialize((SymbolValue)value, context),
 
-                DiaType.Record => RecordPayloadSerializer.Serialize((RecordValue)value, context),
+                    DiaType.String => StringPayloadSerializer.Serialize((StringValue)value, context),
 
-                _ => throw new InvalidOperationException($"Invalid DiaType found: {value.Type}")
-            };
+                    DiaType.List => ListPayloadSerializer.Serialize((ListValue)value, context),
+
+                    DiaType.Record => RecordPayloadSerializer.Serialize((RecordValue)value, context),
+
+                    _ => throw new InvalidOperationException($"Invalid DiaType found: {value.Type}")
+                };
+            }
+            catch(Exception e)
+            {
+                return Result.Of<byte[]>(e);
+            }
         }
 
         internal static bool TrySerializeDiaValueResult(
             this IDiaValue value,
-            BinarySerializerContext context,
+            SerializerContext context,
             out IResult<byte[]> result)
             => (result = SerializeDiaValueResult(value, context)) is IResult<byte[]>.DataResult;
         #endregion

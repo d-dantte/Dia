@@ -63,7 +63,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
         public static IResult<DecimalValue> Deserialize(
             Stream stream,
             TypeMetadata typeMetadata,
-            BinarySerializerContext context)
+            DeserializerContext context)
         {
             ArgumentNullException.ThrowIfNull(stream);
             ArgumentNullException.ThrowIfNull(context);
@@ -122,7 +122,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
                 .MapError(PayloadSerializer.TranslateValueError<DecimalValue>);
         }
 
-        public static IResult<byte[]> Serialize(DecimalValue value, BinarySerializerContext context)
+        public static IResult<byte[]> Serialize(DecimalValue value, SerializerContext context)
         {
             try
             {

@@ -52,7 +52,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
             return new ValuePayload<InstantValue>(value, typeMetadata);
         }
 
-        public static IResult<InstantValue> Deserialize(Stream stream, TypeMetadata typeMetadata, BinarySerializerContext context)
+        public static IResult<InstantValue> Deserialize(Stream stream, TypeMetadata typeMetadata, DeserializerContext context)
         {
             ArgumentNullException.ThrowIfNull(stream);
             ArgumentNullException.ThrowIfNull(context);
@@ -90,7 +90,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
                 .MapError(PayloadSerializer.TranslateValueError<InstantValue>);
         }
 
-        public static IResult<byte[]> Serialize(InstantValue value, BinarySerializerContext context)
+        public static IResult<byte[]> Serialize(InstantValue value, SerializerContext context)
         {
             try
             {

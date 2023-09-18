@@ -1,5 +1,4 @@
 ﻿using Axis.Dia.Contracts;
-using Axis.Dia.Utils;
 using Axis.Luna.Extensions;
 using System.Diagnostics.CodeAnalysis;
 
@@ -10,12 +9,20 @@ namespace Axis.Dia.Types
         IDeepCopyable<ClobValue>,
         INullable<ClobValue>,
         IEquatable<ClobValue>,
-        IValueEquatable<ClobValue, string>
+        IValueEquatable<ClobValue>,
+        IDiaReferable<ClobValue>
     {
         #region Local members
         private readonly string? _value;
+        private readonly Guid _address;
 
         private readonly Annotation[] _annotations;
+        #endregion
+
+        #region DiaReference
+        public Guid Address => _address;
+
+        public ClobValue RelocateValue(Guid newAddress) => new(newAddress, _value, Annotations);
         #endregion
 
         #region RefValue
@@ -37,10 +44,14 @@ namespace Axis.Dia.Types
         /// </summary>
         /// <param name="value">The unescaped string</param>
         /// <param name="annotations">The annotation collection</param>
-        public ClobValue(string? value, params Annotation[] annotations)
+        public ClobValue(
+            Guid address,
+            string? value,
+            params Annotation[] annotations)
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
+            _address = address.ThrowIfDefault($"Invalid {nameof(address)} value: '{address}'");
             _value = value;
             _annotations = annotations
                 .ThrowIfAny(
@@ -48,6 +59,10 @@ namespace Axis.Dia.Types
                     _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain invalid values"))
                 .ToArray();
         }
+
+        public ClobValue(string? value, params Annotation[] annotations)
+        : this(Guid.NewGuid(), value, annotations)
+        { }
 
         public ClobValue(params Annotation[] annotations)
         : this(null, annotations)
@@ -63,6 +78,12 @@ namespace Axis.Dia.Types
             string? value,
             params Annotation[] annotations)
             => new ClobValue(value, annotations);
+
+        public static ClobValue Of(
+            Guid address,
+            string? value,
+            params Annotation[] annotations)
+            => new ClobValue(address, value, annotations);
         #endregion
 
         #region DeepCopyable

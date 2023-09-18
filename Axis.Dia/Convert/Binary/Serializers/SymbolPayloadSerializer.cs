@@ -36,7 +36,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
         public static IResult<SymbolValue> Deserialize(
             Stream stream,
             TypeMetadata typeMetadata,
-            BinarySerializerContext context)
+            DeserializerContext context)
         {
             ArgumentNullException.ThrowIfNull(stream);
             ArgumentNullException.ThrowIfNull(context);
@@ -73,7 +73,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
                 .MapError(PayloadSerializer.TranslateValueError<SymbolValue>);
         }
 
-        public static IResult<byte[]> Serialize(SymbolValue value, BinarySerializerContext context)
+        public static IResult<byte[]> Serialize(SymbolValue value, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 

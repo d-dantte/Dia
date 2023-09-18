@@ -1,5 +1,4 @@
 ﻿using Axis.Dia.Contracts;
-using Axis.Dia.Utils;
 using Axis.Luna.Extensions;
 using System.Diagnostics.CodeAnalysis;
 
@@ -10,12 +9,20 @@ namespace Axis.Dia.Types
         IDeepCopyable<BoolValue>,
         INullable<BoolValue>,
         IEquatable<BoolValue>,
-        IValueEquatable<BoolValue, bool>
+        IValueEquatable<BoolValue>,
+        IDiaReferable<BoolValue>
     {
         #region Local members
         private readonly bool? _value;
+        private readonly Guid _address;
 
         private readonly Annotation[] _annotations;
+        #endregion
+
+        #region DiaReference
+        public Guid Address => _address;
+
+        public BoolValue RelocateValue(Guid newAddress) => new(newAddress, _value, Annotations);
         #endregion
 
         #region StructValue
@@ -31,10 +38,11 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Constructors
-        public BoolValue(bool? value, params Annotation[] annotations)
+        public BoolValue(Guid address, bool? value, params Annotation[] annotations)
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
+            _address = address.ThrowIfDefault($"Invalid {nameof(address)} value: '{address}'");
             _value = value;
             _annotations = annotations
                 .ThrowIfAny(
@@ -42,6 +50,10 @@ namespace Axis.Dia.Types
                     _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain invalid values"))
                 .ToArray();
         }
+
+        public BoolValue(bool? value, params Annotation[] annotations)
+        : this(Guid.NewGuid(), value, annotations)
+        { }
 
         public BoolValue(params Annotation[] annotations)
         : this(null, annotations)
@@ -55,6 +67,12 @@ namespace Axis.Dia.Types
             bool? value,
             params Annotation[] annotations)
             => new BoolValue(value, annotations);
+
+        public static BoolValue Of(
+            Guid address,
+            bool? value,
+            params Annotation[] annotations)
+            => new BoolValue(address, value, annotations);
         #endregion
 
         #region DeepCopyable

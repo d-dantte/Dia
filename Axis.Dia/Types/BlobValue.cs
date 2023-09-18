@@ -2,6 +2,7 @@
 using Axis.Dia.Utils;
 using Axis.Luna.Extensions;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 
 namespace Axis.Dia.Types
 {
@@ -10,12 +11,20 @@ namespace Axis.Dia.Types
         IDeepCopyable<BlobValue>,
         INullable<BlobValue>,
         IEquatable<BlobValue>,
-        IValueEquatable<BlobValue, byte[]>
+        IValueEquatable<BlobValue>,
+        IDiaReferable<BlobValue>
     {
         #region Local members
         private readonly byte[]? _value;
+        private readonly Guid _address;
 
         private readonly Annotation[] _annotations;
+        #endregion
+
+        #region DiaReference
+        public Guid Address => _address;
+
+        public BlobValue RelocateValue(Guid newAddress) => new(newAddress, _value, Annotations);
         #endregion
 
         #region RefValue
@@ -31,16 +40,22 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Constructors
-        public BlobValue(byte[]? value, params Annotation[] annotations)
+        public BlobValue(Guid address, byte[]? value, params Annotation[] annotations)
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
+            _address = address.ThrowIfDefault($"Invalid {nameof(address)} value: '{address}'");
             _value = value;
             _annotations = annotations
                 .ThrowIfAny(
                     ann => ann.IsDefault,
                     _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain invalid values"))
                 .ToArray();
+        }
+
+        public BlobValue(byte[]? value, params Annotation[] annotations)
+            :this(Guid.NewGuid(), value, annotations)
+        {
         }
 
         public BlobValue(params Annotation[] annotations)
@@ -52,7 +67,13 @@ namespace Axis.Dia.Types
 
         public static BlobValue Of(byte[]? value) => Of(value, Array.Empty<Annotation>());
 
-        public static BlobValue Of(byte[]? value, params Annotation[] annotations) => new BlobValue(value, annotations);
+        public static BlobValue Of(byte[]? value, params Annotation[] annotations) => new(value, annotations);
+
+        public static BlobValue Of(
+            Guid address,
+            byte[]? value,
+            params Annotation[] annotations)
+            => new(address, value, annotations);
         #endregion
 
         #region DeepCopyable

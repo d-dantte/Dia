@@ -35,7 +35,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
             return new ValuePayload<BlobValue>(value, typeMetadata);
         }
 
-        public static IResult<BlobValue> Deserialize(Stream stream, TypeMetadata typeMetadata, BinarySerializerContext context)
+        public static IResult<BlobValue> Deserialize(Stream stream, TypeMetadata typeMetadata, DeserializerContext context)
         {
             ArgumentNullException.ThrowIfNull(stream);
             ArgumentNullException.ThrowIfNull(context);
@@ -70,7 +70,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
                 .MapError(PayloadSerializer.TranslateValueError<BlobValue>);
         }
 
-        public static IResult<byte[]> Serialize(BlobValue value, BinarySerializerContext context)
+        public static IResult<byte[]> Serialize(BlobValue value, SerializerContext context)
         {
             try
             {

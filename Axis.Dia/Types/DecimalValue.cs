@@ -12,12 +12,20 @@ namespace Axis.Dia.Types
         IDeepCopyable<DecimalValue>,
         INullable<DecimalValue>,
         IEquatable<DecimalValue>,
-        IValueEquatable<DecimalValue, BigDecimal>
+        IValueEquatable<DecimalValue>,
+        IDiaReferable<DecimalValue>
     {
         #region Local members
         private readonly BigDecimal? _value;
+        private readonly Guid _address;
 
         private readonly Annotation[] _annotations;
+        #endregion
+
+        #region DiaReference
+        public Guid Address => _address;
+
+        public DecimalValue RelocateValue(Guid newAddress) => new(newAddress, _value, Annotations);
         #endregion
 
         #region StructValue
@@ -33,16 +41,22 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Constructors
-        public DecimalValue(BigDecimal? value, params Annotation[] annotations)
+        public DecimalValue(Guid address, BigDecimal? value, params Annotation[] annotations)
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
+            _address = address.ThrowIfDefault($"Invalid {nameof(address)} value: '{address}'");
             _value = value;
             _annotations = annotations
                 .ThrowIfAny(
                     ann => ann.IsDefault,
                     _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain invalid values"))
                 .ToArray();
+        }
+
+        public DecimalValue(BigDecimal? value, params Annotation[] annotations)
+        : this(Guid.NewGuid(), value, annotations)
+        {
         }
 
         public DecimalValue(params Annotation[] annotations)
@@ -85,6 +99,11 @@ namespace Axis.Dia.Types
             BigDecimal? value,
             params Annotation[] annotations)
             => new DecimalValue(value, annotations);
+        public static DecimalValue Of(
+            Guid address,
+            BigDecimal? value,
+            params Annotation[] annotations)
+            => new DecimalValue(address, value, annotations);
         #endregion
 
         #region DeepCopyable

@@ -10,12 +10,20 @@ namespace Axis.Dia.Types
         IDeepCopyable<StringValue>,
         INullable<StringValue>,
         IEquatable<StringValue>,
-        IValueEquatable<StringValue, string>
+        IValueEquatable<StringValue>,
+        IDiaReferable<StringValue>
     {
         #region Local members
         private readonly string? _value;
+        private readonly Guid _address;
 
         private readonly Annotation[] _annotations;
+        #endregion
+
+        #region DiaReference
+        public Guid Address => _address;
+
+        public StringValue RelocateValue(Guid newAddress) => new(newAddress, _value, Annotations);
         #endregion
 
         #region RefValue
@@ -37,10 +45,11 @@ namespace Axis.Dia.Types
         /// </summary>
         /// <param name="value"></param>
         /// <param name="annotations"></param>
-        public StringValue(string? value, params Annotation[] annotations)
+        public StringValue(Guid address, string? value, params Annotation[] annotations)
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
+            _address = address.ThrowIfDefault($"Invalid {nameof(address)} value: '{address}'");
             _value = value;
             _annotations = annotations
                 .ThrowIfAny(
@@ -49,7 +58,11 @@ namespace Axis.Dia.Types
                 .ToArray();
         }
 
-        public StringValue(params Annotation[] annotations)
+        public StringValue(string? value, params Annotation[] annotations)
+        : this(Guid.NewGuid(), value, annotations)
+        { }
+
+            public StringValue(params Annotation[] annotations)
         : this(null, annotations)
         { }
 
@@ -63,6 +76,12 @@ namespace Axis.Dia.Types
             string? value,
             params Annotation[] annotations)
             => new StringValue(value, annotations);
+
+        public static StringValue Of(
+            Guid address,
+            string? value,
+            params Annotation[] annotations)
+            => new StringValue(address, value, annotations);
         #endregion
 
         #region DeepCopyable

@@ -11,7 +11,7 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
         [TestMethod]
         public void SerializeTests()
         {
-            var context = new TextSerializerContext();
+            var context = new SerializerContext();
 
             #region Null
             var ionTimestamp = InstantValue.Null();
@@ -71,8 +71,8 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             context.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.MilliSecond;
             text = InstantParser.Serialize(ionTimestamp, context);
             textAnnotated = InstantParser.Serialize(ionTimestampAnnotated, context);
-            Assert.AreEqual("2023-02-02T09:37:54.000123+05:00", text.Resolve());
-            Assert.AreEqual("stuff::eurt::2023-02-02T09:37:54.000123+05:00", textAnnotated.Resolve());
+            Assert.AreEqual("2023-02-02T09:37:54.0001234+05:00", text.Resolve());
+            Assert.AreEqual("stuff::eurt::2023-02-02T09:37:54.0001234+05:00", textAnnotated.Resolve());
             #endregion
         }
 
@@ -83,14 +83,15 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             var value1 = InstantValue.Null();
             var value2 = new InstantValue(timestamp);
             var value3 = new InstantValue(timestamp, "stuff", "$other_stuff");
-            var context = new TextSerializerContext();
+            var scontext = new SerializerContext();
+            var pcontext = new ParserContext();
             var localOffset = TimeZoneInfo.Local.BaseUtcOffset;
 
             #region Year precision
-            context.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.Year;
-            var text1 = InstantParser.Serialize(value1, context);
-            var text2 = InstantParser.Serialize(value2, context);
-            var text3 = InstantParser.Serialize(value3, context);
+            scontext.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.Year;
+            var text1 = InstantParser.Serialize(value1, scontext);
+            var text2 = InstantParser.Serialize(value2, scontext);
+            var text3 = InstantParser.Serialize(value3, scontext);
 
             var result1 = TextSerializer.ParseValue(text1.Resolve());
             var result2 = TextSerializer.ParseValue(text2.Resolve());
@@ -110,10 +111,10 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             #endregion
 
             #region Month precision
-            context.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.Month;
-            text1 = InstantParser.Serialize(value1, context);
-            text2 = InstantParser.Serialize(value2, context);
-            text3 = InstantParser.Serialize(value3, context);
+            scontext.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.Month;
+            text1 = InstantParser.Serialize(value1, scontext);
+            text2 = InstantParser.Serialize(value2, scontext);
+            text3 = InstantParser.Serialize(value3, scontext);
 
             result1 = TextSerializer.ParseValue(text1.Resolve());
             result2 = TextSerializer.ParseValue(text2.Resolve());
@@ -133,10 +134,10 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             #endregion
 
             #region Day precision
-            context.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.Day;
-            text1 = InstantParser.Serialize(value1, context);
-            text2 = InstantParser.Serialize(value2, context);
-            text3 = InstantParser.Serialize(value3, context);
+            scontext.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.Day;
+            text1 = InstantParser.Serialize(value1, scontext);
+            text2 = InstantParser.Serialize(value2, scontext);
+            text3 = InstantParser.Serialize(value3, scontext);
 
             result1 = TextSerializer.ParseValue(text1.Resolve());
             result2 = TextSerializer.ParseValue(text2.Resolve());
@@ -156,10 +157,10 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             #endregion
 
             #region Minute precision
-            context.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.Minute;
-            text1 = InstantParser.Serialize(value1, context);
-            text2 = InstantParser.Serialize(value2, context);
-            text3 = InstantParser.Serialize(value3, context);
+            scontext.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.Minute;
+            text1 = InstantParser.Serialize(value1, scontext);
+            text2 = InstantParser.Serialize(value2, scontext);
+            text3 = InstantParser.Serialize(value3, scontext);
 
             result1 = TextSerializer.ParseValue(text1.Resolve());
             result2 = TextSerializer.ParseValue(text2.Resolve());
@@ -177,10 +178,10 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             #endregion
 
             #region Second precision
-            context.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.Second;
-            text1 = InstantParser.Serialize(value1, context);
-            text2 = InstantParser.Serialize(value2, context);
-            text3 = InstantParser.Serialize(value3, context);
+            scontext.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.Second;
+            text1 = InstantParser.Serialize(value1, scontext);
+            text2 = InstantParser.Serialize(value2, scontext);
+            text3 = InstantParser.Serialize(value3, scontext);
 
             result1 = TextSerializer.ParseValue(text1.Resolve());
             result2 = TextSerializer.ParseValue(text2.Resolve());
@@ -198,10 +199,10 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             #endregion
 
             #region Millisecond precision
-            context.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.MilliSecond;
-            text1 = InstantParser.Serialize(value1, context);
-            text2 = InstantParser.Serialize(value2, context);
-            text3 = InstantParser.Serialize(value3, context);
+            scontext.Options.Timestamps.TimestampPrecision = TextSerializerOptions.TimestampPrecision.MilliSecond;
+            text1 = InstantParser.Serialize(value1, scontext);
+            text2 = InstantParser.Serialize(value2, scontext);
+            text3 = InstantParser.Serialize(value3, scontext);
 
             result1 = TextSerializer.ParseValue(text1.Resolve());
             result2 = TextSerializer.ParseValue(text2.Resolve());
@@ -219,8 +220,8 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
 
             #region Now
             var valueNow = InstantValue.Of(DateTimeOffset.Now);
-            var textNow = InstantParser.Serialize(valueNow, context);
-            var resultNow = TextSerializer.ParseValue(textNow.Resolve(), context);
+            var textNow = InstantParser.Serialize(valueNow, scontext);
+            var resultNow = TextSerializer.ParseValue(textNow.Resolve(), pcontext);
             var rvalueNow = resultNow.Resolve();
             Assert.AreEqual(valueNow, rvalueNow);
             #endregion

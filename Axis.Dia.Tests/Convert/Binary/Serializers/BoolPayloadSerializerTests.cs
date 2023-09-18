@@ -1,4 +1,5 @@
-﻿using Axis.Dia.Convert.Binary.Metadata;
+﻿using Axis.Dia.Convert.Binary;
+using Axis.Dia.Convert.Binary.Metadata;
 using Axis.Dia.Convert.Binary.Serializers;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
@@ -49,7 +50,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         public void Serialize_Tests()
         {
             var nullValue = BoolValue.Null();
-            var result = BoolPayloadSerializer.Serialize(nullValue, new Dia.Convert.Binary.BinarySerializerContext());
+            var result = BoolPayloadSerializer.Serialize(nullValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             var data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -57,7 +58,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             BoolValue falseValue = false;
-            result = BoolPayloadSerializer.Serialize(falseValue, new Dia.Convert.Binary.BinarySerializerContext());
+            result = BoolPayloadSerializer.Serialize(falseValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -65,7 +66,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             BoolValue trueValue = BoolValue.Of(true, "the-annotation", "the-other-annotation");
-            result = BoolPayloadSerializer.Serialize(trueValue, new Dia.Convert.Binary.BinarySerializerContext());
+            result = BoolPayloadSerializer.Serialize(trueValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(72, data.Length);
@@ -78,12 +79,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         {
             var nullValue = BoolValue.Null();
             var bytes = BoolPayloadSerializer
-                .Serialize(nullValue, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(nullValue, new SerializerContext())
                 .Resolve();
             var result = BoolPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[1..]),
                 TypeMetadata.Of(bytes[0]),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             var resultValue = result.Resolve();
             Assert.AreEqual(nullValue, resultValue);
@@ -91,12 +92,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             var falseValue = BoolValue.Of(false);
             bytes = BoolPayloadSerializer
-                .Serialize(falseValue, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(falseValue, new SerializerContext())
                 .Resolve();
             result = BoolPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[1..]),
                 TypeMetadata.Of(bytes[0]),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(falseValue, resultValue);
@@ -104,12 +105,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             var someValue = BoolValue.Of(true, "the-annotation", "the-other-annotation");
             bytes = BoolPayloadSerializer
-                .Serialize(someValue, new Dia.Convert.Binary.BinarySerializerContext())
+                .Serialize(someValue, new SerializerContext())
                 .Resolve();
             result = BoolPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[1..]),
                 TypeMetadata.Of(bytes[0]),
-                new Dia.Convert.Binary.BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(someValue, resultValue);

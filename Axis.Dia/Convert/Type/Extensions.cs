@@ -1,17 +1,25 @@
-﻿using Axis.Luna.Common.Numerics;
+﻿using Axis.Dia.Contracts;
+using Axis.Luna.Common.Numerics;
 using Axis.Luna.Extensions;
+using System.Collections.Immutable;
 using System.Numerics;
 
 namespace Axis.Dia.Convert.Type
 {
     internal static class Extensions
     {
-
-        internal static bool IsIntegral(this System.Type clrType, out System.Type actualType)
+        #region CLR type tests
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clrValueType"></param>
+        /// <param name="actualType"></param>
+        /// <returns></returns>
+        internal static bool IsIntegral(this System.Type clrValueType, out System.Type actualType)
         {
-            actualType = clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(Nullable<>)
-                ? clrType.GetGenericArguments()[0]
-                : clrType;
+            actualType = clrValueType.IsGenericType && clrValueType.GetGenericTypeDefinition() == typeof(Nullable<>)
+                ? clrValueType.GetGenericArguments()[0]
+                : clrValueType;
 
             return typeof(byte).Equals(actualType)
                 || typeof(sbyte).Equals(actualType)
@@ -24,11 +32,17 @@ namespace Axis.Dia.Convert.Type
                 || typeof(BigInteger).Equals(actualType);
         }
 
-        internal static bool IsDecimal(this System.Type clrType, out System.Type actualType)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clrValueType"></param>
+        /// <param name="actualType"></param>
+        /// <returns></returns>
+        internal static bool IsDecimal(this System.Type clrValueType, out System.Type actualType)
         {
-            actualType = clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(Nullable<>)
-                ? clrType.GetGenericArguments()[0]
-                : clrType;
+            actualType = clrValueType.IsGenericType && clrValueType.GetGenericTypeDefinition() == typeof(Nullable<>)
+                ? clrValueType.GetGenericArguments()[0]
+                : clrValueType;
 
             return typeof(Half).Equals(actualType)
                 || typeof(float).Equals(actualType)
@@ -37,34 +51,81 @@ namespace Axis.Dia.Convert.Type
                 || typeof(BigDecimal).Equals(actualType);
         }
 
-        internal static bool IsBoolean(this System.Type clrType, out System.Type actualType)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clrValueType"></param>
+        /// <param name="actualType"></param>
+        /// <returns></returns>
+        internal static bool IsBoolean(this System.Type clrValueType, out System.Type actualType)
         {
-            actualType = clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(Nullable<>)
-                ? clrType.GetGenericArguments()[0]
-                : clrType;
+            actualType = clrValueType.IsGenericType && clrValueType.GetGenericTypeDefinition() == typeof(Nullable<>)
+                ? clrValueType.GetGenericArguments()[0]
+                : clrValueType;
 
             return typeof(bool).Equals(actualType);
         }
 
-        internal static bool IsDateTime(this System.Type clrType, out System.Type actualType)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clrValueType"></param>
+        /// <param name="actualType"></param>
+        /// <returns></returns>
+        internal static bool IsDateTime(this System.Type clrValueType, out System.Type actualType)
         {
-            actualType = clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(Nullable<>)
-                ? clrType.GetGenericArguments()[0]
-                : clrType;
+            actualType = clrValueType.IsGenericType && clrValueType.GetGenericTypeDefinition() == typeof(Nullable<>)
+                ? clrValueType.GetGenericArguments()[0]
+                : clrValueType;
 
             return typeof(DateTime).Equals(actualType)
                 || typeof(DateTimeOffset).Equals(actualType);
         }
 
-        internal static bool IsString(this System.Type clrType) => typeof(string).Equals(clrType);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clrValueType"></param>
+        /// <param name="actualType"></param>
+        /// <returns></returns>
+        internal static bool IsEnumType(this System.Type clrValueType, out System.Type actualType)
+        {
+            actualType = clrValueType.IsGenericType && clrValueType.GetGenericTypeDefinition() == typeof(Nullable<>)
+                ? clrValueType.GetGenericArguments()[0]
+                : clrValueType;
 
-        internal static bool IsEnumType(this System.Type clrType, out System.Type actualType)
+            return actualType.IsEnum;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clrRefType"></param>
+        /// <returns></returns>
+        internal static bool IsString(this System.Type clrRefType) => typeof(string).Equals(clrRefType);
+
+        internal static bool IsByteSequenceType(this System.Type clrType, out System.Type actualType)
         {
             actualType = clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(Nullable<>)
                 ? clrType.GetGenericArguments()[0]
                 : clrType;
 
-            return actualType.IsEnum;
+            if (actualType == null)
+                throw new ArgumentNullException(nameof(actualType));
+
+            if (typeof(byte[]).Equals(actualType))
+                return true;
+
+            else if (typeof(ImmutableArray<byte>).Equals(actualType))
+                return true;
+
+            else if (typeof(ImmutableList<byte>).Equals(actualType))
+                return true;
+
+            else if (typeof(List<byte>).Equals(actualType))
+                return true;
+
+            return false;
         }
 
         /// <summary>
@@ -73,39 +134,96 @@ namespace Axis.Dia.Convert.Type
         /// <param name="clrType">the type who's category is sought</param>
         /// <returns>The category</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        internal static TypeCategory GetCategory(this System.Type clrType)
+        public static TypeCategory GetTypeCategory(this System.Type clrType)
         {
             if (clrType is null)
                 throw new ArgumentNullException(nameof(clrType));
 
-            var type = clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(Nullable<>)
+            var actualType = clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(Nullable<>)
                 ? clrType.GetGenericArguments()[0]
                 : clrType;
 
-            if (type.IsPrimitive())
+            if (actualType.IsPrimitive())
                 return TypeCategory.Primitive;
 
-            if (type.IsEnum)
+            if (actualType.IsEnum)
                 return TypeCategory.Enum;
 
-            if (type.IsSingleDimensionArray())
+            if (actualType.IsSingleDimensionArray())
                 return TypeCategory.SingleDimensionArray;
 
-            if (type.IsMap())
-                return type.HastWritableProperties("Item")
-                    ? TypeCategory.ComplexMap
-                    : TypeCategory.Map;
+            if (actualType.IsMap())
+                return TypeCategory.Map;
 
-            if (type.IsCollection())
-                return type.HastWritableProperties("Item", "Capacity")
-                    ? TypeCategory.ComplexCollection
-                    : TypeCategory.Collection;
+            if (actualType.IsCollection())
+                return TypeCategory.Collection;
 
-            if (type.IsRecord())
+            if (actualType.IsRecord())
                 return TypeCategory.Record;
 
             return TypeCategory.InvalidType;
         }
+        #endregion
+
+        #region DIA Type Tests
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        internal static bool IsSimpleDiaType(this DiaType type)
+        {
+            return type switch
+            {
+                DiaType.Int
+                or DiaType.Decimal
+                or DiaType.Instant
+                or DiaType.Bool
+                or DiaType.String
+                or DiaType.Symbol
+                or DiaType.Clob
+                or DiaType.Blob => true,
+                _ => false
+            };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        internal static bool IsComplexDiaType(this DiaType type)
+        {
+            return DiaType.Record.Equals(type) || DiaType.List.Equals(type);
+        }
+        #endregion
+
+        #region Misc
+
+        /// <summary>
+        /// Verifies that the given GENERIC type has the supplied generic type definition defined on it.
+        /// PS: this method will be featured in a future version of <c>Axis.Luna.Extension</c>.
+        /// </summary>
+        /// <param name="genericType">The generic interface</param>
+        /// <param name="genericTypeDefinition">The generic interface type definition</param>
+        internal static bool HasGenericTypeDefinition(this System.Type genericType, System.Type genericTypeDefinition)
+        {
+            if (genericType == null)
+                throw new ArgumentNullException(nameof(genericType));
+
+            if (genericTypeDefinition == null)
+                throw new ArgumentNullException(nameof(genericTypeDefinition));
+
+            if (genericType.IsInterface || !genericType.IsGenericType)
+                return false;
+
+            if (!genericTypeDefinition.IsGenericTypeDefinition)
+                return false;
+
+            return genericType.GetGenericTypeDefinition().Equals(genericTypeDefinition);
+        }
+        #endregion
 
         /// <summary>
         /// Indicates if the given Clr type is a dia primitive

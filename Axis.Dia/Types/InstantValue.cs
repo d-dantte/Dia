@@ -10,12 +10,20 @@ namespace Axis.Dia.Types
         IDeepCopyable<InstantValue>,
         INullable<InstantValue>,
         IEquatable<InstantValue>,
-        IValueEquatable<InstantValue, DateTimeOffset>
+        IValueEquatable<InstantValue>,
+        IDiaReferable<InstantValue>
     {
         #region Local members
         private readonly DateTimeOffset? _value;
+        private readonly Guid _address;
 
         private readonly Annotation[] _annotations;
+        #endregion
+
+        #region DiaReference
+        public Guid Address => _address;
+
+        public InstantValue RelocateValue(Guid newAddress) => new(newAddress, _value, Annotations);
         #endregion
 
         #region StructValue
@@ -31,10 +39,11 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Constructors
-        public InstantValue(DateTimeOffset? value, params Annotation[] annotations)
+        public InstantValue(Guid address, DateTimeOffset? value, params Annotation[] annotations)
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
+            _address = address.ThrowIfDefault($"Invalid {nameof(address)} value: '{address}'");
             _value = value;
             _annotations = annotations
                 .ThrowIfAny(
@@ -43,7 +52,11 @@ namespace Axis.Dia.Types
                 .ToArray();
         }
 
-        public InstantValue(params Annotation[] annotations)
+        public InstantValue(DateTimeOffset? value, params Annotation[] annotations)
+        : this(Guid.NewGuid(), value, annotations)
+        { }
+
+            public InstantValue(params Annotation[] annotations)
         : this(null, annotations)
         { }
 
@@ -57,6 +70,11 @@ namespace Axis.Dia.Types
 
         public static InstantValue Of(DateTimeOffset? value) => Of(value, Array.Empty<Annotation>());
 
+        public static InstantValue Of(
+            Guid address,
+            DateTimeOffset? value,
+            params Annotation[] annotations)
+            => new InstantValue(address, value, annotations);
         public static InstantValue Of(
             DateTimeOffset? value,
             params Annotation[] annotations)

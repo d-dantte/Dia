@@ -56,14 +56,14 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         public void Serialize_Tests()
         {
             var nullValue = RecordValue.Null();
-            var result = RecordPayloadSerializer.Serialize(nullValue, new BinarySerializerContext());
+            var result = RecordPayloadSerializer.Serialize(nullValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             var data = result.Resolve();
             Assert.AreEqual(1, data.Length);
             Assert.AreEqual(43, data[0]);
 
             var value = RecordValue.Empty();
-            result = RecordPayloadSerializer.Serialize(value, new BinarySerializerContext());
+            result = RecordPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -75,7 +75,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
                 KeyValuePair.Create(SymbolValue.Of("second"), (IDiaValue)IntValue.Null()),
                 KeyValuePair.Create(SymbolValue.Of("third"), (IDiaValue)InstantValue.Of(DateTimeOffset.Parse("2023/07/05 09:52:37"), "xyz", "abc")),
                 KeyValuePair.Create(SymbolValue.Of("fourth"), (IDiaValue)RecordValue.Empty()));
-            result = RecordPayloadSerializer.Serialize(value, new BinarySerializerContext());
+            result = RecordPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(68, data.Length);
@@ -87,12 +87,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         {
             var nullValue = RecordValue.Null();
             var bytes = RecordPayloadSerializer
-                .Serialize(nullValue, new BinarySerializerContext())
+                .Serialize(nullValue, new SerializerContext())
                 .Resolve();
             var result = RecordPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             var resultValue = result.Resolve();
             Assert.AreEqual(nullValue, resultValue);
@@ -100,12 +100,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             RecordValue value = RecordValue.Empty();
             bytes = RecordPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = RecordPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -118,13 +118,13 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
                 KeyValuePair.Create(SymbolValue.Of("third"), (IDiaValue)InstantValue.Of(DateTimeOffset.Parse("2023/07/05 09:52:37"), "xyz", "abc")),
                 KeyValuePair.Create(SymbolValue.Of("fourth"), (IDiaValue)RecordValue.Empty()));
             bytes = RecordPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             var cmetaCount = CmetaCount(value.Count);
             result = RecordPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[(cmetaCount + 1)..]),
                 TypeMetadata.Of(bytes[0], ToCmeta(bytes, cmetaCount)),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);

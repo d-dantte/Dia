@@ -13,7 +13,7 @@ namespace Axis.Dia.Convert.Text.Parsers
         /// <param name="value">The value</param>
         /// <param name="context">The serializer context</param>
         /// <returns>The text representation of the supplied value</returns>
-        abstract static IResult<string> Serialize(TDiaValue value, TextSerializerContext? context = null);
+        abstract static IResult<string> Serialize(TDiaValue value, SerializerContext context);
 
         /// <summary>
         /// Deserialize the given text into it's <see cref="TDiaValue"/> instance.
@@ -21,7 +21,7 @@ namespace Axis.Dia.Convert.Text.Parsers
         /// <param name="symbolNode">The symbol node</param>
         /// <param name="context">The serializer contet</param>
         /// <returns>The <see cref="TDiaValue"/> instance.</returns>
-        abstract static IResult<TDiaValue> Parse(CSTNode symbolNode, TextSerializerContext? context = null);
+        abstract static IResult<TDiaValue> Parse(CSTNode symbolNode, ParserContext context);
 
         /// <summary>
         /// root-symbol name of the value's grammar production

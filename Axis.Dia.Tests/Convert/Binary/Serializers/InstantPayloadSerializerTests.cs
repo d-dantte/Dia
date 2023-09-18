@@ -162,7 +162,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         public void Serialize_Tests()
         {
             var nullValue = InstantValue.Null();
-            var result = InstantPayloadSerializer.Serialize(nullValue, new BinarySerializerContext());
+            var result = InstantPayloadSerializer.Serialize(nullValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             var data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -170,7 +170,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             InstantValue defaultValue = default(DateTimeOffset);
-            result = InstantPayloadSerializer.Serialize(defaultValue, new BinarySerializerContext());
+            result = InstantPayloadSerializer.Serialize(defaultValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(10, data.Length);
@@ -178,7 +178,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             InstantValue value = new DateTimeOffset(2012, 1, 1, 0, 0, 0, TimeSpan.Zero);
-            result = InstantPayloadSerializer.Serialize(value, new BinarySerializerContext());
+            result = InstantPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(11, data.Length);
@@ -186,7 +186,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             value =InstantValue.Of(new DateTimeOffset(2012, 1, 1, 0, 0, 0, TimeSpan.Zero), "annotation");
-            result = InstantPayloadSerializer.Serialize(value, new BinarySerializerContext());
+            result = InstantPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(33, data.Length);
@@ -198,12 +198,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         {
             var nullValue = InstantValue.Null();
             var bytes = InstantPayloadSerializer
-                .Serialize(nullValue, new BinarySerializerContext())
+                .Serialize(nullValue, new SerializerContext())
                 .Resolve();
             var result = InstantPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             var resultValue = result.Resolve();
             Assert.AreEqual(nullValue, resultValue);
@@ -211,12 +211,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             InstantValue value = default(DateTimeOffset);
             bytes = InstantPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = InstantPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -224,12 +224,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = new DateTimeOffset(2012, 1, 1, 0, 0, 0, TimeSpan.Zero);
             bytes = InstantPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = InstantPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -237,12 +237,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = new DateTimeOffset(2012, 12, 1, 0, 0, 0, TimeSpan.Zero);
             bytes = InstantPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = InstantPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -250,12 +250,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = new DateTimeOffset(2012, 12, 31, 0, 0, 0, TimeSpan.Zero);
             bytes = InstantPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = InstantPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -263,12 +263,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = new DateTimeOffset(2012, 12, 31, 23, 0, 0, TimeSpan.Zero);
             bytes = InstantPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = InstantPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -276,12 +276,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = InstantValue.Of(new DateTimeOffset(2012, 12, 31, 23, 59, 0, TimeSpan.Zero), "ann-1", "ann-2");
             bytes = InstantPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = InstantPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -289,12 +289,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = new DateTimeOffset(2012, 12, 31, 23, 59, 59, TimeSpan.Zero);
             bytes = InstantPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = InstantPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -302,12 +302,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = new DateTimeOffset(2012, 12, 31, 23, 59, 59, TimeSpan.Zero) + TimeSpan.FromTicks(1234567);
             bytes = InstantPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = InstantPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -315,12 +315,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             value = new DateTimeOffset(2012, 12, 31, 23, 59, 59, TimeSpan.FromHours(-12)) + TimeSpan.FromTicks(1234567);
             bytes = InstantPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = InstantPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[2..]),
                 TypeMetadata.Of(bytes[0], CustomMetadata.Of(bytes[1])),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);

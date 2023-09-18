@@ -119,6 +119,14 @@ namespace Axis.Dia.Types
             return false;
         }
 
+        public Attribute GetAttribute()
+        {
+            if (TryGetAttribute(out var attribute))
+                return attribute;
+
+            throw new InvalidOperationException($"The annotation is not an attribute: '{Text}'");
+        }
+
         /// <summary>
         /// Returns this annotation's value if it comforms to the Identifier pattern, otherwise, returns a null string.
         /// </summary>
@@ -135,10 +143,18 @@ namespace Axis.Dia.Types
             identifier = null!;
             return false;
         }
+
+        public string GetIdentifier()
+        {
+            if (TryGetIdentifier(out var id))
+                return id!;
+
+            throw new InvalidOperationException($"The annotation is not an identifier: '{Text}'");
+        }
         #endregion
 
         #region nested type
-        public readonly struct Attribute
+        public readonly struct Attribute: IDefaultValueProvider<Attribute>
         {
             /// <summary>
             /// The key
@@ -149,6 +165,14 @@ namespace Axis.Dia.Types
             /// The value
             /// </summary>
             public string Value { get; }
+
+            #region DefaultProvider
+
+            public bool IsDefault => Key is null && Value is null;
+
+            public static Attribute Default => default;
+
+            #endregion
 
             /// <summary>
             /// Creates a new instance of the attribute.

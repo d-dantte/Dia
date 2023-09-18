@@ -1,5 +1,4 @@
 ﻿using Axis.Dia.Contracts;
-using Axis.Dia.Utils;
 using Axis.Luna.Common;
 using Axis.Luna.Extensions;
 using System.Diagnostics.CodeAnalysis;
@@ -16,18 +15,27 @@ namespace Axis.Dia.Types
         IDefaultValueProvider<SymbolValue>,
         INullable<SymbolValue>,
         IEquatable<SymbolValue>,
-        IValueEquatable<SymbolValue, string>
+        IValueEquatable<SymbolValue>,
+        IDiaReferable<SymbolValue>
     {
         public static readonly Regex IdentifierPattern = new(
             "^[a-zA-Z_](([.-])?[a-zA-Z0-9_])*\\z",
             RegexOptions.Compiled);
 
-        #region Fields
+        #region Local members
         private readonly string? _value;
+        private readonly Guid _address;
+
+        private readonly Annotation[] _annotations;
+        #endregion
+
+        #region DiaReference
+        public Guid Address => _address;
+
+        public SymbolValue RelocateValue(Guid newAddress) => new(newAddress, _value, Annotations);
         #endregion
 
         #region Properties
-        private readonly Annotation[] _annotations;
 
         /// <summary>
         /// Indicates if this symbol conforms to the Identifier pattern
@@ -67,10 +75,11 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Constructors
-        public SymbolValue(string? value, params Annotation[] annotations)
+        public SymbolValue(Guid address, string? value, params Annotation[] annotations)
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
+            _address = address.ThrowIfDefault($"Invalid {nameof(address)} value: '{address}'");
             _value = ValidateSymbolString(value);
             _annotations = annotations
                 .ThrowIfAny(
@@ -79,13 +88,19 @@ namespace Axis.Dia.Types
                 .ToArray();
         }
 
+        public SymbolValue(string? value, params Annotation[] annotations)
+        : this(Guid.NewGuid(), value, annotations)
+        { }
+
         public SymbolValue(params Annotation[] annotations)
         : this(null, annotations)
         { }
 
         public static SymbolValue Of(string? value) => Of(value, Array.Empty<Annotation>());
 
-        public static SymbolValue Of(string? value, params Annotation[] annotations) => new SymbolValue(value, annotations);
+        public static SymbolValue Of(string? value, params Annotation[] annotations) => new(value, annotations);
+
+        public static SymbolValue Of(Guid address, string? value, params Annotation[] annotations) => new(address, value, annotations);
 
         public static implicit operator SymbolValue(string? value) => Of(value);
 

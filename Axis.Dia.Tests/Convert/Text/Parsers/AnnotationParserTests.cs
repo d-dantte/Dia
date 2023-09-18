@@ -1,7 +1,7 @@
-﻿using Axis.Dia.Convert.Text.Parsers;
+﻿using Axis.Dia.Convert.Text;
+using Axis.Dia.Convert.Text.Parsers;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
-using Axis.Luna.Extensions;
 
 namespace Axis.Dia.Tests.Convert.Text.Parsers
 {
@@ -26,7 +26,7 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
             Assert.IsTrue(text.IsDataResult());
             Assert.AreEqual("'abra\\u20eadevo'::", text.Resolve());
 
-            text = AnnotationParser.Serialize(annotations);
+            text = AnnotationParser.Serialize(annotations, new SerializerContext(new TextSerializerOptions()));
             Assert.IsTrue(text.IsDataResult());
             Assert.AreEqual("first::'second:bleh bleh'::'abra\\u20eadevo'::", text.Resolve());
         }
@@ -34,12 +34,13 @@ namespace Axis.Dia.Tests.Convert.Text.Parsers
         [TestMethod]
         public void Deserialize_Tests()
         {
+            var pcontext = new ParserContext();
             var annotations = Annotation.Of(
                 "first",
                 "second:bleh bleh",
                 "abra\u20eadevo");
-            var text = AnnotationParser.Serialize(annotations);
-            var result = text.Bind(t => AnnotationParser.Parse(t, null));
+            var text = AnnotationParser.Serialize(annotations, new SerializerContext(new TextSerializerOptions()));
+            var result = text.Bind(t => AnnotationParser.Parse(t, pcontext));
             Assert.IsTrue(result.IsDataResult());
             var annotationsResult = result.Resolve();
             Assert.AreEqual(3, annotationsResult.Length);

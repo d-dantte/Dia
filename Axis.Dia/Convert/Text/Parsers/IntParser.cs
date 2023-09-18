@@ -28,9 +28,10 @@ namespace Axis.Dia.Convert.Text.Parsers
 
         public static string GrammarSymbol => SymbolNameDiaInt;
 
-        public static IResult<IntValue> Parse(CSTNode symbolNode, TextSerializerContext? context = null)
+        public static IResult<IntValue> Parse(CSTNode symbolNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(symbolNode);
+            ArgumentNullException.ThrowIfNull(context);
 
             if (!GrammarSymbol.Equals(symbolNode.SymbolName))
                 throw new ArgumentException(
@@ -39,8 +40,6 @@ namespace Axis.Dia.Convert.Text.Parsers
 
             try
             {
-                context ??= new TextSerializerContext();
-
                 var (AnnotationNode, ValueNode) = symbolNode.DeconstructValue();
                 var annotationResult = AnnotationNode is null
                     ? Result.Of(Array.Empty<Annotation>())
@@ -110,9 +109,10 @@ namespace Axis.Dia.Convert.Text.Parsers
         }
 
 
-        public static IResult<string> Serialize(IntValue value, TextSerializerContext? context = null)
+        public static IResult<string> Serialize(IntValue value, SerializerContext context)
         {
-            context ??= new TextSerializerContext();
+            ArgumentNullException.ThrowIfNull(context);
+
             var intOptions = context.Options.Ints;
 
             var annotationText = AnnotationParser.Serialize(value.Annotations, context);

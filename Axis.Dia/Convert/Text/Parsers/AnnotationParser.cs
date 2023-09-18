@@ -25,9 +25,10 @@ namespace Axis.Dia.Convert.Text.Parsers
         /// <returns></returns>
         public static IResult<string> Serialize(
             Annotation[] annotations,
-            TextSerializerContext? context = null)
+            SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(annotations);
+            ArgumentNullException.ThrowIfNull(context);
 
             return annotations
                 .Select(Serialize)
@@ -43,8 +44,10 @@ namespace Axis.Dia.Convert.Text.Parsers
         /// <returns></returns>
         public static IResult<Annotation[]> Parse(
             string text,
-            TextSerializerContext? context = null)
+            ParserContext context)
         {
+            ArgumentNullException.ThrowIfNull(context);
+
             if (string.IsNullOrEmpty(text))
                 throw new ArgumentException($"Invalid text: '{text}'");
 
@@ -68,16 +71,17 @@ namespace Axis.Dia.Convert.Text.Parsers
         /// <returns></returns>
         public static IResult<Annotation[]> Parse(
             CSTNode symbolNode,
-            TextSerializerContext? context = null)
+            ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(symbolNode);
+            ArgumentNullException.ThrowIfNull(context);
 
             if (!GrammarSymbol.Equals(symbolNode.SymbolName))
                 throw new ArgumentException(
                     $"Invalid symbol name. Expected '{GrammarSymbol}', "
                     + $"but found '{symbolNode.SymbolName}'");
 
-            context ??= new TextSerializerContext();
+            context ??= new ParserContext();
 
             return symbolNode
                 .FindNodes(SymbolNameAnnotation)

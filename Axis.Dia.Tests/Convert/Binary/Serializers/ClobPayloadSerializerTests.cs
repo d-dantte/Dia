@@ -52,7 +52,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         public void Serialize_Tests()
         {
             var nullValue = ClobValue.Null();
-            var result = ClobPayloadSerializer.Serialize(nullValue, new BinarySerializerContext());
+            var result = ClobPayloadSerializer.Serialize(nullValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             var data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -61,7 +61,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             var text = "";
             var value = ClobValue.Of(text);
-            result = ClobPayloadSerializer.Serialize(value, new BinarySerializerContext());
+            result = ClobPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -69,7 +69,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             value = ClobValue.Of(text, "annotation1", "annotation2");
-            result = ClobPayloadSerializer.Serialize(value, new BinarySerializerContext());
+            result = ClobPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(48, data.Length);
@@ -79,7 +79,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             text = RandomText();
             value = ClobValue.Of(text);
-            result = ClobPayloadSerializer.Serialize(value, new BinarySerializerContext());
+            result = ClobPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(CmetaCount(text.Length) + 1 + (text.Length * 2), data.Length);
@@ -96,12 +96,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         {
             var nullValue = ClobValue.Null();
             var bytes = ClobPayloadSerializer
-                .Serialize(nullValue, new BinarySerializerContext())
+                .Serialize(nullValue, new SerializerContext())
                 .Resolve();
             var result = ClobPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             var resultValue = result.Resolve();
             Assert.AreEqual(nullValue, resultValue);
@@ -109,12 +109,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             ClobValue value = "";
             bytes = ClobPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = ClobPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -123,13 +123,13 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
             var text = AllChars();
             value = ClobValue.Of(text, "annotation1", "annotation2");
             bytes = ClobPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             var cmetaCount = CmetaCount(text.Length);
             result = ClobPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[(cmetaCount + 1)..]),
                 TypeMetadata.Of(bytes[0], ToCmeta(bytes, cmetaCount)),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);

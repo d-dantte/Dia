@@ -5,9 +5,6 @@ using Axis.Dia.Convert.Binary.Serializers;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Common.Utils;
-using Axis.Luna.Extensions;
-using System.Numerics;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Axis.Dia.Tests.Convert.Binary.Serializers
 {
@@ -57,7 +54,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         public void Serialize_Tests()
         {
             var nullValue = ListValue.Null();
-            var result = ListPayloadSerializer.Serialize(nullValue, new BinarySerializerContext());
+            var result = ListPayloadSerializer.Serialize(nullValue, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             var data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -65,7 +62,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             var value = ListValue.Empty();
-            result = ListPayloadSerializer.Serialize(value, new BinarySerializerContext());
+            result = ListPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(1, data.Length);
@@ -77,7 +74,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
                 IntValue.Null(),
                 InstantValue.Of(DateTimeOffset.Parse("2023/07/05 09:52:37"), "xyz", "abc"),
                 ListValue.Empty());
-            result = ListPayloadSerializer.Serialize(value, new BinarySerializerContext());
+            result = ListPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();
             Assert.AreEqual(38, data.Length);
@@ -89,12 +86,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
         {
             var nullValue = ListValue.Null();
             var bytes = ListPayloadSerializer
-                .Serialize(nullValue, new BinarySerializerContext())
+                .Serialize(nullValue, new SerializerContext())
                 .Resolve();
             var result = ListPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             var resultValue = result.Resolve();
             Assert.AreEqual(nullValue, resultValue);
@@ -102,12 +99,12 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
             ListValue value = ListValue.Empty();
             bytes = ListPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             result = ListPayloadSerializer.Deserialize(
                 new MemoryStream(),
                 TypeMetadata.Of(bytes[0]),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
@@ -120,13 +117,13 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
                 InstantValue.Of(DateTimeOffset.Parse("2023/07/05 09:52:37"), "xyz", "abc"),
                 ListValue.Empty());
             bytes = ListPayloadSerializer
-                .Serialize(value, new BinarySerializerContext())
+                .Serialize(value, new SerializerContext())
                 .Resolve();
             var cmetaCount = CmetaCount(value.Count);
             result = ListPayloadSerializer.Deserialize(
                 new MemoryStream(bytes[(cmetaCount + 1)..]),
                 TypeMetadata.Of(bytes[0], ToCmeta(bytes, cmetaCount)),
-                new BinarySerializerContext());
+                new DeserializerContext());
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);

@@ -17,12 +17,20 @@ namespace Axis.Dia.Types
         INullable<ListValue>,
         IEquatable<ListValue>,
         IEnumerable<ValueWrapper>,
-        IValueEquatable<ListValue, IDiaValue[]>
+        IValueEquatable<ListValue>,
+        IDiaReferable<ListValue>
     {
         #region Local members
         private readonly List<IDiaValue>? _value;
+        private readonly Guid _address;
 
         private readonly Annotation[] _annotations;
+        #endregion
+
+        #region DiaReference
+        public Guid Address => _address;
+
+        public ListValue RelocateValue(Guid newAddress) => new(newAddress, _value, Annotations);
         #endregion
 
         #region RefValue
@@ -38,10 +46,14 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Constructors
-        public ListValue(IEnumerable<IDiaValue>? value, params Annotation[] annotations)
+        public ListValue(
+            Guid address,
+            IEnumerable<IDiaValue>? value,
+            params Annotation[] annotations)
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
+            _address = address.ThrowIfDefault(new ArgumentException($"Invalid Guid supplied: '{address}'"));
             _value = value?.ToList();
             _annotations = annotations
                 .ThrowIfAny(
@@ -50,30 +62,43 @@ namespace Axis.Dia.Types
                 .ToArray();
         }
 
-        public ListValue(params Annotation[] annotations)
-        : this(Enumerable.Empty<IDiaValue>(), annotations)
-        { }
-
-        public ListValue()
-        : this(Enumerable.Empty<IDiaValue>())
+        public ListValue(
+            IEnumerable<IDiaValue>? value,
+            params Annotation[] annotations)
+            : this(Guid.NewGuid(), value, annotations)
         {
         }
 
-        public static implicit operator ListValue(IDiaValue[]? value) => new ListValue(value);
+        public ListValue(params Annotation[] annotations)
+        : this(Guid.NewGuid(), Enumerable.Empty<IDiaValue>(), annotations)
+        { }
+
+        public ListValue()
+        : this(Guid.NewGuid(), Enumerable.Empty<IDiaValue>())
+        {
+        }
+
+        public static implicit operator ListValue(IDiaValue[]? value) => new ListValue(Guid.NewGuid(), value);
 
         public static ListValue Of(IEnumerable<IDiaValue>? value) => Of(value, Array.Empty<Annotation>());
 
         public static ListValue Of(
             Annotation[] annotations,
             params IDiaValue[] values)
-            => new ListValue(values, annotations);
+            => new ListValue(Guid.NewGuid(), values, annotations);
 
         public static ListValue Of(
             IEnumerable<IDiaValue>? values,
             params Annotation[] annotations)
-            => new ListValue(values, annotations);
+            => new ListValue(Guid.NewGuid(), values, annotations);
 
-        public static ListValue Of(params IDiaValue[] values) => new ListValue(values);
+        public static ListValue Of(
+            Guid address,
+            IEnumerable<IDiaValue>? values,
+            params Annotation[] annotations)
+            => new ListValue(address, values, annotations);
+
+        public static ListValue Of(params IDiaValue[] values) => new ListValue(Guid.NewGuid(), values);
         #endregion
 
         #region DeepCopyable
