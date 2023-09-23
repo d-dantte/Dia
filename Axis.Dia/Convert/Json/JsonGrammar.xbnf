@@ -14,11 +14,12 @@ $new-line -> '\n'
 $carriage-return -> '\r'
 $form-feed -> '\f'
 $vertical-tab -> '\v'
+$line-space -> ?[$tab $space]
 
 
 # Array
 $array -> +[
-	'[' +[$block-space.? $value-metadata $block-space.? ','].? +[
+	'[' +[$block-space.? $meta-item $block-space.? ','].? +[
 		$block-space.?
 		$json-value +[
 			$block-space.?
@@ -29,13 +30,14 @@ $array -> +[
 	].?
 	$block-space.? ']'
 ]
+$meta-item -> +['"' '0$' $container-metadata '"']
 
 
 # Object
 $object -> +[
-	'{' $meta-property.? +[
+	'{' +[
 		$block-space.?
-		$object-field +[
+		?[$meta-property $object-field] +[
 			$block-space.?
 			','
 			$block-space.?
@@ -45,8 +47,8 @@ $object -> +[
 	$block-space.? '}'
 ]
 $object-field -> +[$field-name $block-space.? ':' $block-space.? $json-value]
-$field-name -> +[ '"' $name-metadata $value-content '"']
-$meta-property -> +['0$' $block-space.? ':' $block-space.? '"' $value-metadata '"']
+$field-name -> +[ '"' $name-metadata.? $value-content '"']
+$meta-property -> +['"0$"' $block-space.? ':' $block-space.? '"' $container-metadata '"']
 
 
 # Json Value
@@ -58,26 +60,38 @@ $name-metadata -> +['[' $annotation-list ']']
 
 
 # Value Metadata
-$value-metadata -> +['[' $ref-index.? $declared-type $annotation-list.? ']']
+$value-metadata -> +['[' $line-space.*
+	$ref-index.? $line-space.*
+	$declared-type $line-space.*
+	$annotation-list.? $line-space.* ']']
+
+
+# Container Metadata
+$container-metadata -> +['[' $line-space.*
+	?[
+		$annotation-list
+		+[
+			$ref-index $line-space.*
+			$annotation-list.? $line-space.*
+		 ]
+	 ] ']']
 
 
 # Type Declaration
 $declared-type -> +['$' $types ';']
-$types -> ?['Bool' 'Int' 'Decimal' 'Instant' 'Blob' 'Clob' 'String' 'Symbol' 'List' 'Record']
+$types -> ?['Bool' 'Int' 'Decimal' 'Instant' 'Blob' 'Clob' 'String' 'Symbol' 'List' 'Record' 'Ref']
 
 
 # Ref Index
-$ref-index -> +['#' $int-digits ';']
+$ref-index -> +['#' $hex-int ';']
+$hex-int -> /^0[xX][0-9A-Fa-f]+\z/.3,+
 
 
 # Annotation List
-$annotation-list -> +[$annotation ';'].+
-$annotation -> ?[$attribute $identifier $quoted-text]
+$annotation-list -> +[$annotation ';' $line-space.*].+
+$annotation -> ?[$identifier $quoted-text]
 $quoted-text -> @SQText
 $identifier -> @Identifier
-$attribute -> +[$identifier ':' $attribute-value]
-$attribute-value -> ?[$contiguous-text $quoted-text]
-$contiguous-text -> /^[a-zA-Z0-9_\-,]\z/
 
 
 # Bool
@@ -94,7 +108,7 @@ $regular-decimal -> +[$int-number '.' $int-digits.?]
 
 $scientific-decimal -> +[
 	$int-number
-	+['.' $int-digits.?].?
+	+['.' $int-digits].?
 	'E' $exponent-sign.? $int-digits]
 $exponent-sign -> ?['+' '-']
 $negative-sign -> '-'
@@ -105,7 +119,32 @@ $null -> 'null'
 
 
 #  Encoded Value
-$encoded-value -> +['"' $value-metadata $value-content '"']
+$encoded-value -> +['"' $value-metadata $line-space.* ?[$time-stamp $value-content] '"']
+
+$time-stamp -> ?[
+	$millisecond-precision $second-precision
+	$minute-precision $day-precision $month-precision
+	$year-precision]
+$millisecond-precision -> +[
+	$year '-' $month '-' $day $date-delimiter
+	$hour ':' $minute ':' $second '.'
+	$millisecond $time-zone-offset]>12
+$second-precision -> +[$year '-' $month '-' $day $date-delimiter $hour ':' $minute ':' $second $time-zone-offset]>10
+$minute-precision -> +[$year '-' $month '-' $day $date-delimiter $hour ':' $minute $time-zone-offset]>7
+$day-precision -> +[$year '-' $month '-' $day $date-delimiter.?]
+$month-precision -> +[$year '-' $month $date-delimiter]
+$year-precision -> +[$year $date-delimiter]
+$time-zone-offset -> ?[$utc-offset $minute-precision-offset]
+$minute-precision-offset -> +[?['+' '-'] $hour ':' $minute]
+$utc-offset -> "Z"
+$date-delimiter -> "T"
+$year -> /^\d{4,}\z/.4,+
+$month -> /^(01|02|03|04|05|06|07|08|09|10|11|12)\z/.2,+
+$day -> /^(01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31)\z/.2,+
+$hour -> /^(00|01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23)\z/.2,+
+$minute -> /^[0-5]\d\z/.2,+
+$second -> /^[0-5]\d\z/.2,+
+$millisecond -> /^\d+\z/
 
 
 # String Value

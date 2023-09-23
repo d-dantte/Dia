@@ -97,7 +97,7 @@ namespace Axis.Dia.Convert.Text
         public static IResult<string> SerializeValue(IDiaValue value, SerializerContext? context = null)
         {
             ArgumentNullException.ThrowIfNull(value);
-            value.NormalizeReferences();
+            value.LinkReferences();
 
             context ??= new SerializerContext();
             context.TrackReferences(value);

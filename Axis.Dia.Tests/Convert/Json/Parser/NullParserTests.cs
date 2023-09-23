@@ -10,15 +10,13 @@ namespace Axis.Dia.Tests.Convert.Json.Parser
     [TestClass]
     public class NullParserTests
     {
-        private static NullParser parser = new NullParser();
-
         [TestMethod]
         public void Parse_Tests()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => parser.Parse(null, new ParserContext()));
-            Assert.ThrowsException<ArgumentNullException>(() => parser.Parse(CSTNode.Of("stuff", "token"), null));
+            Assert.ThrowsException<ArgumentNullException>(() => NullParser.Parse(null, new ParserContext()));
+            Assert.ThrowsException<ArgumentException>(() => NullParser.Parse(CSTNode.Of("stuff", "token"), default));
 
-            var result = parser.Parse(CSTNode.Of("null", "Null"), new ParserContext());
+            var result = NullParser.Parse(CSTNode.Of("null", "Null"), new ParserContext());
             Assert.IsTrue(result.IsDataResult());
             var value = result.Resolve();
             Assert.AreEqual(DiaType.Record, value.Type);

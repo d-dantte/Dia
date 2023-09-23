@@ -29,7 +29,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
         public static IResult<RecordValue> Parse(CSTNode symbolNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(symbolNode);
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault($"Invalid {nameof(context)} instance");
 
             if (!GrammarSymbol.Equals(symbolNode.SymbolName))
                 throw new ArgumentException(
@@ -38,12 +38,12 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
             try
             {
-                var (AnnotationNode, ValueNode) = symbolNode.DeconstructValue();
+                var (AddressIndexNode, AnnotationNode, ValueNode) = symbolNode.DeconstructValueNode();
                 var annotationResult = AnnotationNode is null
                     ? Result.Of(Array.Empty<Annotation>())
                     : AnnotationParser.Parse(AnnotationNode, context);
 
-                return ValueNode.SymbolName switch
+                var result = ValueNode.SymbolName switch
                 {
                     SymbolNameNullRecord => annotationResult.Map(RecordValue.Null),
                     SymbolNameRecordValue => ValueNode
@@ -58,6 +58,12 @@ namespace Axis.Dia.Convert.Axon.Parsers
                         $"Invalid symbol: '{ValueNode.SymbolName}'. "
                         + $"Expected '{SymbolNameNullRecord}', or '{SymbolNameRecordValue}'"))
                 };
+
+                return AddressIndexNode is not null
+                    ? result.Combine(
+                        AddressIndexParser.Parse(AddressIndexNode),
+                        (value, addressIndex) => value.RelocateValue(context.Track(addressIndex)))
+                    : result;
             }
             catch (Exception e)
             {
@@ -68,34 +74,37 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
         public static IResult<string> Serialize(RecordValue value, SerializerContext context)
         {
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault($"Invalid {nameof(context)} instance");
+
+            var addressIndexText = context.TryGetAddressIndex(value, out var index)
+                ? $"#0x{index:x}"
+                : "";
 
             var annotationText = AnnotationParser.Serialize(value.Annotations, context);
-            var indentedContext = context.IndentContext();
-            var indentationText = indentedContext.Indentation();
-            var originalIndentationText = context.Indentation();
 
-            (var ldelimiter, var valueSeparator, var rdelimiter) = context.Options.Records.UseMultipleLines switch
-            {
-                false => ("{", ", ", "}"),
-                true => (
-                    $"{{{Environment.NewLine}{indentationText}",
-                    $",{Environment.NewLine}{indentationText}",
-                    $"{Environment.NewLine}{originalIndentationText}}}")
-            };
+            var lineJoiner = context.Options.Records.UseMultipleLines
+                ? $"{Environment.NewLine}"
+                : "";
+
+            var itemIndentation = context.Options.Records.UseMultipleLines
+                ? context.IndentText("", 1)
+                : " ";
+
+            var closingBracketIndentation = context.Options.Records.UseMultipleLines
+                ? context.IndentText("")
+                : " ";
 
             var valueText = value.IsNull switch
             {
                 true => Result.Of("null.record"),
                 false => value.Value!
-                    .Select(prop => SerializeProperty(prop, indentedContext))
-                    .Fold()
-                    .Map(items => items
-                        .JoinUsing(valueSeparator)
-                        .WrapIn(ldelimiter, rdelimiter))
+                    .Select(prop => SerializeProperty(prop, context.Indent()))
+                    .Select(propertyText => propertyText.Map(v => $"{lineJoiner}{itemIndentation}{v}"))
+                    .FoldInto(items => items.JoinUsing($","))
+                    .Map(recordText => $"{{{recordText}{lineJoiner}{closingBracketIndentation}}}")
             };
 
-            return annotationText!.Combine(valueText, (ann, value) => $"{ann}{value}");
+            return annotationText!.Combine(valueText, (ann, value) => $"{addressIndexText}{ann}{value}");
         }
 
         internal static IResult<string> SerializeProperty(
@@ -121,7 +130,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
             var value = AxonSerializer.InternalSerializeValue(property.Value, indentedContext);
 
-            return name.Combine(value, (pname, pvalue) => $"{pname}:{pvalue}");
+            return name.Combine(value, (pname, pvalue) => $"{pname}: {pvalue}");
         }
 
         internal static IResult<KeyValuePair<SymbolValue, IDiaValue>> ParseField(

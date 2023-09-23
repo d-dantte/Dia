@@ -23,7 +23,7 @@ namespace Axis.Dia.Convert.Binary
             {
                 try
                 {
-                    value.NormalizeReferences();
+                    value.LinkReferences();
                 }
                 catch(Exception ex)
                 {

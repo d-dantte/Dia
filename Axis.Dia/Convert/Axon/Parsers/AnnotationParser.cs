@@ -32,8 +32,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
             return annotations
                 .Select(Serialize)
-                .Fold()
-                .Map(texts => texts.JoinUsing(""));
+                .FoldInto(texts => texts.JoinUsing(""));
         }
 
         /// <summary>
@@ -84,8 +83,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
             return symbolNode
                 .FindNodes(SymbolNameAnnotation)
                 .Select(ParseAnnotation)
-                .Fold()
-                .Map(annotations => annotations.ToArray());
+                .FoldInto(annotations => annotations.ToArray());
         }
         #endregion
 
@@ -120,6 +118,9 @@ namespace Axis.Dia.Convert.Axon.Parsers
         /// <returns></returns>
         public static IResult<string> Serialize(Annotation annotation)
         {
+            if (Annotation.Default.Equals(annotation))
+                return Result.Of<string>(new ArgumentException($"Invalid anntotation: {annotation}"));
+
             return annotation.Text
                 .ApplyTo(EscapeSequenceGroup.SymbolEscapeGroup.Escape)
                 .ApplyTo(text => !annotation.IsIdentifier ? text.WrapIn("'") : text)

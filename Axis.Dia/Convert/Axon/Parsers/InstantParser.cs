@@ -1,5 +1,6 @@
 ﻿using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
+using Axis.Luna.Extensions;
 using Axis.Pulsar.Grammar.CST;
 using System.Globalization;
 using static Axis.Dia.Convert.Axon.SerializerOptions;
@@ -36,7 +37,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
         public static IResult<InstantValue> Parse(CSTNode symbolNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(symbolNode);
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault($"Invalid {nameof(context)} instance");
 
             if (!GrammarSymbol.Equals(symbolNode.SymbolName))
                 throw new ArgumentException(
@@ -45,13 +46,13 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
             try
             {
-                var (AnnotationNode, ValueNode) = symbolNode.DeconstructValue();
+                var (AddressIndexNode, AnnotationNode, ValueNode) = symbolNode.DeconstructValueNode();
                 var annotationResult = AnnotationNode is null
                     ? Result.Of(Array.Empty<Annotation>())
                     : AnnotationParser.Parse(AnnotationNode, context);
 
                 var culture = CultureInfo.InvariantCulture;
-                return ValueNode.SymbolName switch
+                var result = ValueNode.SymbolName switch
                 {
                     SymbolNameNullInstant => annotationResult.Map(InstantValue.Null),
 
@@ -101,6 +102,12 @@ namespace Axis.Dia.Convert.Axon.Parsers
                         $"Invalid symbol encountered: '{ValueNode.SymbolName}'. "
                         + $"Expected '{SymbolNameNullInstant}', '{SymbolNameYear}', '{SymbolNameMonth}', etc"))
                 };
+
+                return AddressIndexNode is not null
+                    ? result.Combine(
+                        AddressIndexParser.Parse(AddressIndexNode),
+                        (value, addressIndex) => value.RelocateValue(context.Track(addressIndex)))
+                    : result;
             }
             catch (Exception e)
             {
@@ -114,6 +121,10 @@ namespace Axis.Dia.Convert.Axon.Parsers
             ArgumentNullException.ThrowIfNull(context);
 
             var intOptions = context.Options.Ints;
+
+            var addressIndexText = context.TryGetAddressIndex(value, out var index)
+                ? $"#0x{index:x}"
+                : "";
 
             var annotationText = AnnotationParser.Serialize(value.Annotations, context);
             var valueText = value.IsNull switch
@@ -129,7 +140,6 @@ namespace Axis.Dia.Convert.Axon.Parsers
                     TimestampPrecision.MilliSecond => Result.Of(value.Value!.Value.ToString(MillisecondFormat)),
                     _ => Result.Of<string>(new InvalidOperationException(
                         $"Invalid timestamp precision: {context.Options.Timestamps.TimestampPrecision}"))
-
                 }
             };
 

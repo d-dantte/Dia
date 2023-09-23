@@ -1,12 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Axis.Luna.Extensions;
 
 namespace Axis.Dia.Convert.Json
 {
-    public class ParserContext
+    public readonly struct ParserContext
     {
+        private readonly Dictionary<int, Guid> addressIndexMap = new();
+
+        public ParserContext()
+        {
+        }
+
+        internal Guid Track(int addressIndex)
+        {
+            return addressIndexMap.GetOrAdd(addressIndex, index => Guid.NewGuid());
+        }
     }
 }

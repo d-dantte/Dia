@@ -1,6 +1,7 @@
 ﻿using Axis.Dia.Contracts;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
+using Axis.Luna.Extensions;
 using Axis.Pulsar.Grammar.CST;
 
 namespace Axis.Dia.Convert.Json.Parser
@@ -14,10 +15,10 @@ namespace Axis.Dia.Convert.Json.Parser
     {
         public static string RootSymbol => "null";
 
-        public IResult<IDiaValue> Parse(CSTNode nullNode, ParserContext context)
+        public static IResult<IDiaValue> Parse(CSTNode nullNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(nullNode);
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
 
             return Result.Of(RecordValue.Null()).MapAs<IDiaValue>();
         }

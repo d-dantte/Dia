@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.Types;
+using Axis.Dia.Utils;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using Axis.Pulsar.Grammar.CST;
@@ -22,7 +23,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
         public static IResult<ListValue> Parse(CSTNode symbolNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(symbolNode);
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault($"Invalid {nameof(context)} instance");
 
             if (!GrammarSymbol.Equals(symbolNode.SymbolName))
                 throw new ArgumentException(
@@ -31,12 +32,12 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
             try
             {
-                var (AnnotationNode, ValueNode) = symbolNode.DeconstructValue();
+                var (AddressIndexNode, AnnotationNode, ValueNode) = symbolNode.DeconstructValueNode();
                 var annotationResult = AnnotationNode is null
                     ? Result.Of(Array.Empty<Annotation>())
                     : AnnotationParser.Parse(AnnotationNode, context);
 
-                return ValueNode.SymbolName switch
+                var result = ValueNode.SymbolName switch
                 {
                     SymbolNameNullList => annotationResult.Map(ListValue.Null),
                     SymbolNameListValue => ValueNode
@@ -51,6 +52,12 @@ namespace Axis.Dia.Convert.Axon.Parsers
                         $"Invalid symbol: '{ValueNode.SymbolName}'. "
                         + $"Expected '{SymbolNameNullList}', or '{SymbolNameListValue}'"))
                 };
+
+                return AddressIndexNode is not null
+                    ? result.Combine(
+                        AddressIndexParser.Parse(AddressIndexNode),
+                        (value, addressIndex) => value.RelocateValue(context.Track(addressIndex)))
+                    : result;
             }
             catch (Exception e)
             {
@@ -63,31 +70,35 @@ namespace Axis.Dia.Convert.Axon.Parsers
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            var annotationText = AnnotationParser.Serialize(value.Annotations, context);
-            var indentedContext = context.IndentContext();
-            var indentationText = indentedContext.Indentation();
+            var addressIndexText = context.TryGetAddressIndex(value, out var index)
+                ? $"#0x{index:x}"
+                : "";
 
-            (var ldelimiter, var valueSeparator, var rdelimiter) = context.Options.Lists.UseMultipleLines switch
-            {
-                false => ("[", ", ", "]"),
-                true => (
-                    $"[{Environment.NewLine}{indentationText}",
-                    $",{Environment.NewLine}{indentationText}",
-                    $"{Environment.NewLine}{context.Indentation()}]")
-            };
+            var annotationText = AnnotationParser.Serialize(value.Annotations, context);
+
+            var lineJoiner = context.Options.Lists.UseMultipleLines
+                ? $"{Environment.NewLine}"
+                : "";
+
+            var itemIndentation = context.Options.Lists.UseMultipleLines
+                ? context.IndentText("", 1)
+                : " ";
+
+            var closingBracketIndentation = context.Options.Lists.UseMultipleLines
+                ? context.IndentText("")
+                : " ";
 
             var valueText = value.IsNull switch
             {
                 true => Result.Of("null.list"),
                 false => value.Value!
-                    .Select(item => AxonSerializer.InternalSerializeValue(item, context.IndentContext()))
-                    .Fold()
-                    .Map(items => items
-                        .JoinUsing(valueSeparator)
-                        .WrapIn(ldelimiter, rdelimiter))
+                    .Select(item => AxonSerializer.InternalSerializeValue(item, context.Indent()))
+                    .Select(itemText => itemText.Map(v => $"{lineJoiner}{itemIndentation}{v}"))
+                    .FoldInto(items => items.JoinUsing($","))
+                    .Map(listText => $"[{listText}{lineJoiner}{closingBracketIndentation}]")
             };
 
-            return annotationText!.Combine(valueText, (ann, value) => $"{ann}{value}");
+            return annotationText!.Combine(valueText, (ann, value) => $"{addressIndexText}{ann}{value}");
         }
     }
 }

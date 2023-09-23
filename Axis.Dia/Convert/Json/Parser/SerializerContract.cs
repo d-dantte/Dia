@@ -5,12 +5,12 @@ namespace Axis.Dia.Convert.Json.Parser
 {
     internal interface ISerializer<TValue>
     {
-        IResult<string> Serialize(TValue value, SerializerContext context);
+        abstract static IResult<string> Serialize(TValue value, SerializerContext context);
     }
 
     internal interface IParser<TValue>
     {
-        IResult<TValue> Parse(CSTNode jsonNode, ParserContext context);
+        abstract static IResult<TValue> Parse(CSTNode jsonNode, ParserContext context);
     }
 
     internal interface IJsonConverter<TValue> : ISerializer<TValue>, IParser<TValue>

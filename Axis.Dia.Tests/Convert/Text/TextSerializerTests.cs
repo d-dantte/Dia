@@ -13,7 +13,7 @@ namespace Axis.Dia.Tests.Convert.Text
         public void SerializeValue_Tests()
         {
             Assert.ThrowsException<ArgumentNullException>(() => TextSerializer.SerializeValue(null));
-            Assert.ThrowsException<ReferenceNormalizationException>(() => TextSerializer.SerializeValue(ReferenceValue.Of(Guid.NewGuid())));
+            Assert.ThrowsException<ReferenceLinkageException>(() => TextSerializer.SerializeValue(ReferenceValue.Of(Guid.NewGuid())));
 
             var intValue = IntValue.Of(34);
             var refValue = ReferenceValue.Of(intValue);

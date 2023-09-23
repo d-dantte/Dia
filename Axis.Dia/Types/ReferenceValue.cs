@@ -16,7 +16,7 @@ namespace Axis.Dia.Types
         IDefaultValueProvider<ReferenceValue>
     {
         #region Local members
-        private readonly IDiaValue? _value;
+        private readonly IDiaAddressProvider? _value;
         private readonly Guid _address;
 
         private readonly Annotation[] _annotations;
@@ -26,7 +26,7 @@ namespace Axis.Dia.Types
 
         public Guid ValueAddress => _address;
 
-        public IDiaValue? Value => _value;
+        public IDiaAddressProvider? Value => _value;
 
         public bool IsLinked => _value is not null;
 
@@ -51,7 +51,7 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Constructors
-        private ReferenceValue(Guid address, IDiaValue? value, params Annotation[] annotations)
+        private ReferenceValue(Guid address, IDiaAddressProvider? value, params Annotation[] annotations)
         {
             ArgumentNullException.ThrowIfNull(annotations);
 

@@ -8,14 +8,14 @@ namespace Axis.Dia.Exceptions
     /// Raised if <see cref="Types.ReferenceValue"/> instances are found within a dia value graph that cannot be linked to other
     /// values within the graph.
     /// </summary>
-    public class ReferenceNormalizationException : Exception
+    public class ReferenceLinkageException : Exception
     {
         public IDiaValue RootValue { get; }
 
         public ImmutableArray<IDiaReference> References { get; }
 
 
-        public ReferenceNormalizationException(
+        public ReferenceLinkageException(
             string message,
             IDiaValue root,
             IEnumerable<IDiaReference> references)
@@ -29,7 +29,7 @@ namespace Axis.Dia.Exceptions
         }
 
 
-        public ReferenceNormalizationException(
+        public ReferenceLinkageException(
             IDiaValue root,
             IEnumerable<IDiaReference> references)
         : this("Unlinkable references were found in the given root value", root, references)

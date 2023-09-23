@@ -88,64 +88,44 @@ namespace Axis.Dia.Convert.Axon
 
         #region Value
         /// <summary>
-        /// 
+        /// Serialize the given value
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="context"></param>
+        /// <param name="value">the value to serialize</param>
+        /// <param name="context">the context governing the serialization</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public static IResult<string> SerializeValue(IDiaValue value, SerializerContext? context = null)
         {
             ArgumentNullException.ThrowIfNull(value);
-            value.NormalizeReferences();
+            ReferenceUtil.LinkReferences(value, out var linkedReferences);
 
             context ??= new SerializerContext();
-            context.TrackReferences(value);
+            context.Value.BuildAddressIndices(linkedReferences!);
 
             return InternalSerializeValue(value, context ?? new SerializerContext());
         }
 
-        public static IResult<string> InternalSerializeValue(IDiaValue value, SerializerContext context)
+        internal static IResult<string> InternalSerializeValue(IDiaValue value, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(value);
 
             try
             {
-                var @ref = value switch
+                return value switch
                 {
-                    IDiaAddressProvider addressProvider => ReferenceValue.Of(addressProvider),
-                    IDiaReference reference => reference,
-                    _ => throw new InvalidOperationException($"Invalid vaue found: '{value}'")
+                    BoolValue boolValue => BoolParser.Serialize(boolValue, context),
+                    IntValue intValue => IntParser.Serialize(intValue, context),
+                    DecimalValue decimalValue => DecimalParser.Serialize(decimalValue, context),
+                    InstantValue instantValue => InstantParser.Serialize(instantValue, context),
+                    SymbolValue symbolValue => SymbolParser.Serialize(symbolValue, context),
+                    StringValue stringValue => StringParser.Serialize(stringValue, context),
+                    BlobValue blobValue => BlobParser.Serialize(blobValue, context),
+                    ClobValue clobValue => ClobParser.Serialize(clobValue, context),
+                    ListValue listValue => ListParser.Serialize(listValue, context),
+                    RecordValue recordValue => RecordParser.Serialize(recordValue, context),
+                    ReferenceValue refValue => ReferenceParser.Serialize(refValue, context),
+                    _ => throw new InvalidOperationException($"Invalid Dia Type: {value.GetType()}")
                 };
-
-                if (context.TryGetRefInfo(@ref, out var refInfo) && refInfo!.IsSerialized)
-                    return Result.Of($"@{refInfo.Index}");
-
-                else
-                {
-                    var result = @ref.Value switch
-                    {
-                        BoolValue boolValue => BoolParser.Serialize(boolValue, context),
-                        IntValue intValue => IntParser.Serialize(intValue, context),
-                        DecimalValue decimalValue => DecimalParser.Serialize(decimalValue, context),
-                        InstantValue instantValue => InstantParser.Serialize(instantValue, context),
-                        SymbolValue symbolValue => SymbolParser.Serialize(symbolValue, context),
-                        StringValue stringValue => StringParser.Serialize(stringValue, context),
-                        BlobValue blobValue => BlobParser.Serialize(blobValue, context),
-                        ClobValue clobValue => ClobParser.Serialize(clobValue, context),
-                        ListValue listValue => ListParser.Serialize(listValue, context),
-                        RecordValue recordValue => RecordParser.Serialize(recordValue, context),
-                        _ => throw new InvalidOperationException($"Invalid Dia Type: {value.GetType()}")
-                    };
-
-                    if (refInfo is not null && !refInfo.IsSerialized)
-                    {
-                        result = result.Map(text => $"#{refInfo.Index}::{text}");
-                        refInfo.Serialized();
-                    }
-
-                    return result;
-                }
             }
             catch(Exception e)
             {
@@ -154,10 +134,10 @@ namespace Axis.Dia.Convert.Axon
         }
 
         /// <summary>
-        /// 
+        /// Parse the given text into the appropriate <see cref="IDiaValue"/>
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="context"></param>
+        /// <param name="text">the text to parse</param>
+        /// <param name="context">the parser context</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public static IResult<IDiaValue> ParseValue(string text, ParserContext? context = null)
@@ -178,10 +158,10 @@ namespace Axis.Dia.Convert.Axon
         }
 
         /// <summary>
-        /// 
+        /// Parse the given <see cref="CSTNode"/>. The node must conform to the axon grammar.
         /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
+        /// <param name="valueNode">The node</param>
+        /// <returns>The parse result</returns>
         /// <exception cref="ArgumentException"></exception>
         public static IResult<IDiaValue> ParseValue(CSTNode valueNode, ParserContext? context = null)
         {
@@ -191,169 +171,33 @@ namespace Axis.Dia.Convert.Axon
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public static IResult<IDiaValue> InternalParseValue(CSTNode valueNode, ParserContext context)
+        internal static IResult<IDiaValue> InternalParseValue(CSTNode valueNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(valueNode);
 
-            // extract refIndex from the CSTNode first, if it is a ReferenceValue node
-            if (TryGetRefIndex(valueNode, out var index))
+            return valueNode.SymbolName switch
             {
-                if (context.TryGetRefAddress(index, out var address))
-                    return Result.Of<IDiaValue>(ReferenceValue.Of(address));
-
-                else return Result.Of<IDiaValue>(new InvalidOperationException(
-                    $"The supplied ref index has not been deserialized: '{index}'"));
-            }
-            else
-            {
-                var address = TryGetValueAddressIndex(valueNode, out index)
-                    ? context.AllocateAddress(index)
-                    : (Guid?)null;
-
-                // relocate values to new address
-                return valueNode.SymbolName switch
-                {
-                    SymbolNameDiaValue => InternalParseValue(valueNode.FirstNode(), context),
-                    BoolParser.SymbolNameDiaBool => BoolParser
-                        .Parse(valueNode, context)
-                        .Map(value => address is not null
-                            ? value.RelocateValue(address.Value)
-                            : value)
-                        .MapAs<IDiaValue>(),
-
-                    IntParser.SymbolNameDiaInt => IntParser
-                        .Parse(valueNode, context)
-                        .Map(value => address is not null
-                            ? value.RelocateValue(address.Value)
-                            : value)
-                        .MapAs<IDiaValue>(),
-
-                    DecimalParser.SymbolNameDiaDecimal => DecimalParser
-                        .Parse(valueNode, context)
-                        .Map(value => address is not null
-                            ? value.RelocateValue(address.Value)
-                            : value)
-                        .MapAs<IDiaValue>(),
-
-                    InstantParser.SymbolNameDiaInstant => InstantParser
-                        .Parse(valueNode, context)
-                        .Map(value => address is not null
-                            ? value.RelocateValue(address.Value)
-                            : value)
-                        .MapAs<IDiaValue>(),
-
-                    StringParser.SymbolNameDiaString => StringParser
-                        .Parse(valueNode, context)
-                        .Map(value => address is not null
-                            ? value.RelocateValue(address.Value)
-                            : value)
-                        .MapAs<IDiaValue>(),
-
-                    SymbolParser.SymbolNameDiaSymbol => SymbolParser
-                        .Parse(valueNode, context)
-                        .Map(value => address is not null
-                            ? value.RelocateValue(address.Value)
-                            : value)
-                        .MapAs<IDiaValue>(),
-
-                    BlobParser.SymbolNameDiaBlob => BlobParser
-                        .Parse(valueNode, context)
-                        .Map(value => address is not null
-                            ? value.RelocateValue(address.Value)
-                            : value)
-                        .MapAs<IDiaValue>(),
-
-                    ClobParser.SymbolNameDiaClob => ClobParser
-                        .Parse(valueNode, context)
-                        .Map(value => address is not null
-                            ? value.RelocateValue(address.Value)
-                            : value)
-                        .MapAs<IDiaValue>(),
-
-                    ListParser.SymbolNameDiaList => ListParser
-                        .Parse(valueNode, context)
-                        .Map(value => address is not null
-                            ? value.RelocateValue(address.Value)
-                            : value)
-                        .MapAs<IDiaValue>(),
-
-                    RecordParser.SymbolNameDiaRecord => RecordParser
-                        .Parse(valueNode, context)
-                        .Map(value => address is not null
-                            ? value.RelocateValue(address.Value)
-                            : value)
-                        .MapAs<IDiaValue>(),
-
-                    _ => throw new ArgumentException($"Invalid Root value symbol name: {valueNode.SymbolName}")
-                };
-            }
+                SymbolNameDiaValue => InternalParseValue(valueNode.FirstNode(), context),
+                BoolParser.SymbolNameDiaBool => BoolParser.Parse(valueNode, context).MapAs<IDiaValue>(),
+                IntParser.SymbolNameDiaInt => IntParser.Parse(valueNode, context).MapAs<IDiaValue>(),
+                DecimalParser.SymbolNameDiaDecimal => DecimalParser.Parse(valueNode, context).MapAs<IDiaValue>(),
+                InstantParser.SymbolNameDiaInstant => InstantParser.Parse(valueNode, context).MapAs<IDiaValue>(),
+                StringParser.SymbolNameDiaString => StringParser.Parse(valueNode, context).MapAs<IDiaValue>(),
+                SymbolParser.SymbolNameDiaSymbol => SymbolParser.Parse(valueNode, context).MapAs<IDiaValue>(),
+                BlobParser.SymbolNameDiaBlob => BlobParser.Parse(valueNode, context).MapAs<IDiaValue>(),
+                ClobParser.SymbolNameDiaClob => ClobParser.Parse(valueNode, context).MapAs<IDiaValue>(),
+                ListParser.SymbolNameDiaList => ListParser.Parse(valueNode, context).MapAs<IDiaValue>(),
+                RecordParser.SymbolNameDiaRecord => RecordParser.Parse(valueNode, context).MapAs<IDiaValue>(),
+                ReferenceParser.SymbolNameDiaRef => ReferenceParser.Parse(valueNode, context).MapAs<IDiaValue>(),
+                _ => throw new ArgumentException($"Invalid Root value symbol name: {valueNode.SymbolName}")
+            };
         }
+
         #endregion
 
         private static string ApplyPacketValueSeparator(string previous, string next)
         {
             return $"{previous}{Environment.NewLine}{next}";
-        }
-
-        /// <summary>
-        /// Gets the ref index if this is a <see cref="ReferenceValue"/> node
-        /// </summary>
-        /// <param name="node">The "dia-value" node</param>
-        /// <param name="index">The index</param>
-        /// <returns></returns>
-        private static bool TryGetRefIndex(CSTNode valueNode, out int index)
-        {
-            if (!SymbolNameDiaRef.Equals(valueNode.SymbolName))
-            {
-                index = -1;
-                return false;
-            }
-
-            // else
-            var addressIndexNode = valueNode
-                .FindNodes(SymbolNameAddressIndex)
-                .First();
-
-            index = int.Parse(addressIndexNode.TokenValue());
-            return true;
-        }
-
-        /// <summary>
-        /// Gets the ref index if this is not a <see cref="ReferenceValue"/> node
-        /// </summary>
-        /// <param name="node">The "dia-value" node</param>
-        /// <param name="index">The index</param>
-        /// <returns></returns>
-        private static bool TryGetValueAddressIndex(CSTNode node, out int index)
-        {
-            var valueNode = node.FirstNode();
-            if (!SymbolNameValueAddress.Equals(valueNode.SymbolName))
-            {
-                index = -1;
-                return false;
-            }
-
-            // else
-            var addressIndexNode = valueNode
-                .FindNodes(SymbolNameAddressIndex)
-                .FirstOrDefault();
-
-            if (addressIndexNode is not null)
-            {
-                index = int.Parse(addressIndexNode.TokenValue());
-                return true;
-            }
-            else
-            {
-                index = -1;
-                return false;
-            }
         }
     }
 }

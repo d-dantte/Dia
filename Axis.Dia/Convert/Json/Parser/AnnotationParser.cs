@@ -17,18 +17,17 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<string> Serialize(Annotation[] annotations, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(annotations);
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
 
             return annotations
                 .Select(annotation => SerializeAnnotation(annotation, context))
-                .Fold()
-                .Map(texts => texts.JoinUsing(""));
+                .FoldInto(texts => texts.JoinUsing(""));
         }
 
         public static IResult<Annotation[]> Parse(CSTNode annotationListNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(annotationListNode);
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
 
             if (!RootSymbol.Equals(annotationListNode.SymbolName))
                 throw new ArgumentException(
@@ -45,6 +44,9 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<string> SerializeAnnotation(Annotation annotation, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
+
+            if (Annotation.Default.Equals(annotation))
+                return Result.Of<string>(new ArgumentException($"Invalid anntotation: {annotation}"));
 
             return annotation.Text
                 .ApplyTo(EscapeSequenceGroup.SymbolEscapeGroup.Escape)

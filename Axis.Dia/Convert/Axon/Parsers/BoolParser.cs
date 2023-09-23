@@ -1,5 +1,6 @@
 ﻿using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
+using Axis.Luna.Extensions;
 using Axis.Pulsar.Grammar.CST;
 
 namespace Axis.Dia.Convert.Axon.Parsers
@@ -17,7 +18,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
         public static IResult<BoolValue> Parse(CSTNode symbolNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(symbolNode);
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault($"Invalid {nameof(context)} instance");
 
             if (!GrammarSymbol.Equals(symbolNode.SymbolName))
                 throw new ArgumentException(
@@ -26,12 +27,12 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
             try
             {
-                var (AnnotationNode, ValueNode) = symbolNode.DeconstructValue();
+                var (AddressIndexNode, AnnotationNode, ValueNode) = symbolNode.DeconstructValueNode();
                 var annotationResult = AnnotationNode is null
                     ? Result.Of(Array.Empty<Annotation>())
                     : AnnotationParser.Parse(AnnotationNode, context);
 
-                return annotationResult.Map(annotations =>
+                var result = annotationResult.Map(annotations =>
                 {
                     return ValueNode.TokenValue().ToLower() switch
                     {
@@ -42,6 +43,12 @@ namespace Axis.Dia.Convert.Axon.Parsers
                             $"Invalid bool tokens: {ValueNode.TokenValue().ToLower()}")
                     };
                 });
+
+                return AddressIndexNode is not null
+                    ? result.Combine(
+                        AddressIndexParser.Parse(AddressIndexNode),
+                        (value, addressIndex) => value.RelocateValue(context.Track(addressIndex)))
+                    : result;
             }
             catch(Exception e)
             {
@@ -52,11 +59,15 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
         public static IResult<string> Serialize(BoolValue value, SerializerContext context)
         {
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault($"Invalid {nameof(context)} instance");
+
+            var addressIndexText = context.TryGetAddressIndex(value, out var index)
+                ? $"#0x{index:x}"
+                : "";
 
             return AnnotationParser
                 .Serialize(value.Annotations, context)
-                .Map(annotationText => $"{annotationText}{GetString(value.Value, context.Options.Bools)}");
+                .Map(annotationText => $"{addressIndexText}{annotationText}{GetString(value.Value, context.Options.Bools)}");
         }
 
         private static string GetString(bool? value, SerializerOptions.BoolOptions boolOptions)

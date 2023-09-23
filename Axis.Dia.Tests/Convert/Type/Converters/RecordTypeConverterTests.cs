@@ -169,7 +169,7 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
 
             record3["self_ref"] = record3.ToRef();
 
-            Assert.IsTrue(record3.TryNormalizeReferences(out var unlinkedReferences));
+            Assert.IsTrue(record3.TryLinkReferences(out var unlinkedReferences));
 
             #region Maps
             result = converter.ToClr(

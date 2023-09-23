@@ -1,5 +1,7 @@
 ﻿using Axis.Dia.Types;
+using Axis.Dia.Utils;
 using Axis.Luna.Common.Results;
+using Axis.Luna.Extensions;
 using Axis.Pulsar.Grammar.CST;
 
 namespace Axis.Dia.Convert.Json.Parser
@@ -12,10 +14,10 @@ namespace Axis.Dia.Convert.Json.Parser
 
         public static string RootSymbol => SymbolNameBoolValue;
 
-        public IResult<BoolValue> Parse(CSTNode boolNode, ParserContext context)
+        public static IResult<BoolValue> Parse(CSTNode boolNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(boolNode);
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
 
             return boolNode.SymbolName switch
             {
@@ -24,41 +26,19 @@ namespace Axis.Dia.Convert.Json.Parser
                     .Map(bool.Parse)
                     .Map(v => BoolValue.Of(v)),
 
-                //SymbolNameEncodedBoolValue => EncodedValueExtractor
-                //    .ExtractEncodedInfo(boolNode, DiaType.Bool, context)
-                //    .Map(info =>
-                //    {
-                //        var value = info.ValueText.TokenValue().ToLower();
-                //        return "null".Equals(value)
-                //            ? BoolValue.Null(info.Annotations!)
-                //            : BoolValue.Of(bool.Parse(value), info.Annotations!);
-                //    }),
-
                 _ => Result.Of<BoolValue>(new InvalidOperationException(
                     $"Invalid symbol name: '{boolNode.SymbolName}', expected '{SymbolNameBoolValue}'"))
             };
         }
 
-        public IResult<string> Serialize(BoolValue value, SerializerContext context)
+        public static IResult<string> Serialize(BoolValue value, SerializerContext context)
         {
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
 
-            //if (value.IsNull || value.HasAnnotations())
-            //{
-            //    var boolText = Result.Of(!value.IsNull
-            //        ? value.Value!.Value.ToString().ToLower()
-            //        : "null");
+            if (value.IsNull || value.HasAnnotations())
+                return Result.Of<string>(new InvalidOperationException(
+                    $"Invalid value. IsNull: '{value.IsNull}', HasAnnotations: '{value.HasAnnotations()}'"));
 
-            //    var annotations = AnnotationParser.Serialize(value.Annotations, context);
-
-            //    var addressIndex = context.TryGetAddressIndex(value, out var index) ? $"#{index};" : "";
-
-            //    return boolText
-            //        .Combine(annotations, (text, annotationText) => (BoolText: text, AnnotationText: annotationText))
-            //        .Map(info => $"\"[{addressIndex}${DiaType.Bool};{info.AnnotationText}]{info.BoolText}\"");
-            //}
-
-            //else
             return Result.Of(() => value.Value!.Value.ToString().ToLower());
         }
     }

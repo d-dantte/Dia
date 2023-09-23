@@ -1,8 +1,10 @@
 ﻿using Axis.Pulsar.Grammar.Recognizers;
 
-namespace Axis.Dia.Convert.Axon
+namespace Axis.Dia.Convert.Json
 {
-
+    /// <summary>
+    /// 
+    /// </summary>
     public class ParseException : Exception
     {
         public IRecognitionResult RecognitionResult { get; }

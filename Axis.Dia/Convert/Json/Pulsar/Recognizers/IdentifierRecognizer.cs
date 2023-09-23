@@ -40,20 +40,15 @@ namespace Axis.Dia.Convert.Json.Pulsar.Recognizers
             try
             {
                 var sbuffer = new StringBuilder();
-                var failureCount = 0;
                 while (tokenReader.TryNextToken(out var token))
                 {
-                    if (!SymbolValue.IdentifierPattern.IsMatch(sbuffer.Append(token).ToString()))
+                    _ = sbuffer.Append(token);
+                    if (!SymbolValue.IdentifierPattern.IsMatch(sbuffer.ToString()))
                     {
-                        if (++failureCount >= 2)
-                        {
-                            sbuffer.Remove(sbuffer.Length - 2, 2);
-                            tokenReader.Back(2);
-                            break;
-                        }
+                        sbuffer.Remove(sbuffer.Length - 1, 1);
+                        tokenReader.Back(1);
+                        break;
                     }
-
-                    else failureCount = 0;
                 }
 
                 var resultToken = sbuffer.ToString();

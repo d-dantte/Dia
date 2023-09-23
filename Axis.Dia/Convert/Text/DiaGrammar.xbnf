@@ -42,7 +42,7 @@ $annotation -> ?[$quoted-symbol $identifier]
 
 # Value Address
 $value-address -> +['#' $address-index '::' ]
-$address-index -> /^\d+\z/
+$address-index -> /^0[xX][0-9A-Fa-f]+\z/.3,+
 
 
 # Ref

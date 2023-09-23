@@ -13,7 +13,7 @@
         /// <summary>
         /// The value from which the address is gotten. This may be null, in which case the reference is un-linked
         /// </summary>
-         IDiaValue? Value { get; }
+         IDiaAddressProvider? Value { get; }
 
         /// <summary>
         /// Indicates if the value owning the address is present in this reference instance.

@@ -31,7 +31,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
         public static IResult<IntValue> Parse(CSTNode symbolNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(symbolNode);
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault($"Invalid {nameof(context)} instance");
 
             if (!GrammarSymbol.Equals(symbolNode.SymbolName))
                 throw new ArgumentException(
@@ -40,12 +40,12 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
             try
             {
-                var (AnnotationNode, ValueNode) = symbolNode.DeconstructValue();
+                var (AddressIndexNode, AnnotationNode, ValueNode) = symbolNode.DeconstructValueNode();
                 var annotationResult = AnnotationNode is null
                     ? Result.Of(Array.Empty<Annotation>())
                     : AnnotationParser.Parse(AnnotationNode, context);
 
-                return ValueNode.SymbolName switch
+                var result = ValueNode.SymbolName switch
                 {
                     SymbolNameNullInt => annotationResult.Map(IntValue.Null),
                     SymbolNameIntNumber => ParseIntNumber(ValueNode, annotationResult),
@@ -54,6 +54,12 @@ namespace Axis.Dia.Convert.Axon.Parsers
                         $"Invalid symbol: '{ValueNode.SymbolName}'. "
                         + $"Expected '{SymbolNameNullInt}', or '{SymbolNameIntNumber}'"))
                 };
+
+                return AddressIndexNode is not null
+                    ? result.Combine(
+                        AddressIndexParser.Parse(AddressIndexNode),
+                        (value, addressIndex) => value.RelocateValue(context.Track(addressIndex)))
+                    : result;
             }
             catch (Exception e)
             {
@@ -115,6 +121,10 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
             var intOptions = context.Options.Ints;
 
+            var addressIndexText = context.TryGetAddressIndex(value, out var index)
+                ? $"#0x{index:x}"
+                : "";
+
             var annotationText = AnnotationParser.Serialize(value.Annotations, context);
             var valueText = value.IsNull switch
             {
@@ -122,7 +132,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
                 false => ConvertToText(value, intOptions)
             };
 
-            return annotationText!.Combine(valueText, (ann, value) => $"{ann}{value}");
+            return annotationText!.Combine(valueText, (ann, value) => $"{annotationText}{ann}{value}");
         }
 
         internal static IResult<string> ConvertToText(IntValue value, SerializerOptions.IntOptions options)

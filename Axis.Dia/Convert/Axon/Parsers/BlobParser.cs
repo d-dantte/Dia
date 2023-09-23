@@ -14,7 +14,6 @@ namespace Axis.Dia.Convert.Axon.Parsers
         public const string SymbolNameBlobValue = "blob-text-value";
         #endregion
 
-
         private BlobParser() { }
 
         public static string GrammarSymbol => SymbolNameDiaBlob;
@@ -22,7 +21,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
         public static IResult<BlobValue> Parse(CSTNode symbolNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(symbolNode);
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault($"Invalid {nameof(context)} instance");
 
             if (!GrammarSymbol.Equals(symbolNode.SymbolName))
                 throw new ArgumentException(
@@ -31,12 +30,12 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
             try
             {
-                var (AnnotationNode, ValueNode) = symbolNode.DeconstructValue();
+                var (AddressIndexNode, AnnotationNode, ValueNode) = symbolNode.DeconstructValueNode();
                 var annotationResult = AnnotationNode is null
                     ? Result.Of(Array.Empty<Annotation>())
                     : AnnotationParser.Parse(AnnotationNode, context);
 
-                return ValueNode.SymbolName switch
+                var result = ValueNode.SymbolName switch
                 {
                     SymbolNameNullBlob => annotationResult.Map(BlobValue.Null),
 
@@ -55,6 +54,12 @@ namespace Axis.Dia.Convert.Axon.Parsers
                         $"Invalid symbol encountered: '{ValueNode.SymbolName}'. "
                         + $"Expected '{SymbolNameNullBlob}', or '{SymbolNameBlobValue}'"))
                 };
+
+                return AddressIndexNode is not null
+                    ? result.Combine(
+                        AddressIndexParser.Parse(AddressIndexNode),
+                        (value, addressIndex) => value.RelocateValue(context.Track(addressIndex)))
+                    : result;
             }
             catch (Exception e)
             {
@@ -65,9 +70,13 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
         public static IResult<string> Serialize(BlobValue value, SerializerContext context)
         {
-            ArgumentNullException.ThrowIfNull(context);
+            context.ThrowIfDefault($"Invalid {nameof(context)} instance");
 
             var blobOptions = context.Options.Blobs;
+
+            var addressIndexText = context.TryGetAddressIndex(value, out var index)
+                ? $"#0x{index:x}"
+                : "";
 
             var annotationText = AnnotationParser.Serialize(value.Annotations, context);
             var valueText = value.Value switch
@@ -88,7 +97,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
                 })
             };
 
-            return annotationText!.Combine(valueText, (ann, value) => $"{ann}{value}");
+            return annotationText!.Combine(valueText, (ann, value) => $"{addressIndexText}{ann}{value}");
         }
 
         internal static string WrapLines(string[] lines, SerializerContext context)
@@ -99,7 +108,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
                 1 => $"< {lines[0]} >",
                 _ => lines
                     .Prepend("")
-                    .JoinUsing($"{Environment.NewLine}{context.Indentation(1)}")
+                    .JoinUsing($"{Environment.NewLine}{context.IndentText("", 1)}")
                     .WrapIn("<", $"{Environment.NewLine}>")
             };
         }
