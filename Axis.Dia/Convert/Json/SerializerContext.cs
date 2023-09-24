@@ -1,5 +1,4 @@
 ﻿using Axis.Dia.Contracts;
-using Axis.Dia.Types;
 using Axis.Luna.Common;
 using Axis.Luna.Extensions;
 
@@ -13,7 +12,7 @@ namespace Axis.Dia.Convert.Json
 
         public int IndentationLevel { get; }
 
-        #region
+        #region DefaultProvider
         public bool IsDefault => Default.Equals(this);
 
         public static SerializerContext Default => default;
@@ -54,21 +53,10 @@ namespace Axis.Dia.Convert.Json
             return addressIndexMap.TryGetValue(addressProvider.Address, out index);
         }
 
-        internal void BuildAddressIndices(IDiaValue value)
+        internal void BuildAddressIndices(IEnumerable<IDiaReference> references)
         {
             var map = addressIndexMap;
-
-            if (value is null)
-                throw new ArgumentNullException(nameof(value));
-
-            else if (value is ReferenceValue @ref)
-                _ = addressIndexMap.GetOrAdd(@ref.ValueAddress, _ => map.Count + 1);
-
-            else if (value is ListValue list && !list.IsNull)
-                list.Value!.ForAll(BuildAddressIndices);
-
-            else if (value is RecordValue record && !record.IsNull)
-                record.Values!.ForAll(BuildAddressIndices);
+            references.ForAll(@ref => map.GetOrAdd(@ref.ValueAddress, _ => map.Count + 1));
         }
 
         internal SerializerContext Indent(ushort newLevel)

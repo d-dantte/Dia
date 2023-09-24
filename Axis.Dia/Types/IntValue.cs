@@ -12,7 +12,7 @@ namespace Axis.Dia.Types
         INullable<IntValue>,
         IEquatable<IntValue>,
         IValueEquatable<IntValue>,
-        IDiaReferable<IntValue>
+        IDiaAddressable<IntValue>
     {
         #region Local members
         private readonly BigInteger? _value;

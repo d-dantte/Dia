@@ -1,19 +1,50 @@
 ﻿using Axis.Dia.Contracts;
 using Axis.Dia.Exceptions;
 using Axis.Dia.Types;
+using Axis.Luna.Common.Utils;
 using Axis.Luna.Extensions;
 
 namespace Axis.Dia.Utils
 {
     public static class ReferenceUtil
     {
+        /// <summary>
+        /// Links all references found in the object graph starting at the given <paramref name="rootValue"/>
+        /// </summary>
+        /// <param name="rootValue">The value from which references should be found</param>
+        /// <exception cref="ReferenceLinkageException"></exception>
+        public static IDiaValue LinkReferences(this RecordValue rootValue, out IDiaReference[] linkedReferences)
+        {
+            return LinkReferences((IDiaValue)rootValue, out linkedReferences);
+        }
 
         /// <summary>
         /// Links all references found in the object graph starting at the given <paramref name="rootValue"/>
         /// </summary>
         /// <param name="rootValue">The value from which references should be found</param>
         /// <exception cref="ReferenceLinkageException"></exception>
-        public static IDiaValue LinkReferences(this IDiaValue rootValue, out IDiaReference[] linkedReferences)
+        public static IDiaValue LinkReferences(this ListValue rootValue, out IDiaReference[] linkedReferences)
+        {
+            return LinkReferences((IDiaValue)rootValue, out linkedReferences);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rootValue"></param>
+        /// <param name="linkedReferences"></param>
+        /// <returns></returns>
+        /// <exception cref="ReferenceLinkageException"></exception>
+        public static IDiaValue LinkReferences(this IDiaReference rootValue, out IDiaReference[] linkedReferences)
+        {
+            if (!rootValue.IsLinked)
+                throw new ReferenceLinkageException(rootValue, ArrayUtil.Of(rootValue));
+
+            linkedReferences = ArrayUtil.Of(rootValue);
+            return rootValue;
+        }
+
+        private static IDiaValue LinkReferences(this IDiaValue rootValue, out IDiaReference[] linkedReferences)
         {
             var refMap = new Dictionary<Guid, RefInfo>();
             BuildReferenceMap(rootValue, refMap);

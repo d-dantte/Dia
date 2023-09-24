@@ -52,7 +52,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
                     (value.HasAnnotations() ? TypeMetadata.MetadataFlags.Annotated : TypeMetadata.MetadataFlags.None)
                     | (value.IsNull ? TypeMetadata.MetadataFlags.Null : TypeMetadata.MetadataFlags.None);
 
-                var tmeta = TypeMetadata.Of(DiaType.Ref, flags, context.CurrentIndex);
+                var tmeta = TypeMetadata.Of(DiaType.Ref, flags, context.IndexOf(value));
 
                 return AnnotationSerializer
                     .Serialize(value.Annotations)

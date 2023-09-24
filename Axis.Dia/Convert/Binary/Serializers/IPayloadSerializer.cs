@@ -128,54 +128,57 @@ namespace Axis.Dia.Convert.Binary.Serializers
             this IDiaValue value,
             SerializerContext context)
         {
+            ArgumentNullException.ThrowIfNull(value);
+
             try
             {
-                var @ref = value switch
+                if (value is ReferenceValue @ref)
                 {
-                    IDiaAddressProvider addressProvider => ReferenceValue.Of(addressProvider),
-                    IDiaReference reference => reference,
-                    _ => throw new InvalidOperationException($"Invalid vaue found: '{value}'")
-                };
+                    if (!context.IsTracked(@ref.ValueAddress))
+                        return SerializeDiaValueResult(@ref.Value!, context);
 
-                if (context.TrySerializeRef(@ref, out var refData))
-                    return Result.Of(refData!);
+                    return RefPayloadSerializer.Serialize(@ref, context);
+                }
 
-                else return @ref.Value!.Type switch
+                else if (value is IDiaAddressProvider provider)
                 {
-                    DiaType.Bool => BoolPayloadSerializer.Serialize((BoolValue)value, context),
+                    if (context.IsTracked(provider.Address))
+                        return SerializeDiaValueResult(ReferenceValue.Of(provider), context);
 
-                    DiaType.Instant => InstantPayloadSerializer.Serialize((InstantValue)value, context),
+                    _ = context.Track(provider);
 
-                    DiaType.Int => IntPayloadSerializer.Serialize((IntValue)value, context),
+                    return provider!.Type switch
+                    {
+                        DiaType.Bool => BoolPayloadSerializer.Serialize((BoolValue)provider, context),
 
-                    DiaType.Decimal => DecimalPayloadSerializer.Serialize((DecimalValue)value, context),
+                        DiaType.Instant => InstantPayloadSerializer.Serialize((InstantValue)provider, context),
 
-                    DiaType.Blob => BlobPayloadSerializer.Serialize((BlobValue)value, context),
+                        DiaType.Int => IntPayloadSerializer.Serialize((IntValue)provider, context),
 
-                    DiaType.Clob => ClobPayloadSerializer.Serialize((ClobValue)value, context),
+                        DiaType.Decimal => DecimalPayloadSerializer.Serialize((DecimalValue)provider, context),
 
-                    DiaType.Symbol => SymbolPayloadSerializer.Serialize((SymbolValue)value, context),
+                        DiaType.Blob => BlobPayloadSerializer.Serialize((BlobValue)provider, context),
 
-                    DiaType.String => StringPayloadSerializer.Serialize((StringValue)value, context),
+                        DiaType.Clob => ClobPayloadSerializer.Serialize((ClobValue)provider, context),
 
-                    DiaType.List => ListPayloadSerializer.Serialize((ListValue)value, context),
+                        DiaType.Symbol => SymbolPayloadSerializer.Serialize((SymbolValue)provider, context),
 
-                    DiaType.Record => RecordPayloadSerializer.Serialize((RecordValue)value, context),
+                        DiaType.String => StringPayloadSerializer.Serialize((StringValue)provider, context),
 
-                    _ => throw new InvalidOperationException($"Invalid DiaType found: {value.Type}")
-                };
+                        DiaType.List => ListPayloadSerializer.Serialize((ListValue)provider, context),
+
+                        DiaType.Record => RecordPayloadSerializer.Serialize((RecordValue)provider, context),
+
+                        _ => Result.Of<byte[]>(new InvalidOperationException($"Invalid DiaType: {provider.Type}"))
+                    };
+                }
+                else return Result.Of<byte[]>(new InvalidOperationException($"Invalid value instance: {value}"));
             }
             catch(Exception e)
             {
                 return Result.Of<byte[]>(e);
             }
         }
-
-        internal static bool TrySerializeDiaValueResult(
-            this IDiaValue value,
-            SerializerContext context,
-            out IResult<byte[]> result)
-            => (result = SerializeDiaValueResult(value, context)) is IResult<byte[]>.DataResult;
         #endregion
 
         internal static TypeMetadata TranslateTypeMetadataError(ResultException exception)

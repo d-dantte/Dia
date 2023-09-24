@@ -12,7 +12,7 @@ namespace Axis.Dia.Types
         INullable<BlobValue>,
         IEquatable<BlobValue>,
         IValueEquatable<BlobValue>,
-        IDiaReferable<BlobValue>
+        IDiaAddressable<BlobValue>
     {
         #region Local members
         private readonly byte[]? _value;

@@ -67,8 +67,8 @@ namespace Axis.Dia.Tests.Convert.Json.Parser
             list.Add(ReferenceValue.Of(list));
 
             var context = new SerializerContext(optionBuilder.WithListOptions(true).Build());
-            list.LinkReferences();
-            context.BuildAddressIndices(list);
+            ReferenceUtil.LinkReferences(list, out var linkedRefs);
+            context.BuildAddressIndices(linkedRefs);
 
             result = ListParser.Serialize(list, context);
             Assert.IsTrue(result.IsDataResult());

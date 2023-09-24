@@ -10,7 +10,7 @@ namespace Axis.Dia.Types
         INullable<BoolValue>,
         IEquatable<BoolValue>,
         IValueEquatable<BoolValue>,
-        IDiaReferable<BoolValue>
+        IDiaAddressable<BoolValue>
     {
         #region Local members
         private readonly bool? _value;

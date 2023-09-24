@@ -16,7 +16,7 @@ namespace Axis.Dia.Types
         INullable<SymbolValue>,
         IEquatable<SymbolValue>,
         IValueEquatable<SymbolValue>,
-        IDiaReferable<SymbolValue>
+        IDiaAddressable<SymbolValue>
     {
         public static readonly Regex IdentifierPattern = new(
             "^[a-zA-Z_](([.-])?[a-zA-Z0-9_])*\\z",

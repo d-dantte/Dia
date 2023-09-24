@@ -13,7 +13,7 @@ namespace Axis.Dia.Types
         INullable<DecimalValue>,
         IEquatable<DecimalValue>,
         IValueEquatable<DecimalValue>,
-        IDiaReferable<DecimalValue>
+        IDiaAddressable<DecimalValue>
     {
         #region Local members
         private readonly BigDecimal? _value;

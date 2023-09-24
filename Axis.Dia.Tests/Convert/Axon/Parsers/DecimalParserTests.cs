@@ -77,10 +77,10 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
             var text2 = DecimalParser.Serialize(value2, scontext);
             var text3 = DecimalParser.Serialize(value3, scontext);
 
-            var nresult = AxonSerializer.ParseValue(ntext.Resolve(), context);
-            var result1 = AxonSerializer.ParseValue(text1.Resolve(), context);
-            var result2 = AxonSerializer.ParseValue(text2.Resolve(), context);
-            var result3 = AxonSerializer.ParseValue(text3.Resolve(), context);
+            var nresult = AxonSerializer.ParseValue(ntext.Resolve());
+            var result1 = AxonSerializer.ParseValue(text1.Resolve());
+            var result2 = AxonSerializer.ParseValue(text2.Resolve());
+            var result3 = AxonSerializer.ParseValue(text3.Resolve());
 
             Assert.AreEqual(nvalue, nresult.Resolve());
             Assert.AreEqual(value1, result1.Resolve());
@@ -94,10 +94,10 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
             text2 = DecimalParser.Serialize(value2, scontext);
             text3 = DecimalParser.Serialize(value3, scontext);
 
-            nresult = AxonSerializer.ParseValue(ntext.Resolve(), context);
-            result1 = AxonSerializer.ParseValue(text1.Resolve(), context);
-            result2 = AxonSerializer.ParseValue(text2.Resolve(), context);
-            result3 = AxonSerializer.ParseValue(text3.Resolve(), context);
+            nresult = AxonSerializer.ParseValue(ntext.Resolve());
+            result1 = AxonSerializer.ParseValue(text1.Resolve());
+            result2 = AxonSerializer.ParseValue(text2.Resolve());
+            result3 = AxonSerializer.ParseValue(text3.Resolve());
 
             Assert.AreEqual(nvalue, nresult.Resolve());
             Assert.AreEqual(value1, result1.Resolve());

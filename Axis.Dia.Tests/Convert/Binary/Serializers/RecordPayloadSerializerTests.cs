@@ -75,6 +75,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
                 KeyValuePair.Create(SymbolValue.Of("second"), (IDiaValue)IntValue.Null()),
                 KeyValuePair.Create(SymbolValue.Of("third"), (IDiaValue)InstantValue.Of(DateTimeOffset.Parse("2023/07/05 09:52:37"), "xyz", "abc")),
                 KeyValuePair.Create(SymbolValue.Of("fourth"), (IDiaValue)RecordValue.Empty()));
+
             result = RecordPayloadSerializer.Serialize(value, new SerializerContext());
             Assert.IsTrue(result.IsDataResult());
             data = result.Resolve();

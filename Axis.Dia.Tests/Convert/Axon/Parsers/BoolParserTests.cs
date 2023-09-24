@@ -11,7 +11,7 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void Serialize_Tests()
         {
-            var options = new SerializerOptions();
+            var options = SerializerOptionsBuilder.NewBuilder().Build();
 
             options.Bools.ValueCase = SerializerOptions.Case.Uppercase;
             var text = BoolParser.Serialize(BoolValue.Null("ann1", "ann2"), new SerializerContext(options));
@@ -49,26 +49,26 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void Deserialize_Tests()
         {
-            var options = new SerializerOptions();
+            var options = SerializerOptionsBuilder.NewBuilder().Build();
 
             options.Bools.ValueCase = SerializerOptions.Case.Uppercase;
             var value = BoolValue.Null("ann1", "ann2");
             var textResult = BoolParser.Serialize(value, new SerializerContext(options));
-            var valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            var valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             var result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = BoolValue.Of(true, "ann1");
             textResult = BoolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = BoolValue.Of(false);
             textResult = BoolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
@@ -77,21 +77,21 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
             options.Bools.ValueCase = SerializerOptions.Case.Lowercase;
             value = BoolValue.Null("ann1", "ann2");
             textResult = BoolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = BoolValue.Of(true, "ann1");
             textResult = BoolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = BoolValue.Of(false);
             textResult = BoolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
@@ -100,21 +100,21 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
             options.Bools.ValueCase = SerializerOptions.Case.Titlecase;
             value = BoolValue.Null("ann1", "ann2");
             textResult = BoolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = BoolValue.Of(true, "ann1");
             textResult = BoolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = BoolValue.Of(false);
             textResult = BoolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);

@@ -42,11 +42,5 @@ namespace Axis.Dia.Tests.Utils
             Assert.IsTrue(Enumerable.SequenceEqual(joined[6], ArrayUtil.Of(0)));
 
         }
-
-        [TestMethod]
-        public void TryNormalizeDiaValue_Tests()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

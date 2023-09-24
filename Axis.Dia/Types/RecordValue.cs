@@ -18,7 +18,7 @@ namespace Axis.Dia.Types
         INullable<RecordValue>,
         IEquatable<RecordValue>,
         IValueEquatable<RecordValue>,
-        IDiaReferable<RecordValue>
+        IDiaAddressable<RecordValue>
     {
         #region Local members
         private readonly Dictionary<string, SymbolValue>? _symbolMap;

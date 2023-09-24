@@ -91,7 +91,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
                     .ApplyTo(Result.Of)
             };
 
-            return annotationText!.Combine(valueText, (ann, value) => $"{annotationText}{ann}{value}");
+            return annotationText!.Combine(valueText, (ann, value) => $"{addressIndexText}{ann}{value}");
         }
     }
 }

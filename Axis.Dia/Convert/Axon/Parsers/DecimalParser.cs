@@ -88,7 +88,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
                 })
             };
 
-            return annotationText!.Combine(valueText, (ann, value) => $"{annotationText}{ann}{value}");
+            return annotationText!.Combine(valueText, (ann, value) => $"{addressIndexText}{ann}{value}");
         }
     }
 }

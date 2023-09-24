@@ -3,6 +3,7 @@ using Axis.Dia.Convert.Binary;
 using Axis.Dia.Convert.Binary.Serializers;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
+using Axis.Luna.Extensions;
 
 namespace Axis.Dia.Tests.Convert.Binary
 {
@@ -35,10 +36,11 @@ namespace Axis.Dia.Tests.Convert.Binary
                     ["the"] = ClobValue.Of("very plenty", "one", "two"),
                     ["things"] = BlobValue.Of(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 })
                 });
+            packet.Values[4].As<RecordValue>()["self"] = ReferenceValue.Of(packet.Values[4].As<RecordValue>());
             result = BinarySerializer.Serialize(packet);
             Assert.IsNotNull(result);
             Assert.IsTrue(result.IsDataResult());
-            bytes = ((IResult<byte[]>.DataResult)result).Data;
+            bytes = result.Resolve();
             Assert.IsNotNull(bytes);
             Assert.IsTrue(bytes.Length > 0);
         }
@@ -95,6 +97,7 @@ namespace Axis.Dia.Tests.Convert.Binary
                 ["the"] = ClobValue.Of("very plenty", "one", "two"),
                 ["things"] = BlobValue.Of(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 })
             };
+            value["self"] = ReferenceValue.Of(value);
             result = PayloadSerializer.SerializeDiaValueResult(value, new SerializerContext());
             stream = result
                 .Map(bytes => new MemoryStream(bytes))

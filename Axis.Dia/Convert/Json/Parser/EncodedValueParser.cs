@@ -18,6 +18,7 @@ namespace Axis.Dia.Convert.Json.Parser
         internal const string SymbolNameEncodedValue = "encoded-value";
         internal const string SymbolNameValueMetadata = "value-metadata";
         internal const string SymbolNameValueContent = "value-content";
+        internal const string SymbolNameTimestamp= "time-stamp";
 
         public const string SymbolNameNullInstant = "null-instant";
         public const string SymbolNameMilliSecond = "millisecond-precision";
@@ -118,11 +119,11 @@ namespace Axis.Dia.Convert.Json.Parser
                     new InvalidOperationException(
                         $"Missing symbol: '{SymbolNameValueMetadata}'")));
 
-            var valueContentNode = encodedValueNode
-                .FindNodes(SymbolNameValueContent)
+            var contentNode = encodedValueNode
+                .FindNodes($"{SymbolNameValueContent}|{SymbolNameTimestamp}")
                 .FirstOrDefault();
 
-            if (valueMetadataNode is null)
+            if (contentNode is null)
                 return Result.Of<IDiaValue>(new FormatException(
                     $"Invalid encoded metadata: '{encodedValueNode.TokenValue()}'",
                     new InvalidOperationException(
@@ -132,7 +133,7 @@ namespace Axis.Dia.Convert.Json.Parser
                 .Parse(valueMetadataNode, context)
                 .Bind(valueMetadata =>
                 {
-                    var valueTokens = valueContentNode.TokenValue();
+                    var valueTokens = contentNode.TokenValue();
 
                     if ("null".Equals(valueTokens))
                         return Result
@@ -190,7 +191,7 @@ namespace Axis.Dia.Convert.Json.Parser
 
                     if (DiaType.Instant.Equals(valueMetadata.Type))
                         return EncodedValueParser
-                            .ParseTimestamp(valueMetadata, valueContentNode!, context)
+                            .ParseTimestamp(valueMetadata, contentNode!, context)
                             .MapAs<IDiaValue>();
 
                     if (DiaType.Symbol.Equals(valueMetadata.Type))

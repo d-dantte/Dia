@@ -3,19 +3,18 @@ using Axis.Dia.Exceptions;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
+using Axis.Pulsar.Grammar;
 using System.Numerics;
 
 namespace Axis.Dia.Utils
 {
     internal static class Extensions
     {
-        public static ReferenceValue ToRef<TDiaValue>(this IDiaReferable<TDiaValue> addressable)
-        where TDiaValue: IDiaReferable<TDiaValue>, IDiaValue
+        public static ReferenceValue ToRef<TDiaValue>(this IDiaAddressable<TDiaValue> addressable)
+        where TDiaValue: IDiaAddressable<TDiaValue>, IDiaValue
         {
             return ReferenceValue.Of(addressable);
         }
-
-        internal static bool IsNull<TValue>(this TValue value) => value is null;
 
         internal static bool NullOrTrue<TValue>(
             TValue? lhs,
@@ -121,42 +120,6 @@ namespace Axis.Dia.Utils
             }
         }
 
-        internal static IEnumerable<TOut> Repeat<TOut>(
-            this int count,
-            Func<int, TOut> func)
-        {
-            ArgumentNullException.ThrowIfNull(func);
-
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count));
-
-            int index = 0;
-            while (index++ < count)
-            {
-                yield return func.Invoke(index);
-            }
-        }
-
-        internal static IEnumerable<TOut> Repeat<TOut>(
-            this long count,
-            Func<long, TOut> func)
-        {
-            ArgumentNullException.ThrowIfNull(func);
-
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count));
-
-            long index = 0;
-            while (index++ < count)
-            {
-                yield return func.Invoke(index);
-            }
-        }
-
-        internal static IEnumerable<BigInteger> Repeat(this BigInteger count) => count.Repeat(i => i);
-
-        internal static IResult<TOut> Cast<TIn, TOut>(this IResult<TIn> result) => result.Map(r => r.As<TOut>());
-
         internal static string Reverse(this string value)
         {
             if (string.IsNullOrWhiteSpace(value)
@@ -168,6 +131,15 @@ namespace Axis.Dia.Utils
                     .ToCharArray()
                     .With(Array.Reverse)
                     .ApplyTo(array => new string(array));
+        }
+
+        internal static char Peek(this BufferedTokenReader reader)
+        {
+            if (!reader.TryNextToken(out var token))
+                throw new EndOfStreamException();
+
+            reader.Back();
+            return token;
         }
     }
 }

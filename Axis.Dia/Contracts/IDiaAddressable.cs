@@ -13,11 +13,11 @@
     /// within the Dia object graph. These "addresses" are implemented using <see cref="Guid"/> values to ensure uniqueness.
     /// <para>
     /// The companion type to addressable instances is the <see cref="Types.ReferenceValue"/>. It holds an address value that
-    /// "points" to another <see cref="IDiaReferable{TType}"/> instance within the object graph.
+    /// "points" to another <see cref="IDiaAddressable{TType}"/> instance within the object graph.
     /// </para>
     /// </summary>
-    public interface IDiaReferable<TType>: IDiaAddressProvider
-    where TType : IDiaReferable<TType>, IDiaValue
+    public interface IDiaAddressable<TType>: IDiaAddressProvider
+    where TType : IDiaAddressable<TType>, IDiaValue
     {
         /// <summary>
         /// Copies the content of this instance to a new one that has the given address.

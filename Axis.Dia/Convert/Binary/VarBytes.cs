@@ -9,7 +9,6 @@ namespace Axis.Dia.Convert.Binary
 {    
     /// <summary>
     /// 
-    /// 
     /// </summary>
     public readonly struct VarBytes :
         IEnumerable<byte>,

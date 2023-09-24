@@ -26,11 +26,11 @@
         /// <summary>
         /// Link the given <paramref name="addressableValue"/> to this reference, relocatingi the value if specified
         /// </summary>
-        /// <typeparam name="TDiaValue">The type of the <see cref="IDiaReferable{TType}"/> instance.</typeparam>
+        /// <typeparam name="TDiaValue">The type of the <see cref="IDiaAddressable{TType}"/> instance.</typeparam>
         /// <param name="addressableValue">The instance to link to this reference</param>
         /// <returns>The linked value</returns>
-        public IDiaReference LinkValue<TDiaValue>(IDiaReferable<TDiaValue> addressableValue)
-        where TDiaValue : IDiaReferable<TDiaValue>, IDiaValue;
+        public IDiaReference LinkValue<TDiaValue>(IDiaAddressable<TDiaValue> addressableValue)
+        where TDiaValue : IDiaAddressable<TDiaValue>, IDiaValue;
         #endregion
     }
 }

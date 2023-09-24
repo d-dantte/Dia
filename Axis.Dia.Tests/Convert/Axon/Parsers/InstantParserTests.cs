@@ -221,7 +221,7 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
             #region Now
             var valueNow = InstantValue.Of(DateTimeOffset.Now);
             var textNow = InstantParser.Serialize(valueNow, scontext);
-            var resultNow = AxonSerializer.ParseValue(textNow.Resolve(), pcontext);
+            var resultNow = AxonSerializer.ParseValue(textNow.Resolve());
             var rvalueNow = resultNow.Resolve();
             Assert.AreEqual(valueNow, rvalueNow);
             #endregion

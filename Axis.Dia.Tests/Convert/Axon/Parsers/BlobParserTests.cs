@@ -12,7 +12,8 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void SerializeTest()
         {
-            var options = new SerializerOptions();
+            var optionsBuilder = SerializerOptionsBuilder.NewBuilder();
+            var options = optionsBuilder.Build();
 
             var value = BlobValue.Null();
             var result = BlobParser.Serialize(value, new SerializerContext(options));
@@ -22,7 +23,12 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
             Assert.AreEqual("null.blob", text);
 
             #region Singleline
-            options.Blobs.LineStyle = SerializerOptions.TextLineStyle.Singleline;
+            options = optionsBuilder
+                .WithBlobOptions(new SerializerOptions.BlobOptions
+                {
+                    LineStyle = SerializerOptions.TextLineStyle.Singleline
+                })
+                .Build();
             value = BlobValue.Of(Bytes);
             result = BlobParser.Serialize(value, new SerializerContext(options));
             Assert.IsTrue(result.IsDataResult());
@@ -39,9 +45,14 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
             #endregion
 
             #region multiline
-            options.Blobs.LineStyle = SerializerOptions.TextLineStyle.Multiline;
-            options.IndentationStyle = SerializerOptions.IndentationStyles.Spaces;
-            options.Blobs.MaxLineLength = 50;
+            options = optionsBuilder
+                .WithIndentationStyle(SerializerOptions.IndentationStyles.Spaces)
+                .WithBlobOptions(new SerializerOptions.BlobOptions
+                {
+                    LineStyle = SerializerOptions.TextLineStyle.Multiline,
+                    MaxLineLength = 50
+                })
+                .Build();
             value = BlobValue.Of(Bytes);
             result = BlobParser.Serialize(value, new SerializerContext(options));
             Assert.IsTrue(result.IsDataResult());
@@ -59,10 +70,10 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void ParseTest()
         {
-            var options = new SerializerOptions();
+            var options = SerializerOptionsBuilder.NewBuilder().Build();
             var value = BlobValue.Null("ann1", "ann2");
             var textResult = BlobParser.Serialize(value, new SerializerContext(options));
-            var valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            var valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             var valueInstance = valueResult.Resolve();
             Assert.IsNotNull(value);
             Assert.AreEqual(value, valueInstance);
@@ -70,7 +81,7 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
 
             value = BlobValue.Of(Bytes);
             textResult = BlobParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             valueInstance = valueResult.Resolve();
             Assert.IsNotNull(value);
             Assert.AreEqual(value, valueInstance);
@@ -79,8 +90,10 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void WrapLinesTest()
         {
-            var options = new SerializerOptions();
-            options.IndentationStyle = SerializerOptions.IndentationStyles.Spaces;
+            var optionsBuilder = SerializerOptionsBuilder.NewBuilder();
+            var options = optionsBuilder
+                .WithIndentationStyle(SerializerOptions.IndentationStyles.Spaces)
+                .Build();
             var slines = new[]
             {
                 "first line",
@@ -92,7 +105,7 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
             Assert.AreEqual("<\r\n    first line\r\n    second line\r\n    third line\r\n>", lines);
 
 
-            lines = BlobParser.WrapLines(slines, new SerializerContext(options).IndentContext());
+            lines = BlobParser.WrapLines(slines, new SerializerContext(options).Indent());
 
             Assert.AreEqual("<\r\n        first line\r\n        second line\r\n        third line\r\n>", lines);
         }

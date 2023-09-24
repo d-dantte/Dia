@@ -132,7 +132,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
                 false => ConvertToText(value, intOptions)
             };
 
-            return annotationText!.Combine(valueText, (ann, value) => $"{annotationText}{ann}{value}");
+            return annotationText!.Combine(valueText, (ann, value) => $"{addressIndexText}{ann}{value}");
         }
 
         internal static IResult<string> ConvertToText(IntValue value, SerializerOptions.IntOptions options)

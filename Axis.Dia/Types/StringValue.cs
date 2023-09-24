@@ -11,7 +11,7 @@ namespace Axis.Dia.Types
         INullable<StringValue>,
         IEquatable<StringValue>,
         IValueEquatable<StringValue>,
-        IDiaReferable<StringValue>
+        IDiaAddressable<StringValue>
     {
         #region Local members
         private readonly string? _value;

@@ -4,9 +4,9 @@ using Axis.Pulsar.Grammar.Recognizers.Results;
 using Axis.Pulsar.Grammar.Recognizers;
 using Axis.Pulsar.Grammar;
 using System.Text;
-using Axis.Dia.Convert.Text.Pulsar.Rules;
 using Axis.Dia.Types;
 using Axis.Luna.Extensions;
+using Axis.Dia.Convert.Axon.Pulsar.Rules;
 
 namespace Axis.Dia.Convert.Json.Pulsar.Recognizers
 {

@@ -20,15 +20,29 @@ namespace Axis.Dia.Convert.Json
         internal const string SymbolNameList = "array";
 
         #region Serialize
-        public static IResult<string> Serialize(IDiaValue value, SerializerContext? context = null)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static IResult<string> Serialize(IDiaValue value, SerializerOptions? options = null)
         {
             ArgumentNullException.ThrowIfNull(value);
-            value.LinkReferences();
+            var linkedReferences = Array.Empty<IDiaReference>();
+            value = value switch
+            {
+                ListValue list => ReferenceUtil.LinkReferences(list, out linkedReferences),
+                RecordValue record => ReferenceUtil.LinkReferences(record, out linkedReferences),
+                IDiaReference @ref => ReferenceUtil.LinkReferences(@ref, out linkedReferences),
+                _ => value
+            };
 
-            context ??= new SerializerContext();
-            context.Value.BuildAddressIndices(value);
+            options ??= SerializerOptionsBuilder.NewBuilder().Build();
+            var context = new SerializerContext(options.Value);
+            context.BuildAddressIndices(linkedReferences);
 
-            return InternalSerializeValue(value, context ?? new SerializerContext());
+            return InternalSerializeValue(value, context);
         }
 
         internal static IResult<string> InternalSerializeValue(IDiaValue value, SerializerContext context)
@@ -74,7 +88,14 @@ namespace Axis.Dia.Convert.Json
         #endregion
 
         #region Parse
-        public static IResult<IDiaValue> Parse(string text, ParserContext? context = null)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static IResult<IDiaValue> Parse(string text)
         {
             if (string.IsNullOrEmpty(text))
                 throw new ArgumentException($"Invalid text: '{text}'");
@@ -83,14 +104,20 @@ namespace Axis.Dia.Convert.Json
                 .GetRecognizer(SymbolNameRoot)
                 .Recognize(text);
 
+            var context = new ParserContext();
             var result = parseResult switch
             {
-                SuccessResult success => ParseValue(success.Symbol.FirstNode(), context ?? new()),
+                SuccessResult success => ParseValue(success.Symbol.FirstNode(), context),
                 null => Result.Of<IDiaValue>(new Exception("Unknown Error")),
                 _ => Result.Of<IDiaValue>(new ParseException(parseResult))
             };
 
-            return result.Map(value => value.LinkReferences());
+            return result.Map(value => value switch
+            {
+                ListValue list => ReferenceUtil.LinkReferences(list, out _),
+                RecordValue record => ReferenceUtil.LinkReferences(record, out _),
+                _ => value
+            });
         }
 
 

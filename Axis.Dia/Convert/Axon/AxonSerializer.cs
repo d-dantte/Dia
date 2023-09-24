@@ -25,22 +25,21 @@ namespace Axis.Dia.Convert.Axon
         /// <param name="values"></param>
         /// <returns></returns>
         public static IResult<string> SerializePacket(
-            SerializerContext? context,
+            SerializerOptions? options,
             params IDiaValue[] values)
-            => SerializePacket(ValuePacket.Of(values), context);
+            => SerializePacket(ValuePacket.Of(values), options);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="packet"></param>
         /// <returns></returns>
-        public static IResult<string> SerializePacket(ValuePacket packet, SerializerContext? context = null)
+        public static IResult<string> SerializePacket(ValuePacket packet, SerializerOptions? options = null)
         {
-            context ??= new SerializerContext();
+            options ??= SerializerOptionsBuilder.NewBuilder().Build();
             return packet.Values
-                .Select(v => SerializeValue(v, context))
-                .Fold()
-                .Map(valueTexts => valueTexts.Aggregate(
+                .Select(v => SerializeValue(v, options))
+                .FoldInto(valueTexts => valueTexts.Aggregate(
                     string.Empty,
                     (prev, next) => ApplyPacketValueSeparator(prev, next)));
         }
@@ -50,7 +49,7 @@ namespace Axis.Dia.Convert.Axon
         /// </summary>
         /// <param name="diaText"></param>
         /// <returns></returns>
-        public static IResult<ValuePacket> ParsePacket(string text, ParserContext? context = null)
+        public static IResult<ValuePacket> ParsePacket(string text)
         {
             if (string.IsNullOrEmpty(text))
                 throw new ArgumentException($"Invalid text: '{text}'");
@@ -61,7 +60,7 @@ namespace Axis.Dia.Convert.Axon
 
             return parseResult switch
             {
-                SuccessResult success => ParsePacket(success.Symbol, context),
+                SuccessResult success => ParsePacket(success.Symbol, new ParserContext()),
                 null => Result.Of<ValuePacket>(new Exception("Unknown Error")),
                 _ => Result.Of<ValuePacket>(new ParseException(parseResult))
             };
@@ -74,7 +73,7 @@ namespace Axis.Dia.Convert.Axon
         /// <param name="context"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static IResult<ValuePacket> ParsePacket(CSTNode node, ParserContext? context = null)
+        internal static IResult<ValuePacket> ParsePacket(CSTNode node, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(node);
 
@@ -91,18 +90,26 @@ namespace Axis.Dia.Convert.Axon
         /// Serialize the given value
         /// </summary>
         /// <param name="value">the value to serialize</param>
-        /// <param name="context">the context governing the serialization</param>
+        /// <param name="options">the options governing the serialization</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static IResult<string> SerializeValue(IDiaValue value, SerializerContext? context = null)
+        public static IResult<string> SerializeValue(IDiaValue value, SerializerOptions? options = null)
         {
             ArgumentNullException.ThrowIfNull(value);
-            ReferenceUtil.LinkReferences(value, out var linkedReferences);
+            var linkedReferences = Array.Empty<IDiaReference>();
+            value = value switch
+            {
+                ListValue list => ReferenceUtil.LinkReferences(list, out linkedReferences),
+                RecordValue record => ReferenceUtil.LinkReferences(record, out linkedReferences),
+                IDiaReference @ref => ReferenceUtil.LinkReferences(@ref, out linkedReferences),
+                _ => value
+            };
 
-            context ??= new SerializerContext();
-            context.Value.BuildAddressIndices(linkedReferences!);
+            options ??= SerializerOptionsBuilder.NewBuilder().Build();
+            var context = new SerializerContext(options.Value, 0);
+            context.BuildAddressIndices(linkedReferences);
 
-            return InternalSerializeValue(value, context ?? new SerializerContext());
+            return InternalSerializeValue(value, context);
         }
 
         internal static IResult<string> InternalSerializeValue(IDiaValue value, SerializerContext context)
@@ -140,7 +147,7 @@ namespace Axis.Dia.Convert.Axon
         /// <param name="context">the parser context</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static IResult<IDiaValue> ParseValue(string text, ParserContext? context = null)
+        public static IResult<IDiaValue> ParseValue(string text)
         {
             if (string.IsNullOrEmpty(text))
                 throw new ArgumentException($"Invalid text: '{text}'");
@@ -151,7 +158,7 @@ namespace Axis.Dia.Convert.Axon
 
             return parseResult switch
             {
-                SuccessResult success => ParseValue(success.Symbol.FirstNode(), context),
+                SuccessResult success => ParseValue(success.Symbol.FirstNode(), new ParserContext()),
                 null => Result.Of<IDiaValue>(new Exception("Unknown Error")),
                 _ => Result.Of<IDiaValue>(new ParseException(parseResult))
             };
@@ -163,11 +170,18 @@ namespace Axis.Dia.Convert.Axon
         /// <param name="valueNode">The node</param>
         /// <returns>The parse result</returns>
         /// <exception cref="ArgumentException"></exception>
-        public static IResult<IDiaValue> ParseValue(CSTNode valueNode, ParserContext? context = null)
+        internal static IResult<IDiaValue> ParseValue(CSTNode valueNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(valueNode);
 
-            return InternalParseValue(valueNode, context ?? new ParserContext());
+            return AxonSerializer
+                .InternalParseValue(valueNode, context)
+                .Map(value => value switch
+                {
+                    ListValue list => ReferenceUtil.LinkReferences(list, out _),
+                    RecordValue record => ReferenceUtil.LinkReferences(record, out _),
+                    _ => value
+                });
         }
 
 

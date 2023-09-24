@@ -27,11 +27,7 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
 
 
             result = RefPayloadSerializer.Serialize(unlinkedRef, context);
-            Assert.IsTrue(result.IsDataResult());
-            data = result.Resolve();
-            Assert.AreEqual(2, data.Length);
-            Assert.AreEqual(140, data[0]);
-            Assert.AreEqual(2, data[1]);
+            Assert.IsTrue(result.IsErrorResult());
         }
 
         [TestMethod]

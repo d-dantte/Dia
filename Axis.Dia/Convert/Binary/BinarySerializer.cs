@@ -18,12 +18,17 @@ namespace Axis.Dia.Convert.Binary
         {
             context ??= new SerializerContext();
 
-            // normalize the individual values, returning an error result if failure is dected
             foreach (var value in packet.Values)
             {
                 try
                 {
-                    value.LinkReferences();
+                    _ = value switch
+                    {
+                        ListValue list => ReferenceUtil.LinkReferences(list, out _),
+                        RecordValue record => ReferenceUtil.LinkReferences(record, out _),
+                        IDiaReference @ref => ReferenceUtil.LinkReferences(@ref, out _),
+                        _ => value
+                    };
                 }
                 catch(Exception ex)
                 {
@@ -54,7 +59,15 @@ namespace Axis.Dia.Convert.Binary
             if (result is IResult<IDiaValue>.ErrorResult errorResult)
             {
                 if (errorResult.Cause().InnerException is EndOfStreamException)
-                    return valueList.Fold().Map(ValuePacket.Of);
+                    return valueList
+                        .Select(result => result.Map(value => value switch
+                        {
+                            ListValue list => ReferenceUtil.LinkReferences(list, out _),
+                            RecordValue record => ReferenceUtil.LinkReferences(record, out _),
+                            IDiaReference @ref => ReferenceUtil.LinkReferences(@ref, out _),
+                            _ => value
+                        }))
+                        .FoldInto(ValuePacket.Of);
 
                 else return result.Map(_ => default(ValuePacket));
             }

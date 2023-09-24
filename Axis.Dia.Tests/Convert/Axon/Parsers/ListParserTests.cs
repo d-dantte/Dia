@@ -12,10 +12,10 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void SerializeTest()
         {
-            var options = new SerializerOptions();
+            var optionsBuilder = SerializerOptionsBuilder.NewBuilder();
 
             var value = ListValue.Null();
-            var result = ListParser.Serialize(value, new SerializerContext(options));
+            var result = ListParser.Serialize(value, new SerializerContext(optionsBuilder.Build()));
             Assert.IsTrue(result.IsDataResult());
             var text = result.Resolve();
             Console.WriteLine(text);
@@ -26,16 +26,20 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
             {
                 2,3,4,5
             };
-            result = ListParser.Serialize(value, new SerializerContext(options));
+            result = ListParser.Serialize(value, new SerializerContext(optionsBuilder.Build()));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
-            Assert.AreEqual("ann1::ann2::[2, 3, 4, 5]", text);
+            Assert.AreEqual("ann1::ann2::[ 2, 3, 4, 5 ]", text);
 
 
-            options.Lists.UseMultipleLines = true;
-            options.IndentationStyle = SerializerOptions.IndentationStyles.Spaces;
-            result = ListParser.Serialize(value, new SerializerContext(options));
+            optionsBuilder
+                .WithIndentationStyle(SerializerOptions.IndentationStyles.Spaces)
+                .WithListOptions(new SerializerOptions.ListOptions
+                {
+                    UseMultipleLines = true
+                });
+            result = ListParser.Serialize(value, new SerializerContext(optionsBuilder.Build()));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
@@ -50,11 +54,11 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void ParseTests()
         {
-            var options = new SerializerOptions();
+            var optionsBuilder = SerializerOptionsBuilder.NewBuilder();
 
             var value = ListValue.Null("ann1", "ann2");
-            var textResult = ListParser.Serialize(value, new SerializerContext(options));
-            var valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            var textResult = ListParser.Serialize(value, new SerializerContext(optionsBuilder.Build()));
+            var valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             var result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
@@ -76,18 +80,19 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
                     }
                 }
             };
-            textResult = ListParser.Serialize(value, new SerializerContext(options));
+            textResult = ListParser.Serialize(value, new SerializerContext(optionsBuilder.Build()));
             textResult.Consume(Console.WriteLine);
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
-            options.Lists.UseMultipleLines = true;
-            options.IndentationStyle = SerializerOptions.IndentationStyles.Spaces;
-            textResult = ListParser.Serialize(value, new SerializerContext(options));
+            optionsBuilder
+                .WithIndentationStyle(SerializerOptions.IndentationStyles.Spaces)
+                .WithListOptions(new SerializerOptions.ListOptions { UseMultipleLines = true });
+            textResult = ListParser.Serialize(value, new SerializerContext(optionsBuilder.Build()));
             textResult.Consume(Console.WriteLine);
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);

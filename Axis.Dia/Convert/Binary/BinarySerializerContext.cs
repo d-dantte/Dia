@@ -1,7 +1,5 @@
 ﻿using Axis.Dia.Contracts;
-using Axis.Dia.Convert.Binary.Serializers;
-using Axis.Dia.Types;
-using Axis.Luna.Common.Results;
+using Axis.Luna.Extensions;
 using System.Numerics;
 
 namespace Axis.Dia.Convert.Binary
@@ -9,26 +7,26 @@ namespace Axis.Dia.Convert.Binary
 
     public class SerializerContext
     {
-        private readonly Dictionary<Guid, byte[]> refDataMap = new();
+        private readonly Dictionary<Guid, int> addressIndexMap = new();
 
-        internal bool TrySerializeRef(IDiaReference @ref, out byte[]? refData)
+        internal int Track(IDiaAddressProvider addressProvider)
         {
-            ArgumentNullException.ThrowIfNull(@ref);
+            ArgumentNullException.ThrowIfNull(addressProvider);
 
-            if (refDataMap.TryGetValue(@ref.ValueAddress, out refData))
-                return true;
-
-            else
-            {
-                refDataMap[@ref.ValueAddress] = refData = RefPayloadSerializer
-                    .Serialize((ReferenceValue)@ref, this)
-                    .Resolve();
-
-                return false;
-            }
+            return addressIndexMap.GetOrAdd(addressProvider.Address, _ => addressIndexMap.Count + 1);
         }
 
-        internal BigInteger CurrentIndex => refDataMap.Count + 1;
+        internal int IndexOf(IDiaReference reference)
+        {
+            ArgumentNullException.ThrowIfNull(reference);
+
+            if (!reference.IsLinked)
+                throw new InvalidOperationException($"Reference is not linked: {reference}");
+
+            return addressIndexMap.GetOrAdd(reference.ValueAddress, _ => addressIndexMap.Count + 1);
+        }
+
+        internal bool IsTracked(Guid address) => addressIndexMap.ContainsKey(address);
     }
 
     public class DeserializerContext

@@ -25,7 +25,7 @@ namespace Axis.Dia.Convert.Axon
         static GrammarUtil()
         {
             using var xbnfStream = typeof(GrammarUtil).Assembly
-                .GetManifestResourceStream($"{typeof(GrammarUtil).Namespace}.DiaGrammar.xbnf");
+                .GetManifestResourceStream($"{typeof(GrammarUtil).Namespace}.AxonGrammar.xbnf");
 
             var importer = new Importer();
 

@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Axis.Dia.Types
 {
     /// <summary>
-    /// A structure that represents a reference/pointer to another <see cref="IDiaReferable{TType}"/> instance
+    /// A structure that represents a reference/pointer to another <see cref="IDiaAddressable{TType}"/> instance
     /// </summary>
     public readonly struct ReferenceValue :
         IDiaReference,
@@ -105,13 +105,13 @@ namespace Axis.Dia.Types
         /// <summary>
         /// Link the given <paramref name="addressableValue"/> to this reference, relocatingi the value if specified
         /// </summary>
-        /// <typeparam name="TDiaValue">The type of the <see cref="IDiaReferable{TType}"/> instance.</typeparam>
+        /// <typeparam name="TDiaValue">The type of the <see cref="IDiaAddressable{TType}"/> instance.</typeparam>
         /// <param name="addressableValue">The instance to link to this reference</param>
         /// <param name="shouldRelocateValue">Indicating if the value should be relocated before linking</param>
         /// <returns>The linked value</returns>
         /// <exception cref="InvalidOperationException">If linking was not successful</exception>
-        public IDiaReference LinkValue<TDiaValue>(IDiaReferable<TDiaValue> addressableValue)
-        where TDiaValue : IDiaReferable<TDiaValue>, IDiaValue
+        public IDiaReference LinkValue<TDiaValue>(IDiaAddressable<TDiaValue> addressableValue)
+        where TDiaValue : IDiaAddressable<TDiaValue>, IDiaValue
         {
             ArgumentNullException.ThrowIfNull(addressableValue);
 

@@ -11,7 +11,7 @@ namespace Axis.Dia.Types
         INullable<InstantValue>,
         IEquatable<InstantValue>,
         IValueEquatable<InstantValue>,
-        IDiaReferable<InstantValue>
+        IDiaAddressable<InstantValue>
     {
         #region Local members
         private readonly DateTimeOffset? _value;

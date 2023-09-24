@@ -63,8 +63,8 @@ namespace Axis.Dia.Tests.Convert.Json.Parser
                 .NewBuilder()
                 .WithRecordOptions(true);
             var context = new SerializerContext(optionBuilder.Build());
-            record.LinkReferences();
-            context.BuildAddressIndices(record);
+            ReferenceUtil.LinkReferences(record, out var linkedRefs);
+            context.BuildAddressIndices(linkedRefs);
             result = RecordParser.Serialize(record, context);
             Assert.IsTrue(result.IsDataResult());
             Assert.AreEqual(@"{
@@ -83,8 +83,8 @@ namespace Axis.Dia.Tests.Convert.Json.Parser
                 .NewBuilder()
                 .WithRecordOptions(false);
             context = new SerializerContext(optionBuilder.Build());
-            record.LinkReferences();
-            context.BuildAddressIndices(record);
+            ReferenceUtil.LinkReferences(record, out linkedRefs);
+            context.BuildAddressIndices(linkedRefs);
             result = RecordParser.Serialize(record, context);
             Assert.IsTrue(result.IsDataResult());
             Assert.AreEqual(

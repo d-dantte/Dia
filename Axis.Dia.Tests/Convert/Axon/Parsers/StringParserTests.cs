@@ -12,29 +12,32 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void SerializeTests()
         {
-            var options = new SerializerOptions();
+            var builder = SerializerOptionsBuilder.NewBuilder();
 
             #region multiline
-            options.Strings.LineStyle = SerializerOptions.TextLineStyle.Multiline;
-            options.Strings.MaxLineLength = 90;
-            options.Strings.AlignmentIndentation = 5;
+            builder.WithStringOptions(new SerializerOptions.StringOptions
+            {
+                LineStyle = SerializerOptions.TextLineStyle.Multiline,
+                MaxLineLength = 90,
+                AlignmentIndentation = 5
+            });
 
             var value = StringValue.Of(Text);
-            var result = StringParser.Serialize(value, new SerializerContext(options));
+            var result = StringParser.Serialize(value, new SerializerContext(builder.Build()));
             Assert.IsTrue(result.IsDataResult());
             var text = result.Resolve();
             Console.WriteLine(text);
             Assert.AreEqual(MLResultText, text);
 
             value = StringValue.Of(Text, "fgh", "fghjk");
-            result = StringParser.Serialize(value, new SerializerContext(options));
+            result = StringParser.Serialize(value, new SerializerContext(builder.Build()));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
             Assert.AreEqual($"fgh::fghjk::{MLResultText}", text);
 
             value = StringValue.Null();
-            result = StringParser.Serialize(value, new SerializerContext(options));
+            result = StringParser.Serialize(value, new SerializerContext(builder.Build()));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
@@ -42,24 +45,27 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
             #endregion
 
             #region singleline
-            options.Strings.LineStyle = SerializerOptions.TextLineStyle.Singleline;
+            builder.WithStringOptions(new SerializerOptions.StringOptions
+            {
+                LineStyle = SerializerOptions.TextLineStyle.Singleline
+            });
 
             value = StringValue.Of(Text);
-            result = StringParser.Serialize(value, new SerializerContext(options));
+            result = StringParser.Serialize(value, new SerializerContext(builder.Build()));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
             Assert.AreEqual(SLResultText, text[1..^1]);
 
             value = StringValue.Of(Text, "fgh", "fghjk");
-            result = StringParser.Serialize(value, new SerializerContext(options));
+            result = StringParser.Serialize(value, new SerializerContext(builder.Build()));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
             Assert.AreEqual($"fgh::fghjk::\"{SLResultText}\"", text);
 
             value = StringValue.Null();
-            result = StringParser.Serialize(value, new SerializerContext(options));
+            result = StringParser.Serialize(value, new SerializerContext(builder.Build()));
             Assert.IsTrue(result.IsDataResult());
             text = result.Resolve();
             Console.WriteLine(text);
@@ -70,7 +76,7 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void FormatAsMultilineTests()
         {
-            var options = new SerializerOptions();
+            var options = SerializerOptionsBuilder.NewBuilder().Build();
             options.Strings.AlignmentIndentation = 8;
             options.Strings.IsTextAligned = true;
             options.Strings.LineStyle = SerializerOptions.TextLineStyle.Multiline;
@@ -83,51 +89,51 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void DeserializeTests()
         {
-            var options = new SerializerOptions();
+            var builder = SerializerOptionsBuilder.NewBuilder();
 
             #region Singleline
-            options.Strings.LineStyle = SerializerOptions.TextLineStyle.Singleline;
+            builder.WithStringOptions(new SerializerOptions.StringOptions { LineStyle = SerializerOptions.TextLineStyle.Singleline });
             var value = StringValue.Null("ann1", "ann2");
-            var textResult = StringParser.Serialize(value, new SerializerContext(options));
-            var valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            var textResult = StringParser.Serialize(value, new SerializerContext(builder.Build()));
+            var valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             var result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = StringValue.Of("The lame pink unicorn flew over enraged pigs", "ann1");
-            textResult = StringParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            textResult = StringParser.Serialize(value, new SerializerContext(builder.Build()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = StringValue.Of("The lame pink unicorn flew over \tenraged pigs", "ann1");
-            textResult = StringParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            textResult = StringParser.Serialize(value, new SerializerContext(builder.Build()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
             #endregion
 
             #region Multiline
-            options.Strings.LineStyle = SerializerOptions.TextLineStyle.Multiline;
+            builder.WithStringOptions(new SerializerOptions.StringOptions { LineStyle = SerializerOptions.TextLineStyle.Multiline });
             value = StringValue.Null("ann1", "ann2");
-            textResult = StringParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            textResult = StringParser.Serialize(value, new SerializerContext(builder.Build()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = StringValue.Of("The lame pink unicorn flew over enraged pigs", "ann1");
-            textResult = StringParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            textResult = StringParser.Serialize(value, new SerializerContext(builder.Build()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = StringValue.Of("The lame pink unicorn flew over \tenraged pigs", "ann1");
-            textResult = StringParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            textResult = StringParser.Serialize(value, new SerializerContext(builder.Build()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);

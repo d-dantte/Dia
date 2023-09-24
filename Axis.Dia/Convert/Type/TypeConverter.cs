@@ -1,5 +1,4 @@
 ﻿using Axis.Dia.Contracts;
-using Axis.Dia.Convert.Type.Clr;
 using Axis.Dia.Convert.Type.Converters;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
@@ -84,10 +83,10 @@ namespace Axis.Dia.Convert.Type
             {
                 if (context.ReferenceTracker.IsTracked(linkedRef, out var info))
                 {
-                    if (info is TrackingInfo.Value valueInfo)
+                    if (info is Clr.TrackingInfo.Value valueInfo)
                         return Result.Of(valueInfo.TrackedValue);
 
-                    else if (info is TrackingInfo.Placeholder placeholderInfo)
+                    else if (info is Clr.TrackingInfo.Placeholder placeholderInfo)
                         return Result.Of<object?>(new InvalidOperationException(
                             $"Cyclic reference resolution detected for reference: {linkedRef.ValueAddress}"));
 
@@ -138,6 +137,13 @@ namespace Axis.Dia.Convert.Type
             var context = new Dia.ConverterContext(_options, new ObjectPath(sourceType));
 
             return ToDia(sourceType, sourceInstance, context);
+        }
+
+        public static IResult<IDiaValue> ToDia<TClr>(
+            TClr sourceInstance,
+            Dia.ConverterOptions options = default)
+        {
+            return ToDia(typeof(TClr), sourceInstance, options);
         }
 
         internal static IResult<IDiaValue> ToDia(

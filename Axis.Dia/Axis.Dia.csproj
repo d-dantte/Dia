@@ -4,18 +4,36 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Version>0.0.1</Version>
+    <LangVersion>latest</LangVersion>
+    <Description>Library containing simple types to model general purpose object models, as well as conversion APIs</Description>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/d-dantte/Axis.Luna</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/d-dantte/Axis.Luna</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Company>Axiis</Company>
+    <Authors>Dantte</Authors>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Convert\Axon\DiaGrammar.xbnf" />
-    <None Remove="Convert\Json\JsonGrammar.xbnf" />
-    <None Remove="Convert\Text\DiaGrammar.xbnf" />
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Convert\Axon\DiaGrammar.xbnf" />
+    <None Remove="Convert\Axon\AxonGrammar.xbnf" />
+    <None Remove="Convert\Json\JsonGrammar.xbnf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Convert\Axon\AxonGrammar.xbnf" />
     <EmbeddedResource Include="Convert\Json\JsonGrammar.xbnf" />
-    <EmbeddedResource Include="Convert\Text\DiaGrammar.xbnf" />
   </ItemGroup>
 
   <ItemGroup>

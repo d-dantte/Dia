@@ -17,7 +17,7 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void SerializeTest()
         {
-            var options = new SerializerOptions();
+            var options = SerializerOptionsBuilder.NewBuilder().Build();
 
             var value = ClobValue.Null();
             var result = ClobParser.Serialize(value, new SerializerContext(options));
@@ -44,10 +44,10 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void ParseTest()
         {
-            var options = new SerializerOptions();
+            var options = SerializerOptionsBuilder.NewBuilder().Build();
             var value = ClobValue.Null("ann1", "ann2");
             var textResult = ClobParser.Serialize(value, new SerializerContext(options));
-            var valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            var valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             var valueInstance = valueResult.Resolve();
             Assert.IsNotNull(value);
             Assert.AreEqual(value, valueInstance);
@@ -55,7 +55,7 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
 
             value = ClobValue.Of(Text);
             textResult = ClobParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             valueInstance = valueResult.Resolve();
             Assert.IsNotNull(value);
             Assert.AreEqual(value, valueInstance);

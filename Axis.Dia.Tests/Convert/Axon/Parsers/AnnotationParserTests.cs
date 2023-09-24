@@ -26,7 +26,7 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
             Assert.IsTrue(text.IsDataResult());
             Assert.AreEqual("'abra\\u20eadevo'::", text.Resolve());
 
-            text = AnnotationParser.Serialize(annotations, new SerializerContext(new SerializerOptions()));
+            text = AnnotationParser.Serialize(annotations, new SerializerContext(SerializerOptionsBuilder.NewBuilder().Build()));
             Assert.IsTrue(text.IsDataResult());
             Assert.AreEqual("first::'second:bleh bleh'::'abra\\u20eadevo'::", text.Resolve());
         }
@@ -39,7 +39,7 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
                 "first",
                 "second:bleh bleh",
                 "abra\u20eadevo");
-            var text = AnnotationParser.Serialize(annotations, new SerializerContext(new SerializerOptions()));
+            var text = AnnotationParser.Serialize(annotations, new SerializerContext(SerializerOptionsBuilder.NewBuilder().Build()));
             var result = text.Bind(t => AnnotationParser.Parse(t, pcontext));
             Assert.IsTrue(result.IsDataResult());
             var annotationsResult = result.Resolve();

@@ -18,7 +18,7 @@ namespace Axis.Dia.Types
         IEquatable<ListValue>,
         IEnumerable<ValueWrapper>,
         IValueEquatable<ListValue>,
-        IDiaReferable<ListValue>
+        IDiaAddressable<ListValue>
     {
         #region Local members
         private readonly List<IDiaValue>? _value;

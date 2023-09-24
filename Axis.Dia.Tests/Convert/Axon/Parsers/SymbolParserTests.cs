@@ -11,7 +11,7 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public  void SerializeTest()
         {
-            var options = new SerializerOptions();
+            var options = SerializerOptionsBuilder.NewBuilder().Build();
 
             #region Idntifier
             var symbol = "Some_Identifier";
@@ -59,33 +59,33 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
         [TestMethod]
         public void ParseTest()
         {
-            var options = new SerializerOptions();
+            var options = SerializerOptionsBuilder.NewBuilder().Build();
 
             #region long form symbol
             var value = SymbolValue.Null("ann1", "ann2");
             var textResult = SymbolParser.Serialize(value, new SerializerContext(options));
-            var valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            var valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             var result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = SymbolValue.Of("The lame pink unicorn flew over enraged pigs", "ann1");
             textResult = SymbolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = SymbolValue.Of("Identifier");
             textResult = Result.Of("'Identifier'");
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = SymbolValue.Of("list", "ann3");
             textResult = SymbolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
@@ -95,21 +95,21 @@ namespace Axis.Dia.Tests.Convert.Axon.Parsers
             var symbol = "Some_Identifier";
             value = SymbolValue.Of(symbol);
             textResult = SymbolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = SymbolValue.Of(symbol, "fgh", "fghjk");
             textResult = SymbolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);
 
             value = SymbolValue.Null();
             textResult = SymbolParser.Serialize(value, new SerializerContext(options));
-            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt, new ParserContext()));
+            valueResult = textResult.Bind(txt => AxonSerializer.ParseValue(txt));
             result = valueResult.Resolve();
             Assert.IsNotNull(result);
             Assert.AreEqual(value, result);

@@ -56,7 +56,7 @@ namespace Axis.Dia.Tests.Convert.Json.Parser
                 if (testArgs.UseAddressIndex)
                 {
                     var @ref = ReferenceValue.Of((testArgs.Value as IDiaAddressProvider)!);
-                    context.BuildAddressIndices(@ref);
+                    context.BuildAddressIndices(ArrayUtil.Of<IDiaReference>(@ref));
                     var result = EncodedValueParser.Serialize(testArgs.Value, context);
 
                     Assert.IsTrue(result.IsDataResult());
@@ -65,8 +65,8 @@ namespace Axis.Dia.Tests.Convert.Json.Parser
                 }
                 else
                 {
-                    if (testArgs.Value is ReferenceValue r)
-                        context.BuildAddressIndices(r);
+                    if (testArgs.Value is IDiaReference r)
+                        context.BuildAddressIndices(ArrayUtil.Of(r));
 
                     var result = EncodedValueParser.Serialize(testArgs.Value, context);
 

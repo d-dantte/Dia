@@ -10,7 +10,7 @@ namespace Axis.Dia.Types
         INullable<ClobValue>,
         IEquatable<ClobValue>,
         IValueEquatable<ClobValue>,
-        IDiaReferable<ClobValue>
+        IDiaAddressable<ClobValue>
     {
         #region Local members
         private readonly string? _value;
