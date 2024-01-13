@@ -17,7 +17,7 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<BoolValue> Parse(CSTNode boolNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(boolNode);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             return boolNode.SymbolName switch
             {
@@ -33,7 +33,7 @@ namespace Axis.Dia.Convert.Json.Parser
 
         public static IResult<string> Serialize(BoolValue value, SerializerContext context)
         {
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             if (value.IsNull || value.HasAnnotations())
                 return Result.Of<string>(new InvalidOperationException(

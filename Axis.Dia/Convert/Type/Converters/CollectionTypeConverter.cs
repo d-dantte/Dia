@@ -1,7 +1,6 @@
 ﻿using Axis.Dia.Contracts;
 using Axis.Dia.Convert.Type.Exceptions;
 using Axis.Dia.Types;
-using Axis.Dia.Utils;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using Axis.Luna.FInvoke;
@@ -18,12 +17,15 @@ namespace Axis.Dia.Convert.Type.Converters
     {
 
         #region Clr Converter
-        public bool CanConvert(DiaType sourceType, System.Type destinationType)
+        public bool CanConvert(
+            DiaType sourceType,
+            System.Type destinationType,
+            TypeCategory destinationTypeCategory)
         {
             if (destinationType is null)
                 throw new ArgumentNullException(nameof(destinationType));
 
-            return DiaType.List.Equals(sourceType) && destinationType.GetTypeCategory() switch
+            return DiaType.List.Equals(sourceType) && destinationTypeCategory switch
             {
                 TypeCategory.Collection
                 or TypeCategory.SingleDimensionArray => true,
@@ -46,7 +48,7 @@ namespace Axis.Dia.Convert.Type.Converters
             if (!DiaType.List.Equals(sourceInstance.Type))
                 throw new ArgumentOutOfRangeException($"Invalid source type: {sourceInstance.Type}");
 
-            if (!CanConvert(sourceInstance.Type, destinationType))
+            if (!CanConvert(sourceInstance.Type, destinationType, context.GetTypeCategory(destinationType)))
                 return Result.Of<object?>(new IncompatibleClrConversionException(
                     sourceInstance.Type,
                     destinationType));
@@ -78,7 +80,7 @@ namespace Axis.Dia.Convert.Type.Converters
         #endregion
 
         #region Dia Converter
-        public bool CanConvert(System.Type sourceType)
+        public bool CanConvert(System.Type sourceType, TypeCategory sourceTypeCategory)
         {
             if (sourceType is null)
                 throw new ArgumentNullException(nameof(sourceType));
@@ -86,12 +88,15 @@ namespace Axis.Dia.Convert.Type.Converters
             return sourceType.IsOrImplementsGenericInterface(typeof(IEnumerable<>));
         }
 
-        public IResult<IDiaValue> ToDia(System.Type sourceType, object? sourceInstance, Dia.ConverterContext context)
+        public IResult<IDiaValue> ToDia(
+            System.Type sourceType,
+            object? sourceInstance,
+            Dia.ConverterContext context)
         {
             if (sourceType is null)
                 throw new ArgumentNullException(nameof(sourceType));
 
-            if (!CanConvert(sourceType))
+            if (!CanConvert(sourceType, context.GetTypeCategory(sourceType)))
                 return Result.Of<IDiaValue>(new UnknownClrSourceTypeException(sourceType));
 
             if (sourceInstance is null)
@@ -152,7 +157,7 @@ namespace Axis.Dia.Convert.Type.Converters
                         ? Result.Of(default(object?))
                         : context.ToClr(item, typeof(TItem), index.ToString());
                 })
-                .Select(result => result.MapAs<object?, TItem>())
+                .Select(result => result.MapAs<TItem>())
                 .FoldInto(items => capture.Value = items.ToArray())
                 .Resolve();
         }
@@ -193,7 +198,7 @@ namespace Axis.Dia.Convert.Type.Converters
             // descendants) that needs a reference of the list will fail because of cyclic reference resolution exception
             return list.Value!
                 .Select((item, index) => context.ToClr(item, typeof(TItem), index.ToString()))
-                .Select(result => result.MapAs<object?, TItem>())
+                .Select(result => result.MapAs<TItem>())
                 .FoldInto(items => ImmutableArray.CreateRange(items))
                 .Resolve();
         }
@@ -243,7 +248,7 @@ namespace Axis.Dia.Convert.Type.Converters
             // descendants) that needs a reference of the list will fail because of cyclic reference resolution exception
             return list.Value!
                 .Select((item, index) => context.ToClr(item, typeof(TItem), index.ToString()))
-                .Select(result => result.MapAs<object?, TItem>())
+                .Select(result => result.MapAs<TItem>())
                 .FoldInto(items => ImmutableList.CreateRange(items))
                 .Resolve();
         }
@@ -299,7 +304,7 @@ namespace Axis.Dia.Convert.Type.Converters
                         ? Result.Of(default(object?))
                         : context.ToClr(item, typeof(TItem), index.ToString());
                 })
-                .Select(result => result.MapAs<object?, TItem>())
+                .Select(result => result.MapAs<TItem>())
                 .FoldInto(items => capture.Value = items.ToList())
                 .Resolve();
         }
@@ -356,7 +361,7 @@ namespace Axis.Dia.Convert.Type.Converters
                         v => capture.Value!.Add(v.As<TItem>()));
                 })
                 .Select((item, index) => context.ToClr(item, typeof(TItem), index.ToString()))
-                .Select(result => result.MapAs<object?, TItem>())
+                .Select(result => result.MapAs<TItem>())
                 .FoldInto(items => capture.Value = new HashSet<TItem>(items))
                 .Resolve();
         }
@@ -395,7 +400,7 @@ namespace Axis.Dia.Convert.Type.Converters
             // use placeholders to effect lazy population of unavailable values.
             return list.Value!
                 .Select((item, index) => context.ToClr(item, typeof(TItem), index.ToString()))
-                .Select(result => result.MapAs<object?, TItem>())
+                .Select(result => result.MapAs<TItem>())
                 .FoldInto(new TCollection().AddRange)
                 .Resolve();
         }

@@ -79,12 +79,13 @@ namespace Axis.Dia.Types
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
-            _address = address.ThrowIfDefault($"Invalid {nameof(address)} value: '{address}'");
+            _address = address.ThrowIfDefault(
+                _ => new ArgumentException($"Invalid {nameof(address)}: default"));
             _value = ValidateSymbolString(value);
             _annotations = annotations
                 .ThrowIfAny(
                     ann => ann.IsDefault,
-                    _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain invalid values"))
+                    _ => new ArgumentException($"Invalid {nameof(annotations)}: contains default"))
                 .ToArray();
         }
 
@@ -176,7 +177,7 @@ namespace Axis.Dia.Types
                 return null;
 
             if (string.Empty.Equals(symbol))
-                throw new ArgumentException($"Symbol text cannot be empty");
+                throw new ArgumentException($"Invalid {nameof(symbol)}: empty");
 
             return symbol
                 .ThrowIfAny(

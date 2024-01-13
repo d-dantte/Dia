@@ -17,7 +17,7 @@ namespace Axis.Dia.Tests.Convert.Binary
             var result = BinarySerializer.Serialize(packet);
             Assert.IsNotNull(result);
             Assert.IsTrue(result.IsDataResult());
-            var bytes = ((IResult<byte[]>.DataResult)result).Data;
+            Assert.IsTrue(result.IsDataResult(out var bytes));
             Assert.IsNotNull(bytes);
             Assert.AreEqual(0, bytes.Length);
 
@@ -56,7 +56,7 @@ namespace Axis.Dia.Tests.Convert.Binary
             var deserializedResult = BinarySerializer.Deserialize(stream);
             Assert.IsNotNull(result);
             Assert.IsTrue(result.IsDataResult());
-            var deserializedPacket = ((IResult<ValuePacket>.DataResult)deserializedResult).Data;
+            Assert.IsTrue(deserializedResult.IsDataResult(out var deserializedPacket));
             Assert.IsNotNull(deserializedPacket);
             Assert.IsTrue(Enumerable.SequenceEqual(
                 packet.Values,
@@ -84,7 +84,7 @@ namespace Axis.Dia.Tests.Convert.Binary
             deserializedResult = BinarySerializer.Deserialize(stream);
             Assert.IsNotNull(result);
             Assert.IsTrue(result.IsDataResult());
-            deserializedPacket = ((IResult<ValuePacket>.DataResult)deserializedResult).Data;
+            Assert.IsTrue(deserializedResult.IsDataResult(out deserializedPacket));
             Assert.IsNotNull(deserializedPacket);
             Assert.IsTrue(Enumerable.SequenceEqual(
                 packet.Values,
@@ -105,7 +105,7 @@ namespace Axis.Dia.Tests.Convert.Binary
             deserializedResult = BinarySerializer.Deserialize(stream);
             Assert.IsNotNull(result);
             Assert.IsTrue(result.IsDataResult());
-            deserializedPacket = ((IResult<ValuePacket>.DataResult)deserializedResult).Data;
+            Assert.IsTrue(deserializedResult.IsDataResult(out deserializedPacket));
             Assert.IsNotNull(deserializedPacket);
             Assert.AreEqual(1, deserializedPacket.Values.Length);
             Assert.AreEqual(DiaType.Record, deserializedPacket.Values[0].Type);

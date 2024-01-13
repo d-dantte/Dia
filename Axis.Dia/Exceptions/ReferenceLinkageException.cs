@@ -23,8 +23,11 @@ namespace Axis.Dia.Exceptions
         {
             RootValue = root ?? throw new ArgumentNullException(nameof(root));
             References = references
-                .ThrowIfNull(new ArgumentNullException(nameof(references)))
-                .ThrowIfAny(item => item is null, new ArgumentException($"Null reference found in '{nameof(references)}'"))
+                .ThrowIfNull(
+                    () => new ArgumentNullException(nameof(references)))
+                .ThrowIfAny(
+                    item => item is null,
+                    _ => new ArgumentException($"Null reference found in '{nameof(references)}'"))
                 .ApplyTo(ImmutableArray.CreateRange);
         }
 

@@ -17,7 +17,7 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<string> Serialize(Annotation[] annotations, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(annotations);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             return annotations
                 .Select(annotation => SerializeAnnotation(annotation, context))
@@ -27,7 +27,7 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<Annotation[]> Parse(CSTNode annotationListNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(annotationListNode);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             if (!RootSymbol.Equals(annotationListNode.SymbolName))
                 throw new ArgumentException(

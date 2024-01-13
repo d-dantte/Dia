@@ -1,5 +1,4 @@
 ﻿using Axis.Dia.Contracts;
-using Axis.Dia.Utils;
 using Axis.Luna.Extensions;
 using System.Diagnostics.CodeAnalysis;
 
@@ -49,12 +48,13 @@ namespace Axis.Dia.Types
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
-            _address = address.ThrowIfDefault($"Invalid {nameof(address)} value: '{address}'");
+            _address = address.ThrowIfDefault(
+                _ => new ArgumentException($"Invalid {nameof(address)}: default"));
             _value = value;
             _annotations = annotations
                 .ThrowIfAny(
                     ann => ann.IsDefault,
-                    _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain invalid values"))
+                    _ => new ArgumentException($"Invalid {nameof(annotations)}: contains default"))
                 .ToArray();
         }
 
@@ -62,7 +62,7 @@ namespace Axis.Dia.Types
         : this(Guid.NewGuid(), value, annotations)
         { }
 
-            public StringValue(params Annotation[] annotations)
+        public StringValue(params Annotation[] annotations)
         : this(null, annotations)
         { }
 

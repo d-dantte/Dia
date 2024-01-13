@@ -38,15 +38,15 @@ namespace Axis.Dia.Tests.Convert.Type.Clr
             // value was tracked
             var isTracked = tracker.IsTracked(recordRef, out var info);
             Assert.IsTrue(isTracked);
-            Assert.IsInstanceOfType<TrackingInfo.Value>(info);
-            Assert.AreEqual("not stuff", info.As<TrackingInfo.Value>().TrackedValue);
+            Assert.IsInstanceOfType<ITrackingInfo.Value>(info);
+            Assert.AreEqual("not stuff", info.As<ITrackingInfo.Value>().TrackedValue);
 
             // reference already tracked
-            Assert.IsInstanceOfType<InvalidOperationException>(tracker
-                .TrackConversion(recordRef, () => Result.Of((object?)"not stuff"))
-                .AsError()
-                .Cause()
-                .InnerException);
+            var _result = tracker.TrackConversion(
+                recordRef,
+                () => Result.Of((object?)"not stuff"));
+            Assert.IsTrue(_result.IsErrorResult(out var error));
+            Assert.IsInstanceOfType<InvalidOperationException>(error);
 
 
             // ensure apply place holder is called
@@ -156,7 +156,7 @@ namespace Axis.Dia.Tests.Convert.Type.Clr
         [TestMethod]
         public void General_Tests()
         {
-            var placeholder = new TrackingInfo.Placeholder();
+            var placeholder = new ITrackingInfo.Placeholder();
 
             // null call back
             Assert.ThrowsException<ArgumentNullException>(() => placeholder.RegisterAssignmentCallback(null));

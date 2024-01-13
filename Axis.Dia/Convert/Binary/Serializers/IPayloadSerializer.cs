@@ -37,7 +37,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
         internal static bool TryDeserializeTypeMetadataResult(
             this Stream stream,
             out IResult<TypeMetadata> result)
-            => (result = DeserializeTypeMetadataResult(stream)) is IResult<TypeMetadata>.DataResult;
+            => (result = DeserializeTypeMetadataResult(stream)).IsDataResult();
         #endregion
 
         #region Deserialize
@@ -118,7 +118,7 @@ namespace Axis.Dia.Convert.Binary.Serializers
             this Stream stream,
             DeserializerContext context,
             out IResult<IDiaValue> result)
-            => (result = DeserializeDiaValueResult(stream, context)) is IResult<IDiaValue>.DataResult;
+            => (result = DeserializeDiaValueResult(stream, context)).IsDataResult();
 
         #endregion
 
@@ -181,9 +181,9 @@ namespace Axis.Dia.Convert.Binary.Serializers
         }
         #endregion
 
-        internal static TypeMetadata TranslateTypeMetadataError(ResultException exception)
+        internal static TypeMetadata TranslateTypeMetadataError(Exception exception)
         {
-            return exception.InnerException switch
+            return exception switch
             {
                 EndOfStreamException eos => eos.Throw<TypeMetadata>(),
                 null => throw new Exception("Translation error: ResultException had no cause."),
@@ -191,9 +191,10 @@ namespace Axis.Dia.Convert.Binary.Serializers
             };
         }
 
-        internal static TDiaValue TranslateValueError<TDiaValue>(ResultException exception)
+        internal static TDiaValue TranslateValueError<TDiaValue>(
+            Exception exception)
         {
-            var cause = exception?.InnerException ?? throw new Exception("Translation error: ResultException had no cause.");
+            var cause = exception ?? throw new ArgumentNullException("Translation error: exception is null.");
             throw new ValueDeserializationException(cause);
         }
     }

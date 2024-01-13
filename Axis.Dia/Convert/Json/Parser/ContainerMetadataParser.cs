@@ -20,7 +20,7 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<ContainerMetadata> Parse(CSTNode valueMetadataNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(valueMetadataNode);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             if (!SymbolNameContainerMetadata.Equals(valueMetadataNode.SymbolName))
                 throw new ArgumentException(
@@ -55,8 +55,8 @@ namespace Axis.Dia.Convert.Json.Parser
 
         public static IResult<string> Serialize(ContainerMetadata value, SerializerContext context)
         {
-            value.ThrowIfDefault(new ArgumentException($"Invalid {nameof(value)} instance"));
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            value.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(value)}: default"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             var addressIndex = value.AddressIndex is not null
                 ? $"#0x{value.AddressIndex.Value:x};"

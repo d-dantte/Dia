@@ -60,12 +60,11 @@ namespace Axis.Dia.Convert.Type
                 throw new ArgumentNullException(nameof(destinationType));
 
             if (context.IsDefault)
-                throw new ArgumentException($"Invalid (default) value supplied for '{nameof(context)}'");
+                throw new ArgumentException($"Invalid {nameof(context)}: default");
 
             var linkedRef = sourceInstance switch
             {
                 IDiaReference v => v,
-
                 BoolValue v => ReferenceValue.Of(v),
                 IntValue v => ReferenceValue.Of(v),
                 DecimalValue v => ReferenceValue.Of(v),
@@ -76,17 +75,17 @@ namespace Axis.Dia.Convert.Type
                 SymbolValue v => ReferenceValue.Of(v),
                 ListValue v => ReferenceValue.Of(v),
                 RecordValue v => ReferenceValue.Of(v),
-                _ => throw new ArgumentException($"Invalid '{nameof(sourceInstance)}' value: '{sourceInstance}'")
+                _ => throw new ArgumentException($"Invalid {nameof(sourceInstance)} type: '{sourceInstance?.GetType()}'")
             };
 
             try
             {
                 if (context.ReferenceTracker.IsTracked(linkedRef, out var info))
                 {
-                    if (info is Clr.TrackingInfo.Value valueInfo)
+                    if (info is Clr.ITrackingInfo.Value valueInfo)
                         return Result.Of(valueInfo.TrackedValue);
 
-                    else if (info is Clr.TrackingInfo.Placeholder placeholderInfo)
+                    else if (info is Clr.ITrackingInfo.Placeholder placeholderInfo)
                         return Result.Of<object?>(new InvalidOperationException(
                             $"Cyclic reference resolution detected for reference: {linkedRef.ValueAddress}"));
 
@@ -155,9 +154,9 @@ namespace Axis.Dia.Convert.Type
                 throw new ArgumentNullException(nameof(sourceInstance));
 
             if (context.IsDefault)
-                throw new ArgumentException($"Invalid (default) value supplied for '{nameof(context)}'");
+                throw new ArgumentException($"Invalid {nameof(context)}: default");
 
-            var isTrackableCategory = IsTrackableCategory(sourceType.GetTypeCategory());
+            var isTrackableCategory = IsTrackableCategory(context.GetTypeCategory(sourceType));
             IDiaReference? _ref = null;
 
             // check if the object is being tracked, returning a reference if it is

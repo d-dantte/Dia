@@ -94,7 +94,7 @@ namespace Axis.Dia.Convert.Type.Clr
             clrConverters.AddRange(
                 converters.ThrowIfAny(
                     v => v is null,
-                    new ArgumentException("null converters are forbidden")));
+                    _ => new ArgumentException("null converters are forbidden")));
             return this;
         }
 
@@ -128,7 +128,9 @@ namespace Axis.Dia.Convert.Type.Clr
         public ConverterOptionsBuilder WithIgnoredProperties(params PropertyInfo[] properties)
         {
             properties
-                .ThrowIfAny(v => v is null, new ArgumentException("null property-names are forbidden"))
+                .ThrowIfAny(
+                    v => v is null,
+                    _ => new ArgumentException("null property-names are forbidden"))
                 .GroupBy(property => property.DeclaringType ?? throw new ArgumentNullException(nameof(property)))
                 .ForAll(group => ignoredProperties[group.Key] = group.ToArray());
             return this;
@@ -143,8 +145,10 @@ namespace Axis.Dia.Convert.Type.Clr
         public ConverterOptionsBuilder WithIgnoredProperties(System.Type pocoType, params string[] propertyNames)
         {
             return propertyNames
-                .ThrowIfAny(v => v is null, new ArgumentException("null property-names are forbidden"))
-                .Select(name => pocoType.GetProperty(name))
+                .ThrowIfAny(
+                    v => v is null,
+                    _ => new ArgumentException("null property-names are forbidden"))
+                .Select(pocoType.GetProperty)
                 .Where(property => property is not null)
                 .Select(property => property!)
                 .ToArray()

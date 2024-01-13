@@ -13,8 +13,9 @@ namespace Axis.Dia.Convert.Type
         /// </summary>
         /// <param name="sourceType">The value to be converted</param>
         /// <param name="destinationType">The destination type</param>
+        /// <param name="destinationTypeCategory">The destination type category</param>
         /// <returns>True if the conversion can be done, false otherwise</returns>
-        bool CanConvert(DiaType sourceType, System.Type destinationType);
+        bool CanConvert(DiaType sourceType, System.Type destinationType, TypeCategory destinationTypeCategory);
 
 
         /// <summary>
@@ -36,8 +37,9 @@ namespace Axis.Dia.Convert.Type
         /// Checks if the givne pair can be converted to a corresponding <see cref="IDiaValue"/> instance by this converter
         /// </summary>
         /// <param name="sourceType">The source type</param>
+        /// <param name="sourceTypeCategory">The source type category</param>
         /// <returns>True if the conversion can be done, false otherwise</returns>
-        bool CanConvert(System.Type sourceType);
+        bool CanConvert(System.Type sourceType, TypeCategory sourceTypeCategory);
 
         /// <summary>
         /// Convert the given <paramref name="sourceInstance"/> to an instance of a corresponding <see cref="IDiaValue"/.>

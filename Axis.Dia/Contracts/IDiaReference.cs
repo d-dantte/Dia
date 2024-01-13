@@ -30,7 +30,7 @@
         /// <param name="addressableValue">The instance to link to this reference</param>
         /// <returns>The linked value</returns>
         public IDiaReference LinkValue<TDiaValue>(IDiaAddressable<TDiaValue> addressableValue)
-        where TDiaValue : IDiaAddressable<TDiaValue>, IDiaValue;
+        where TDiaValue : IDiaAddressable<TDiaValue>;//, IDiaValue;
         #endregion
     }
 }

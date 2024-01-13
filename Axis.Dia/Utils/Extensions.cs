@@ -1,5 +1,4 @@
 ﻿using Axis.Dia.Contracts;
-using Axis.Dia.Exceptions;
 using Axis.Dia.Types;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
@@ -83,14 +82,6 @@ namespace Axis.Dia.Utils
             }
         }
 
-
-        internal static IResult<TOut> FoldInto<TItem, TOut>(
-            this IEnumerable<IResult<TItem>> results,
-            Func<IEnumerable<TItem>, TOut> aggregator)
-        {
-            return results.Fold().Map(aggregator);
-        }
-
         internal static TItem[] JoinWith<TItem>(this TItem[] first, TItem[] second)
         {
             ArgumentNullException.ThrowIfNull(first);
@@ -140,6 +131,35 @@ namespace Axis.Dia.Utils
 
             reader.Back();
             return token;
+        }
+
+        internal static TItem FirstOrThrow<TItem>(this
+            IEnumerable<TItem> items,
+            Func<Exception> exceptionFactory)
+        {
+            ArgumentNullException.ThrowIfNull(items);
+            ArgumentNullException.ThrowIfNull(exceptionFactory);
+
+            if (items.Any())
+                return items.First();
+
+            else return exceptionFactory
+                .Invoke()
+                .Throw<TItem>();
+        }
+
+        internal static IResult<T3> Combine<T1, T2, T3>(this
+            IResult<T1> t1Result,
+            IResult<T2> t2Result,
+            Func<T1, T2, T3> combiner)
+        {
+            ArgumentNullException.ThrowIfNull(t1Result);
+            ArgumentNullException.ThrowIfNull(t2Result);
+            ArgumentNullException.ThrowIfNull(combiner);
+
+            return Result
+                .Of(() => (t1Result.Resolve(), t2Result.Resolve()))
+                .Map(tuple => combiner.Invoke(tuple.Item1, tuple.Item2));
         }
     }
 }

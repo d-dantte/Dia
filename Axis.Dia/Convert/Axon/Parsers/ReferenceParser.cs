@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.Types;
+using Axis.Dia.Utils;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using Axis.Pulsar.Grammar.CST;
@@ -17,7 +18,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
         public static IResult<ReferenceValue> Parse(CSTNode symbolNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(symbolNode);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)} instance"));
 
             if (!GrammarSymbol.Equals(symbolNode.SymbolName))
                 throw new ArgumentException(
@@ -45,7 +46,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
 
         public static IResult<string> Serialize(ReferenceValue value, SerializerContext context)
         {
-            context.ThrowIfDefault(new ArgumentException($"Invalid contet instance: {context}"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             if (value.IsNull)
                 return Result.Of<string>(new InvalidOperationException("Null dia-reference"));

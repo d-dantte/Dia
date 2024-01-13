@@ -128,6 +128,7 @@ namespace Axis.Dia.Convert.Binary
 
             return _data
                 .ToByteArray()
+                .AsSpan()
                 .Slice(index, length)
                 .ToArray();
         }

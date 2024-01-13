@@ -11,8 +11,8 @@
     <LangVersion>latest</LangVersion>
     <Description>Library containing simple types to model general purpose object models, as well as conversion APIs</Description>
     <PackageReleaseNotes></PackageReleaseNotes>
-    <RepositoryUrl>https://github.com/d-dantte/Axis.Luna</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/d-dantte/Axis.Luna</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/d-dantte/Axis.Dia</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/d-dantte/Axis.Dia</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Company>Axiis</Company>
     <Authors>Dantte</Authors>
@@ -37,11 +37,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Axis.Luna.Common" Version="6.0.22" />
-    <PackageReference Include="Axis.Luna.Extensions" Version="6.0.23" />
-    <PackageReference Include="Axis.Luna.FInvoke" Version="6.0.22" />
-    <PackageReference Include="Axis.Pulsar.Grammar" Version="0.7.18" />
-    <PackageReference Include="Axis.Pulsar.Languages" Version="0.7.18" />
+    <PackageReference Include="Axis.Luna.Common" Version="6.0.30" />
+    <PackageReference Include="Axis.Luna.Extensions" Version="6.0.28" />
+    <PackageReference Include="Axis.Luna.FInvoke" Version="6.0.28" />
+    <PackageReference Include="Axis.Pulsar.Grammar" Version="0.7.19" />
+    <PackageReference Include="Axis.Pulsar.Languages" Version="0.7.19" />
   </ItemGroup>
 
 </Project>

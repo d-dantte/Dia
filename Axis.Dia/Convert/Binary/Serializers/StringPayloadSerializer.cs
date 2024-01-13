@@ -1,6 +1,7 @@
 ﻿using Axis.Dia.Contracts;
 using Axis.Dia.Convert.Binary.Metadata;
 using Axis.Dia.Types;
+using Axis.Dia.Utils;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using System.Numerics;

@@ -1,5 +1,8 @@
 ﻿namespace Axis.Dia.Contracts
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public interface IDiaAddressProvider: IDiaValue
     {
         /// <summary>
@@ -17,7 +20,7 @@
     /// </para>
     /// </summary>
     public interface IDiaAddressable<TType>: IDiaAddressProvider
-    where TType : IDiaAddressable<TType>, IDiaValue
+    where TType : IDiaAddressable<TType>//, IDiaValue
     {
         /// <summary>
         /// Copies the content of this instance to a new one that has the given address.

@@ -19,7 +19,7 @@ namespace Axis.Dia.Types
             this.values = values?
                 .ThrowIfAny(
                     value => value is null,
-                    new ArgumentException($"{nameof(values)} cannot contain null"))
+                    _ => new ArgumentException($"Invalid {nameof(values)}: contains null"))
                 .ToList();
         }
 

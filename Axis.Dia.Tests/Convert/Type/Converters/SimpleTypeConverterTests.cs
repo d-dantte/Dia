@@ -49,17 +49,18 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
 
             foreach (var type in types)
             {
-                var result = converter.CanConvert(type.Item1);
+                var result = converter.CanConvert(type.Item1, type.Item1.GetTypeCategory());
                 Assert.IsTrue(result);
 
                 if (type.Item1.IsValueType)
                 {
-                    var nresult = converter.CanConvert(nullableBase.MakeGenericType(type.Item1));
+                    var gtype = nullableBase.MakeGenericType(type.Item1);
+                    var nresult = converter.CanConvert(gtype, gtype.GetTypeCategory());
                     Assert.IsTrue(nresult);
                 }
             }
 
-            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(null));
+            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(null!, default));
         }
 
         [TestMethod]
@@ -101,17 +102,21 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
 
             foreach (var type in types)
             {
-                var result = converter.CanConvert(type.diaValue.Type, type.clrType);
+                var result = converter.CanConvert(type.diaValue.Type, type.clrType, type.clrType.GetTypeCategory());
                 Assert.IsTrue(result);
 
                 if (type.Item1.IsValueType)
                 {
-                    var nresult = converter.CanConvert(type.diaValue.Type, nullableBase.MakeGenericType(type.clrType));
+                    var gtype = nullableBase.MakeGenericType(type.clrType);
+                    var nresult = converter.CanConvert(
+                        type.diaValue.Type,
+                        gtype,
+                        gtype.GetTypeCategory());
                     Assert.IsTrue(nresult);
                 }
             }
 
-            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(DiaType.String, null));
+            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(DiaType.String, null!, default));
         }
 
         [TestMethod]
@@ -210,9 +215,8 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                     new Dia.Convert.Type.Clr.ConverterContext(
                         options,
                         new ObjectPath(info.type)));
-                Assert.IsTrue(result.IsErrorResult());
-                var error = result.AsError();
-                Assert.IsTrue(error.Cause().InnerException is IncompatibleClrConversionException);
+                Assert.IsTrue(result.IsErrorResult(out var error));
+                Assert.IsTrue(error is IncompatibleClrConversionException);
 
                 if (info.type.IsValueType)
                 {
@@ -278,9 +282,8 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                 new Dia.Convert.Type.Dia.ConverterContext(
                     options,
                     new ObjectPath(typeof(KeyValuePair<string, string>))));
-            Assert.IsTrue(result.IsErrorResult());
-            var errorResult = result.AsError();
-            Assert.IsTrue(errorResult.Cause().InnerException is UnknownClrSourceTypeException);
+            Assert.IsTrue(result.IsErrorResult(out var error));
+            Assert.IsTrue(error is UnknownClrSourceTypeException);
 
             foreach (var info in args)
             {
@@ -329,9 +332,8 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                     new Dia.Convert.Type.Dia.ConverterContext(
                         options,
                         new ObjectPath(info.type)));
-                Assert.IsTrue(result.IsErrorResult());
-                errorResult = result.AsError();
-                Assert.IsTrue(errorResult.Cause().InnerException is TypeMismatchException);
+                Assert.IsTrue(result.IsErrorResult(out error));
+                Assert.IsTrue(error is TypeMismatchException);
 
 
                 if (info.type.IsValueType)
@@ -381,9 +383,8 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                         new Dia.Convert.Type.Dia.ConverterContext(
                             options,
                             new ObjectPath(info.ntype)));
-                    Assert.IsTrue(result.IsErrorResult());
-                    errorResult = result.AsError();
-                    Assert.IsTrue(errorResult.Cause().InnerException is TypeMismatchException);
+                    Assert.IsTrue(result.IsErrorResult(out error));
+                    Assert.IsTrue(error is TypeMismatchException);
                 }
             }
         }

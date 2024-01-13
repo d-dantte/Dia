@@ -2,7 +2,6 @@
 using Axis.Dia.Utils;
 using Axis.Luna.Extensions;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 
 namespace Axis.Dia.Types
 {
@@ -44,12 +43,13 @@ namespace Axis.Dia.Types
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
-            _address = address.ThrowIfDefault($"Invalid {nameof(address)} value: '{address}'");
+            _address = address.ThrowIfDefault(
+                _ => new ArgumentException($"Invalid {nameof(address)}: default"));
             _value = value;
             _annotations = annotations
                 .ThrowIfAny(
                     ann => ann.IsDefault,
-                    _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain invalid values"))
+                    _ => new ArgumentException($"Invalid {nameof(annotations)}: contains default"))
                 .ToArray();
         }
 
@@ -99,7 +99,8 @@ namespace Axis.Dia.Types
         #region Equatable
         public bool Equals(BlobValue other)
         {
-            return Enumerable.SequenceEqual(Annotations, other.Annotations)
+            return
+                Enumerable.SequenceEqual(Annotations, other.Annotations)
                 && ValueEquals(other);
         }
         #endregion

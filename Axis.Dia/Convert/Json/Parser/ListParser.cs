@@ -20,7 +20,7 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<ListValue> Parse(CSTNode arrayNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(arrayNode);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             if (!SymbolNameArray.Equals(arrayNode.SymbolName))
                 throw new ArgumentException(
@@ -52,7 +52,7 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<string> Serialize(ListValue value, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(value);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             if (value.IsNull)
                 return EncodedValueParser.Serialize(value, context);

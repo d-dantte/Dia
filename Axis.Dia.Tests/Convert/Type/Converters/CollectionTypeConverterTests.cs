@@ -18,19 +18,19 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
         [TestMethod]
         public void CanConvertToClrTests()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(DiaType.List, null));
+            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(DiaType.List, null!, typeof(List<int>).GetTypeCategory()));
 
             Enum.GetValues<DiaType>()
                 .Where(diaType => !DiaType.List.Equals(diaType))
                 .ForAll(diaType =>
                 {
-                    var canConvert = converter.CanConvert(diaType, typeof(List<int>));
+                    var canConvert = converter.CanConvert(diaType, typeof(List<int>), typeof(List<int>).GetTypeCategory());
                     Assert.IsFalse(canConvert);
                 });
 
 
             // array
-            var canConvert = converter.CanConvert(DiaType.List, typeof(int[]));
+            var canConvert = converter.CanConvert(DiaType.List, typeof(int[]), typeof(int[]).GetTypeCategory());
             Assert.IsTrue(canConvert);
 
             // common collection interfaces and concrete collections
@@ -49,7 +49,7 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
 
             collections.ForEach(i =>
             {
-                var canConvert = converter.CanConvert(DiaType.List, i);
+                var canConvert = converter.CanConvert(DiaType.List, i, i.GetTypeCategory());
                 Assert.IsTrue(canConvert);
             });
         }
@@ -57,19 +57,19 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
         [TestMethod]
         public void CanConvertToDiaTests()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(null));
+            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(null!, default));
 
-            Assert.IsFalse(converter.CanConvert(typeof(object)));
+            Assert.IsFalse(converter.CanConvert(typeof(object), typeof(object).GetTypeCategory()));
 
-            Assert.IsTrue(converter.CanConvert(typeof(int[])));
-            Assert.IsTrue(converter.CanConvert(typeof(IEnumerable<int>)));
-            Assert.IsTrue(converter.CanConvert(typeof(IList<int>)));
-            Assert.IsTrue(converter.CanConvert(typeof(IReadOnlyCollection<int>)));
-            Assert.IsTrue(converter.CanConvert(typeof(IImmutableList<int>)));
-            Assert.IsTrue(converter.CanConvert(typeof(IImmutableSet<int>)));
-            Assert.IsTrue(converter.CanConvert(typeof(ICollection<int>)));
-            Assert.IsTrue(converter.CanConvert(typeof(List<int>)));
-            Assert.IsTrue(converter.CanConvert(typeof(Stack<int>)));
+            Assert.IsTrue(converter.CanConvert(typeof(int[]), typeof(int[]).GetTypeCategory()));
+            Assert.IsTrue(converter.CanConvert(typeof(IEnumerable<int>), typeof(IEnumerable<int>).GetTypeCategory()));
+            Assert.IsTrue(converter.CanConvert(typeof(IList<int>), typeof(IList<int>).GetTypeCategory()));
+            Assert.IsTrue(converter.CanConvert(typeof(IReadOnlyCollection<int>), typeof(IReadOnlyCollection<int>).GetTypeCategory()));
+            Assert.IsTrue(converter.CanConvert(typeof(IImmutableList<int>), typeof(IImmutableList<int>).GetTypeCategory()));
+            Assert.IsTrue(converter.CanConvert(typeof(IImmutableSet<int>), typeof(IImmutableSet<int>).GetTypeCategory()));
+            Assert.IsTrue(converter.CanConvert(typeof(ICollection<int>), typeof(ICollection<int>).GetTypeCategory()));
+            Assert.IsTrue(converter.CanConvert(typeof(List<int>), typeof(List<int>).GetTypeCategory()));
+            Assert.IsTrue(converter.CanConvert(typeof(Stack<int>), typeof(Stack<int>).GetTypeCategory()));
         }
 
         [TestMethod]
@@ -107,9 +107,8 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                 new Dia.Convert.Type.Clr.ConverterContext(
                         options,
                         new ObjectPath(typeof(object))));
-            Assert.IsTrue(result.IsErrorResult());
-            var error = result.AsError();
-            Assert.IsInstanceOfType<IncompatibleClrConversionException>(error.Cause().InnerException);
+            Assert.IsTrue(result.IsErrorResult(out var error));
+            Assert.IsInstanceOfType<IncompatibleClrConversionException>(error);
 
             IDiaValue diaList = new ListValue { 1, 2, 3 };
             IDiaValue nullDiaList = ListValue.Null();
@@ -192,9 +191,8 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                 new Dia.Convert.Type.Dia.ConverterContext(
                         options,
                         new ObjectPath(typeof(ISet<int>))));
-            Assert.IsTrue(result.IsErrorResult());
-            var error = result.AsError();
-            Assert.IsInstanceOfType<TypeMismatchException>(error.Cause().InnerException);
+            Assert.IsTrue(result.IsErrorResult(out var error));
+            Assert.IsInstanceOfType<TypeMismatchException>(error);
 
             result = converter.ToDia(
                 typeof(object),
@@ -202,9 +200,8 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                 new Dia.Convert.Type.Dia.ConverterContext(
                         options,
                         new ObjectPath(typeof(object))));
-            Assert.IsTrue(result.IsErrorResult());
-            error = result.AsError();
-            Assert.IsInstanceOfType<UnknownClrSourceTypeException>(error.Cause().InnerException);
+            Assert.IsTrue(result.IsErrorResult(out error));
+            Assert.IsInstanceOfType<UnknownClrSourceTypeException>(error);
 
             result = converter.ToDia(
                 typeof(ISet<int>),

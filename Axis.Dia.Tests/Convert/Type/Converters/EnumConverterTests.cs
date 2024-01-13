@@ -15,33 +15,33 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
         [TestMethod]
         public void CanConvertToDia_Tests()
         {
-            var canConvert = converter.CanConvert(typeof(SampleEnum));
+            var canConvert = converter.CanConvert(typeof(SampleEnum), typeof(SampleEnum).GetTypeCategory());
             Assert.IsTrue(canConvert);
 
-            canConvert = converter.CanConvert(typeof(object));
+            canConvert = converter.CanConvert(typeof(object), typeof(object).GetTypeCategory());
             Assert.IsFalse(canConvert);
-            canConvert = converter.CanConvert(typeof(Array));
+            canConvert = converter.CanConvert(typeof(Array), typeof(Array).GetTypeCategory());
             Assert.IsFalse(canConvert);
 
-            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(null));
+            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(null!, default));
         }
 
         [TestMethod]
         public void CanConvertToClr_Tests()
         {
-            var canConvert = converter.CanConvert(DiaType.Symbol, typeof(SampleEnum));
+            var canConvert = converter.CanConvert(DiaType.Symbol, typeof(SampleEnum), typeof(SampleEnum).GetTypeCategory());
             Assert.IsTrue(canConvert);
 
-            canConvert = converter.CanConvert(DiaType.Symbol, typeof(object));
+            canConvert = converter.CanConvert(DiaType.Symbol, typeof(object), typeof(object).GetTypeCategory());
             Assert.IsFalse(canConvert);
 
             foreach (var diaType in Enum.GetValues<DiaType>().Where(t => !DiaType.Symbol.Equals(t)))
             {
-                canConvert = converter.CanConvert(diaType, typeof(SampleEnum));
+                canConvert = converter.CanConvert(diaType, typeof(SampleEnum), typeof(SampleEnum).GetTypeCategory());
                 Assert.IsFalse(canConvert);
             }
 
-            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(DiaType.Symbol, null));
+            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(DiaType.Symbol, null, default));
         }
 
         [TestMethod]
@@ -68,17 +68,15 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                 new Dia.Convert.Type.Clr.ConverterContext(
                     options,
                     new ObjectPath(typeof(SampleEnum))));
-            Assert.IsTrue(result.IsErrorResult());
-            var errorResult = result.AsError();
-            Assert.IsTrue(errorResult.Cause().InnerException is IncompatibleClrConversionException);
+            Assert.IsTrue(result.IsErrorResult(out var error));
+            Assert.IsTrue(error is IncompatibleClrConversionException);
 
             result = converter.ToClr(SymbolValue.Of("Stuff"), typeof(object),
                 new Dia.Convert.Type.Clr.ConverterContext(
                     options,
                     new ObjectPath(typeof(object))));
-            Assert.IsTrue(result.IsErrorResult());
-            errorResult = result.AsError();
-            Assert.IsTrue(errorResult.Cause().InnerException is IncompatibleClrConversionException);
+            Assert.IsTrue(result.IsErrorResult(out error));
+            Assert.IsTrue(error is IncompatibleClrConversionException);
 
 
             result = converter.ToClr(SymbolValue.Of("Instant"), typeof(DiaType),
@@ -115,9 +113,8 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                 new Dia.Convert.Type.Dia.ConverterContext(
                     options,
                     new ObjectPath(typeof(SampleEnum))));
-            Assert.IsTrue(result.IsErrorResult());
-            var errorResult = result.AsError();
-            Assert.IsTrue(errorResult.Cause().InnerException is TypeMismatchException);
+            Assert.IsTrue(result.IsErrorResult(out var error));
+            Assert.IsTrue(error is TypeMismatchException);
 
             result = converter.ToDia(typeof(DiaType), DiaType.Decimal,
                 new Dia.Convert.Type.Dia.ConverterContext(

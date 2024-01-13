@@ -16,7 +16,7 @@ namespace Axis.Dia.Convert.Binary
         public static bool TryReadByteResult(
             this Stream stream,
             out IResult<byte> result)
-            => (result = ReadByteResult(stream)) is IResult<byte>.DataResult;
+            => (result = ReadByteResult(stream)).IsDataResult();
         #endregion
 
 
@@ -38,7 +38,7 @@ namespace Axis.Dia.Convert.Binary
             this Stream stream,
             int byteCount,
             out IResult<byte[]> result)
-            => (result = ReadExactBytesResult(stream, byteCount)) is IResult<byte[]>.DataResult;
+            => (result = ReadExactBytesResult(stream, byteCount)).IsDataResult();
         #endregion
 
 
@@ -73,7 +73,7 @@ namespace Axis.Dia.Convert.Binary
         public static bool TryReadVarBytesResult(
             this Stream stream,
             out IResult<VarBytes> result)
-            => (result = ReadVarBytesResult(stream)) is IResult<VarBytes>.DataResult;
+            => (result = ReadVarBytesResult(stream)).IsDataResult();
         #endregion
 
 

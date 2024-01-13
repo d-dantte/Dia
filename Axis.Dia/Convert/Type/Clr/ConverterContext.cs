@@ -13,6 +13,11 @@ namespace Axis.Dia.Convert.Type.Clr
         private readonly Dictionary<(DiaType DiaType, System.Type ClrType), IClrConverter> converterMap;
 
         /// <summary>
+        /// The category map used to speed-up type category retrieval
+        /// </summary>
+        private readonly Dictionary<System.Type, TypeCategory> categoryMap;
+
+        /// <summary>
         /// The options instance
         /// </summary>
         public ConverterOptions Options { get; }
@@ -53,10 +58,11 @@ namespace Axis.Dia.Convert.Type.Clr
             MetadataMap? metadataManager = null,
             Dictionary<(DiaType DiaType, System.Type ClrType), IClrConverter>? converterMap = null)
         {
-            Options = options.ThrowIfDefault(new ArgumentException($"Invalid (default) value supplied for '{nameof(options)}'"));
-            Path = objectPath.ThrowIfDefault(new ArgumentException($"Invalid (default) value supplied for '{nameof(objectPath)}'"));
+            Options = options.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(options)}: default"));
+            Path = objectPath.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(objectPath)}: default"));
             ReferenceTracker = tracker ?? new ReferenceTracker();
             MetadataManager = metadataManager ?? new MetadataMap();
+            categoryMap = new();
             this.converterMap = converterMap ?? new();
         }
 
@@ -74,11 +80,15 @@ namespace Axis.Dia.Convert.Type.Clr
             IEnumerable<IClrConverter> defaultClrConverters)
         {
             var options = Options;
+            var _this = this;
             return converterMap.GetOrAdd((DiaType: diaType, ClrType: destinationType), tuple =>
             {
                 return options.ClrConverters
                     .Concat(defaultClrConverters)
-                    .Where(converter => converter.CanConvert(tuple.DiaType, tuple.ClrType))
+                    .Where(converter => converter.CanConvert(
+                        tuple.DiaType,
+                        tuple.ClrType,
+                        _this.GetTypeCategory(tuple.ClrType)))
                     .FirstOrThrow(new InvalidOperationException(
                         "No Clr converter found for the given types. Source: "
                         + $"'{tuple.DiaType}', Destination: '{tuple.ClrType.FullName}'"));
@@ -107,6 +117,10 @@ namespace Axis.Dia.Convert.Type.Clr
             System.Type destinationType,
             string objectNodeName)
             => TypeConverter.ToClr(sourceInstance, destinationType, Next(destinationType, objectNodeName));
+
+        public TypeCategory GetTypeCategory(
+            System.Type type)
+            => categoryMap.GetOrAdd(type, _t => _t.GetTypeCategory());
         #endregion
     }
 }

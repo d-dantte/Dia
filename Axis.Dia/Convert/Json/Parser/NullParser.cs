@@ -18,7 +18,7 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<IDiaValue> Parse(CSTNode nullNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(nullNode);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             return Result.Of(RecordValue.Null()).MapAs<IDiaValue>();
         }

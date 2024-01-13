@@ -55,12 +55,13 @@ namespace Axis.Dia.Types
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
-            _address = address.ThrowIfDefault($"Invalid {nameof(address)} value: '{address}'");
+            _address = address.ThrowIfDefault(
+                _ => new ArgumentException($"Invalid {nameof(address)}: default"));
             _value = value;
             _annotations = annotations
                 .ThrowIfAny(
                     ann => ann.IsDefault,
-                    _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain invalid values"))
+                    _ => new ArgumentException($"Invalid {nameof(annotations)}: contains default"))
                 .ToArray();
         }
 
@@ -111,7 +112,7 @@ namespace Axis.Dia.Types
         /// <returns>The linked value</returns>
         /// <exception cref="InvalidOperationException">If linking was not successful</exception>
         public IDiaReference LinkValue<TDiaValue>(IDiaAddressable<TDiaValue> addressableValue)
-        where TDiaValue : IDiaAddressable<TDiaValue>, IDiaValue
+        where TDiaValue : IDiaAddressable<TDiaValue>
         {
             ArgumentNullException.ThrowIfNull(addressableValue);
 

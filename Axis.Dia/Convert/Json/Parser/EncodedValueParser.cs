@@ -1,5 +1,6 @@
 ﻿using Axis.Dia.Contracts;
 using Axis.Dia.Types;
+using Axis.Dia.Utils;
 using Axis.Luna.Common.Numerics;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
@@ -43,7 +44,7 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<string> Serialize(IDiaValue value, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(value);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             var type = Result.Of($"${value.Type};");
 
@@ -101,7 +102,7 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<IDiaValue> Parse(CSTNode encodedValueNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(encodedValueNode);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             if (!SymbolNameEncodedValue.Equals(encodedValueNode.SymbolName))
                 return Result.Of<IDiaValue>(new FormatException(

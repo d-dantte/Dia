@@ -18,7 +18,7 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
         [TestMethod]
         public void CanConvertToClr_Tests()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(DiaType.Record, null));
+            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(DiaType.Record, null, default));
 
             (DiaType diaType, System.Type clrType, bool success)[] args = new[]
             {
@@ -68,7 +68,7 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
 
             foreach (var (diaType, clrType, success) in args)
             {
-                var result = converter.CanConvert(diaType, clrType);
+                var result = converter.CanConvert(diaType, clrType, clrType.GetTypeCategory());
                 Assert.AreEqual(success, result);
             }
         }
@@ -76,7 +76,7 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
         [TestMethod]
         public void CanConvertToDia_Tests()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(DiaType.Record, null));
+            Assert.ThrowsException<ArgumentNullException>(() => converter.CanConvert(DiaType.Record, null, default));
 
             (System.Type clrType, bool success)[] args = new[]
             {
@@ -94,7 +94,7 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
 
             foreach (var (clrType, success) in args)
             {
-                var result = converter.CanConvert(clrType);
+                var result = converter.CanConvert(clrType, clrType.GetTypeCategory());
                 Assert.AreEqual(success, result);
             }
         }
@@ -135,8 +135,8 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                 new Dia.Convert.Type.Clr.ConverterContext(
                     options,
                     new ObjectPath(typeof(Dictionary<Guid, int>))));
-            Assert.IsTrue(result.IsErrorResult());
-            Assert.IsInstanceOfType<IncompatibleClrConversionException>(result.AsError().Cause().InnerException);
+            Assert.IsTrue(result.IsErrorResult(out var error));
+            Assert.IsInstanceOfType<IncompatibleClrConversionException>(error);
             #endregion
 
             result = converter.ToClr(
@@ -145,8 +145,8 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                 new Dia.Convert.Type.Clr.ConverterContext(
                     options,
                     new ObjectPath(typeof(Obj1))));
-            Assert.IsTrue(result.IsDataResult());
-            Assert.IsNull(result.AsData().Resolve());
+            Assert.IsTrue(result.IsDataResult(out var data));
+            Assert.IsNull(data);
 
             var record1 = new RecordValue
             {
@@ -362,8 +362,8 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                 new Dia.Convert.Type.Dia.ConverterContext(
                     options,
                     new ObjectPath(typeof(Dictionary<Guid, int>))));
-            Assert.IsTrue(result.IsErrorResult());
-            Assert.IsInstanceOfType<UnknownClrSourceTypeException>(result.AsError().Cause().InnerException);
+            Assert.IsTrue(result.IsErrorResult(out var error));
+            Assert.IsInstanceOfType<UnknownClrSourceTypeException>(error);
 
             result = converter.ToDia(
                 typeof(Dictionary<string, int>),
@@ -371,8 +371,8 @@ namespace Axis.Dia.Tests.Convert.Type.Converters
                 new Dia.Convert.Type.Dia.ConverterContext(
                     options,
                     new ObjectPath(typeof(Dictionary<Guid, int>))));
-            Assert.IsTrue(result.IsErrorResult());
-            Assert.IsInstanceOfType<TypeMismatchException>(result.AsError().Cause().InnerException);
+            Assert.IsTrue(result.IsErrorResult(out error));
+            Assert.IsInstanceOfType<TypeMismatchException>(error);
 
             result = converter.ToDia(
                 typeof(Dictionary<string, int>),

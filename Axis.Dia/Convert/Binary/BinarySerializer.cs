@@ -56,9 +56,9 @@ namespace Axis.Dia.Convert.Binary
                 valueList.Add(result);
             }
 
-            if (result is IResult<IDiaValue>.ErrorResult errorResult)
+            if (result.IsErrorResult(out var error))
             {
-                if (errorResult.Cause().InnerException is EndOfStreamException)
+                if (error is EndOfStreamException)
                     return valueList
                         .Select(result => result.Map(value => value switch
                         {

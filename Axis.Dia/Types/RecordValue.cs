@@ -59,7 +59,8 @@ namespace Axis.Dia.Types
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
-            _address = address.ThrowIfDefault(new ArgumentException($"Invalid Guid supplied: '{address}'"));
+            _address = address.ThrowIfDefault(
+                _ => new ArgumentException($"Invalid {nameof(address)}: default"));
             _annotations = annotations
                 .ThrowIfAny(
                     ann => ann.IsDefault,

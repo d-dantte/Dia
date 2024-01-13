@@ -4,39 +4,48 @@ using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using BenchmarkDotNet.Attributes;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Axis.Dia.Benchmark.Tests
 {
     public class SerializationTests
     {
-        private static SampleType data = null;
-        private static IDiaValue dia = null;
+        private static SampleType? data = null;
+        private static IDiaValue? dia = null;
 
         [Benchmark]
-        public object Newtonsoft_Serialize()
-        {
-            return JsonConvert.SerializeObject(data);
-        }
-
-        [Benchmark]
-        public object Dia_Object_To_Text_Serialize()
-        {
-            return Convert.Type.TypeConverter
-                .ToDia(data)
-                .Map(value => Convert.Axon.AxonSerializer.SerializeValue(value))
-                .Resolve();
-        }
-
-        [Benchmark]
-        public object Dia_Object_To_Dia_Serialize()
+        public object Dia_Clr_To_Record()
         {
             return Convert.Type.TypeConverter.ToDia(data);
         }
 
         [Benchmark]
-        public object Dia_To_Text_Serialize()
+        public object Dia_Record_To_Text()
         {
-            return Convert.Axon.AxonSerializer.SerializeValue(dia);
+            return Convert.Axon.AxonSerializer
+                .SerializeValue(dia!)
+                .Resolve();
+        }
+
+        [Benchmark]
+        public object Dia_Clr_To_Text()
+        {
+            return Convert.Type.TypeConverter
+                .ToDia(data)
+                .Bind(value => Convert.Axon.AxonSerializer.SerializeValue(value))
+                .Resolve();
+        }
+
+        [Benchmark]
+        public void Newtonsoft_Clr_To_JObject()
+        {
+            var jobj = JObject.FromObject(data!);
+        }
+
+        [Benchmark]
+        public object Newtonsoft_Clr_To_Text()
+        {
+            return JsonConvert.SerializeObject(data);
         }
 
         static SerializationTests()

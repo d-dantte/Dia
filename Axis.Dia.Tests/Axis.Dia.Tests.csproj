@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -10,10 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Axis.Luna.Common" Version="6.0.22" />
-    <PackageReference Include="Axis.Luna.Extensions" Version="6.0.23" />
-    <PackageReference Include="Axis.Luna.FInvoke" Version="6.0.22" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageReference Include="Axis.Luna.Common" Version="6.0.30" />
+    <PackageReference Include="Axis.Luna.Extensions" Version="6.0.28" />
+    <PackageReference Include="Axis.Luna.FInvoke" Version="6.0.28" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.0">

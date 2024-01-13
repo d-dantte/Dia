@@ -53,12 +53,13 @@ namespace Axis.Dia.Types
         {
             ArgumentNullException.ThrowIfNull(annotations);
 
-            _address = address.ThrowIfDefault(new ArgumentException($"Invalid Guid supplied: '{address}'"));
+            _address = address.ThrowIfDefault(
+                _ => new ArgumentException($"Invalid {nameof(address)}: default"));
             _value = value?.ToList();
             _annotations = annotations
                 .ThrowIfAny(
                     ann => ann.IsDefault,
-                    _ => new ArgumentException($"'{nameof(annotations)}' list cannot contain invalid values"))
+                    _ => new ArgumentException($"Invalid {nameof(annotations)}: contains default"))
                 .ToArray();
         }
 

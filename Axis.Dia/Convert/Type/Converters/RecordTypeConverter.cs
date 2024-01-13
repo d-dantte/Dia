@@ -18,12 +18,15 @@ namespace Axis.Dia.Convert.Type.Converters
     {
 
         #region Clr Converter
-        public bool CanConvert(DiaType sourceType, System.Type destinationType)
+        public bool CanConvert(
+            DiaType sourceType,
+            System.Type destinationType,
+            TypeCategory destinationTypeCategory)
         {
             if (destinationType is null)
                 throw new ArgumentNullException(nameof(destinationType));
 
-            return DiaType.Record.Equals(sourceType) && destinationType.GetTypeCategory() switch
+            return DiaType.Record.Equals(sourceType) && destinationTypeCategory switch
             {
                 TypeCategory.Map
                 or TypeCategory.Record => true,
@@ -46,7 +49,7 @@ namespace Axis.Dia.Convert.Type.Converters
             if (!DiaType.Record.Equals(sourceInstance.Type))
                 throw new ArgumentOutOfRangeException($"Invalid source type: {sourceInstance.Type}");
 
-            if (!CanConvert(sourceInstance.Type, destinationType))
+            if (!CanConvert(sourceInstance.Type, destinationType, context.GetTypeCategory(destinationType)))
                 return Result.Of<object?>(new IncompatibleClrConversionException(
                     sourceInstance.Type,
                     destinationType));
@@ -74,12 +77,12 @@ namespace Axis.Dia.Convert.Type.Converters
         #endregion
 
         #region Dia Converter
-        public bool CanConvert(System.Type sourceType)
+        public bool CanConvert(System.Type sourceType, TypeCategory sourceTypeCategory)
         {
             if (sourceType is null)
                 throw new ArgumentNullException(nameof(sourceType));
 
-            return sourceType.GetTypeCategory() switch
+            return sourceTypeCategory switch
             {
                 TypeCategory.Map
                 or TypeCategory.Record => true,
@@ -92,7 +95,7 @@ namespace Axis.Dia.Convert.Type.Converters
             if (sourceType is null)
                 throw new ArgumentNullException(nameof(sourceType));
 
-            if (!CanConvert(sourceType))
+            if (!CanConvert(sourceType, context.GetTypeCategory(sourceType)))
                 return Result.Of<IDiaValue>(new UnknownClrSourceTypeException(sourceType));
 
             if (sourceInstance is null)

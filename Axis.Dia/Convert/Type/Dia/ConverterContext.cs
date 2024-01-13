@@ -2,6 +2,7 @@
 using Axis.Luna.Common;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
+using Axis.Dia.Utils;
 
 namespace Axis.Dia.Convert.Type.Dia
 {
@@ -11,6 +12,11 @@ namespace Axis.Dia.Convert.Type.Dia
         /// The Dia converter map used during this conversion session
         /// </summary>
         private readonly Dictionary<System.Type, IDiaConverter> converterMap;
+
+        /// <summary>
+        /// The category map used to speed-up type category retrieval
+        /// </summary>
+        private readonly Dictionary<System.Type, TypeCategory> categoryMap;
 
         /// <summary>
         /// The options instance
@@ -53,10 +59,11 @@ namespace Axis.Dia.Convert.Type.Dia
             MetadataMap? metadataManager = null,
             Dictionary<System.Type, IDiaConverter>? converterMap = null)
         {
-            Options = options.ThrowIfDefault(new ArgumentException($"Invalid (default) value supplied for '{nameof(options)}'"));
-            Path = objectPath.ThrowIfDefault(new ArgumentException($"Invalid (default) value supplied for '{nameof(objectPath)}'"));
-            ObjectTracker = tracker ?? new ObjectTracker();
-            MetadataManager = metadataManager ?? new MetadataMap();
+            Options = options.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(options)}: default"));
+            Path = objectPath.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(options)}: default"));
+            ObjectTracker = tracker ?? new();
+            MetadataManager = metadataManager ?? new();
+            categoryMap = new();
             this.converterMap = converterMap ?? new();
         }
 
@@ -72,19 +79,22 @@ namespace Axis.Dia.Convert.Type.Dia
             IEnumerable<IDiaConverter> defaultDiaConverters)
         {
             var options = Options;
+            var _this = this;
             return converterMap.GetOrAdd(sourceType, type =>
             {
                 return options.DiaConverters
                     .Concat(defaultDiaConverters)
-                    .Where(converter => converter.CanConvert(type))
-                    .FirstOrThrow(new InvalidOperationException(
+                    .Where(converter => converter.CanConvert(type, _this.GetTypeCategory(type)))
+                    .FirstOrThrow(() => new InvalidOperationException(
                         $"No Dia converter found for the given type. Source: '{sourceType.FullName}'"));
             });
         }
         #endregion
 
         #region API
-        private ConverterContext Next(System.Type type, string objectNodeId)
+        private ConverterContext Next(
+            System.Type type,
+            string objectNodeId)
             => new(
                 Options,
                 Path.Next(type, objectNodeId),
@@ -104,6 +114,10 @@ namespace Axis.Dia.Convert.Type.Dia
             object? sourceInstance,
             string objectNodeId)
             => TypeConverter.ToDia(sourceType, sourceInstance, Next(sourceType, objectNodeId));
+
+        public TypeCategory GetTypeCategory(
+            System.Type type)
+            => categoryMap.GetOrAdd(type, _t => _t.GetTypeCategory());
         #endregion
     }
 }

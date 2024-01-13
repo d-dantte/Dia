@@ -16,7 +16,10 @@ namespace Axis.Dia.Convert.Type.Converters
     internal class EnumTypeConverter: IClrConverter, IDiaConverter
     {
         #region IClrConverter
-        public bool CanConvert(DiaType sourceType, System.Type destinationType)
+        public bool CanConvert(
+            DiaType sourceType,
+            System.Type destinationType,
+            TypeCategory destinationTypeCategory)
         {
             if (destinationType is null)
                 throw new ArgumentNullException(nameof(destinationType));
@@ -32,7 +35,7 @@ namespace Axis.Dia.Convert.Type.Converters
             if (destinationType is null)
                 throw new ArgumentNullException(nameof(destinationType));
 
-            if (!CanConvert(sourceInstance.Type, destinationType))
+            if (!CanConvert(sourceInstance.Type, destinationType, context.GetTypeCategory(destinationType)))
                 return Result.Of<object?>(new IncompatibleClrConversionException(
                     sourceInstance.Type,
                     destinationType));
@@ -46,7 +49,7 @@ namespace Axis.Dia.Convert.Type.Converters
         #endregion
 
         #region IDiaConverter
-        public bool CanConvert(System.Type sourceType)
+        public bool CanConvert(System.Type sourceType, TypeCategory sourceTypeCategory)
         {
             if (sourceType is null)
                 throw new ArgumentNullException(nameof(sourceType));

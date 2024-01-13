@@ -49,11 +49,11 @@ namespace Axis.Dia.Types
                 _ => new ArgumentException("Invalid annotation symbol"));
         }
 
-        public static Annotation Of(string annotation) => new Annotation(annotation);
+        public static Annotation Of(string annotation) => new(annotation);
 
-        public static Annotation Of(char[] annotation) => new Annotation(new string(annotation));
+        public static Annotation Of(char[] annotation) => new(new string(annotation));
 
-        public static Annotation Of(Span<char> annotation) => new Annotation(new string(annotation.ToArray()));
+        public static Annotation Of(Span<char> annotation) => new(new string(annotation.ToArray()));
 
         public static Annotation[] Of(
             params string[] symbols)

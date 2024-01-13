@@ -178,7 +178,7 @@ namespace Axis.Dia.Convert.Json
 
         public static SerializerOptionsBuilder FromOptions(SerializerOptions options)
         {
-            options.ThrowIfDefault(new ArgumentException($"Invalid {nameof(options)} instance"));
+            options.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(options)}: default"));
 
             return new SerializerOptionsBuilder
             {

@@ -27,7 +27,7 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<RecordValue> Parse(CSTNode recordNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(recordNode);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             if (!SymbolNameObject.Equals(recordNode.SymbolName))
                 throw new ArgumentException(
@@ -59,7 +59,7 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<string> Serialize(RecordValue value, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(value);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             if (value.IsNull)
                 return EncodedValueParser.Serialize(value, context);
@@ -102,9 +102,9 @@ namespace Axis.Dia.Convert.Json.Parser
             KeyValuePair<SymbolValue, IDiaValue> property,
             SerializerContext context)
         {
-            property.ThrowIfDefault(new ArgumentException($"Invalid {nameof(property)} instance"));
-            property.Key.ThrowIf(s => s.IsNull, new ArgumentException($"Invalid property name instance"));
-            property.Value.ThrowIfNull(new ArgumentException($"Invalid property value instance"));
+            property.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(property)}: default"));
+            property.Key.ThrowIf(s => s.IsNull, _ => new ArgumentException($"Invalid property name instance"));
+            property.Value.ThrowIfNull(() => new ArgumentException($"Invalid property value instance"));
 
             var nameAnnotations = !property.Key.HasAnnotations()
                 ? Result.Of("")

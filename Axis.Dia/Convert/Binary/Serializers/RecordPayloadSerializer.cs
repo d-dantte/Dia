@@ -1,6 +1,7 @@
 ﻿using Axis.Dia.Contracts;
 using Axis.Dia.Convert.Binary.Metadata;
 using Axis.Dia.Types;
+using Axis.Dia.Utils;
 using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using System.Numerics;
@@ -82,10 +83,11 @@ namespace Axis.Dia.Convert.Binary.Serializers
                 var annotationResult = AnnotationSerializer.Serialize(value.Annotations);
                 var recordDataResult = (value.Value?.Length ?? 0) == 0
                     ? Result.Of(Array.Empty<byte>)
-                    : Result.Bind(() => value.Value!
+                    : Result.Of(() => value.Value!
                         .Select(item => SerializeProperty(item, context))
                         .Fold()
-                        .Map(bytes => bytes.SelectMany().ToArray()));
+                        .Map(bytes => bytes.SelectMany().ToArray())
+                        .Resolve());
 
                 return typeMetadataResult
 

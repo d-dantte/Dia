@@ -231,9 +231,6 @@ namespace Axis.Dia.Convert.Type
         /// <param name="type">The clr type</param>
         private static bool IsPrimitive(this System.Type type)
         {
-            if (type is null)
-                throw new ArgumentNullException(nameof(type));
-
             if (type.IsPrimitive)
                 return true;
 
@@ -259,9 +256,6 @@ namespace Axis.Dia.Convert.Type
         /// <returns>true if it is a single dimension array, false otherwise</returns>
         private static bool IsSingleDimensionArray(this System.Type type)
         {
-            if (type is null)
-                throw new ArgumentNullException(nameof(type));
-
             return type.IsSZArray;
         }
 
@@ -287,9 +281,6 @@ namespace Axis.Dia.Convert.Type
         /// <returns>true if it is a map, false otherwise</returns>
         private static bool IsMap(this System.Type type)
         {
-            if (type is null)
-                throw new ArgumentNullException(nameof(type));
-
             if (type.IsBaseDictionaryInterface())
                 return typeof(string).Equals(type.GetGenericArguments()[0]);
 

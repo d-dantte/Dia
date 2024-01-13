@@ -40,7 +40,7 @@ namespace Axis.Dia.Convert.Axon
             ushort indentationLevel,
             Dictionary<Guid, int>? addressIndexMap)
         {
-            Options = options.ThrowIfDefault(new ArgumentException("Invalid options supplied"));
+            Options = options.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(options)}: default"));
             IndentationLevel = indentationLevel;
             this.addressIndexMap = addressIndexMap ?? new();
         }

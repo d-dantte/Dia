@@ -19,7 +19,7 @@ namespace Axis.Dia.Convert.Json.Parser
         public static IResult<StringValue> Parse(CSTNode stringNode, ParserContext context)
         {
             ArgumentNullException.ThrowIfNull(stringNode);
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             if (!SymbolNameStringValue.Equals(stringNode.SymbolName))
                 throw new ArgumentException(
@@ -36,7 +36,7 @@ namespace Axis.Dia.Convert.Json.Parser
 
         public static IResult<string> Serialize(StringValue value, SerializerContext context)
         {
-            context.ThrowIfDefault(new ArgumentException($"Invalid {nameof(context)} instance"));
+            context.ThrowIfDefault(_ => new ArgumentException($"Invalid {nameof(context)}: default"));
 
             if (value.IsNull || value.HasAnnotations())
                 return Result.Of<string>(new InvalidOperationException(
