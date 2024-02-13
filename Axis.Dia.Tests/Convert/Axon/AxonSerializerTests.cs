@@ -10,7 +10,7 @@ namespace Axis.Dia.Tests.Convert.Axon
         [TestMethod]
         public void SerializeValue_Tests()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => AxonSerializer.SerializeValue(null));
+            Assert.ThrowsException<ArgumentNullException>(() => AxonSerializer.SerializeValue(null!));
 
             var intValue = IntValue.Of(34);
             var refValue = ReferenceValue.Of(intValue);

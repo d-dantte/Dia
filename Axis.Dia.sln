@@ -16,7 +16,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{2EEBCFFF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia.Tests", "Axis.Dia.Tests\Axis.Dia.Tests.csproj", "{E3B2D64A-9FD0-4CB6-B968-5DB3D193A7E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axis.Dia.Benchmark", "Axis.Dia.Benchmark\Axis.Dia.Benchmark.csproj", "{DCF214A2-CB6A-47B7-A7FE-B4A3D758104D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia.Benchmark", "Axis.Dia.Benchmark\Axis.Dia.Benchmark.csproj", "{DCF214A2-CB6A-47B7-A7FE-B4A3D758104D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github.workflows", ".github.workflows", "{7C578026-4F18-4685-8C3C-1D3C79F66F12}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\ci.yaml = .github\workflows\ci.yaml
+		.github\workflows\pre-release.yaml = .github\workflows\pre-release.yaml
+		.github\workflows\release.yaml = .github\workflows\release.yaml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
