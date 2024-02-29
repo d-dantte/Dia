@@ -1,20 +1,21 @@
 ﻿using Axis.Dia.Core.Utils;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Axis.Dia.Core.Types
 {
-    public readonly struct Symbol :
+    public readonly struct String :
         IRefValue<string>,
-        IEquatable<Symbol>,
-        INullContract<Symbol>,
-        IDefaultContract<Symbol>
+        IEquatable<String>,
+        INullContract<String>,
+        IDefaultContract<String>
     {
         private readonly string? _value;
         private readonly AttributeSet _attributes;
 
         #region Construction
 
-        public Symbol(
+        public String(
             string? value,
             params Attribute[] attributes)
         {
@@ -22,15 +23,19 @@ namespace Axis.Dia.Core.Types
             _attributes = attributes;
         }
 
-        public static Symbol Of(
+        public static String Of(
             string? value,
             params Attribute[] attributes)
             => new(value, attributes);
 
+        public static implicit operator String(
+            string? value)
+            => new(value);
+
         #endregion
 
         #region DefaultContract
-        public static Symbol Default => default;
+        public static String Default => default;
 
         public bool IsDefault
             => _value is null
@@ -38,7 +43,7 @@ namespace Axis.Dia.Core.Types
         #endregion
 
         #region NullContract
-        public static Symbol Null(params
+        public static String Null(params
             Types.Attribute[] attributes)
             => new(null, attributes);
 
@@ -51,7 +56,7 @@ namespace Axis.Dia.Core.Types
 
         public AttributeSet Attributes => _attributes;
 
-        public DiaType Type => DiaType.Symbol;
+        public DiaType Type => DiaType.String;
 
         #endregion
 
@@ -71,7 +76,7 @@ namespace Axis.Dia.Core.Types
         }
 
         public bool Equals(
-            Symbol other)
+            String other)
             => EqualityComparer<string>.Default.Equals(_value, other.Value)
             && _attributes.Equals(other.Attributes);
         #endregion
@@ -86,16 +91,16 @@ namespace Axis.Dia.Core.Types
 
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is Symbol other && Equals(other);
+            => obj is String other && Equals(other);
 
         public static bool operator ==(
-            Symbol left,
-            Symbol right)
+            String left,
+            String right)
             => left.Equals(right);
 
         public static bool operator !=(
-            Symbol left,
-            Symbol right)
+            String left,
+            String right)
             => !left.Equals(right);
 
         #endregion

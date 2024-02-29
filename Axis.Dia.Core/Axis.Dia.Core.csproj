@@ -7,7 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Convert\" />
+    <Folder Include="Convert\Json\" />
+    <Folder Include="Convert\Anon\" />
+    <Folder Include="Convert\Meson\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Axis.Luna.Common" Version="6.0.30" />
   </ItemGroup>
 
 </Project>

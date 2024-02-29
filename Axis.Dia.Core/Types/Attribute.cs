@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.Core.Utils;
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
@@ -18,6 +19,8 @@ namespace Axis.Dia.Core.Types
         public string Key { get; }
 
         public string? Value { get; }
+
+        public bool HasValue => Value is not null;
 
         public bool IsDefault => Key is null && Value is null;
 
@@ -46,12 +49,12 @@ namespace Axis.Dia.Core.Types
         public static Attribute Of(string key) => new(key);
 
         public static Attribute[] Of(
-            params string[] symbols)
-            => symbols.Select(Of).ToArray();
+            params string[] attributes)
+            => attributes.Select(Of).ToArray();
 
         public static Attribute[] Of(
-            params (string key, string? value)[] symbols)
-            => symbols.Select(tuple => Of(tuple.key, tuple.value)).ToArray();
+            params (string key, string? value)[] attributes)
+            => attributes.Select(tuple => Of(tuple.key, tuple.value)).ToArray();
 
 
         public static implicit operator Attribute(string key) => Of(key);
@@ -62,7 +65,7 @@ namespace Axis.Dia.Core.Types
         #region Overrides
         public override string ToString()
         {
-            return $"[@{Type}, {Key}:{Value}]";
+            return $"[@{Type} {Key}:{Value}]";
         }
 
         public override bool Equals(
@@ -79,6 +82,108 @@ namespace Axis.Dia.Core.Types
         public static bool operator ==(Attribute left, Attribute right) => left.Equals(right);
 
         public static bool operator !=(Attribute left, Attribute right) => !(left == right);
+        #endregion
+    }
+
+    public readonly struct AttributeSet :
+        IEnumerable<Attribute>,
+        IDefaultContract<AttributeSet>,
+        IEquatable<AttributeSet>
+    {
+        private readonly HashSet<Attribute> attributes;
+
+        #region DefaultContract
+
+        public static AttributeSet Default => default;
+
+        public bool IsDefault => attributes is null;
+        #endregion
+
+        #region IEnumerable
+        public IEnumerator<Attribute> GetEnumerator()
+        {
+            return IsDefault
+                ? Enumerable.Empty<Attribute>().GetEnumerator()
+                : attributes.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        #endregion
+
+        #region API
+
+        public bool IsEmpty => IsDefault || attributes.Count == 0;
+
+        public bool Contains(
+            Attribute attribute)
+            => !IsDefault && attributes.Contains(attribute);
+
+        public int Count => IsDefault ? 0: attributes.Count;
+        #endregion
+
+        #region overrides
+        public bool Equals(AttributeSet other)
+        {
+            if (IsDefault && other.IsDefault)
+                return true;
+
+            if (IsDefault ^ other.IsDefault)
+                return false;
+
+           return attributes.Count == other.attributes.Count
+                && attributes.SetEquals(other.attributes);
+        }
+
+        public override bool Equals(
+            [NotNullWhen(true)] object? obj)
+            => obj is AttributeSet other && Equals(other);
+
+        public override int GetHashCode()
+        {
+            return IsDefault
+                ? 0 : attributes
+                    .OrderBy(att => $"{att.Key}:{att.Value}")
+                    .Aggregate(0, HashCode.Combine);
+        }
+
+        public static bool operator ==(
+            AttributeSet left,
+            AttributeSet right)
+            => left.Equals(right);
+
+        public static bool operator !=(
+            AttributeSet left,
+            AttributeSet right)
+            => !(left == right);
+
+        #endregion
+
+        #region Construction
+        public AttributeSet(params Attribute[] attributes) : this(attributes.AsEnumerable())
+        {
+        }
+
+        public AttributeSet(IEnumerable<Attribute> attributes)
+        {
+            this.attributes = attributes
+                .ThrowIfNull(() => new ArgumentNullException(nameof(attributes)))
+                .ThrowIfAny(
+                    att => att.IsDefault,
+                    _ => new ArgumentException($"Invalid attribute: default"))
+                .ToHashSet();
+        }
+
+        public static AttributeSet Of(
+            params Attribute[] attributes)
+            => new(attributes);
+
+        public static AttributeSet Of(
+            IEnumerable<Attribute> attributes)
+            => new(attributes);
+
+        public static implicit operator AttributeSet(
+            Attribute[] attributes)
+            => new(attributes);
         #endregion
     }
 }

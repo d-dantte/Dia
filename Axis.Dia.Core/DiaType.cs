@@ -13,7 +13,7 @@
         String,
         Symbol,
         Blob,
-        List,
+        Sequence,
         Record
     }
 }

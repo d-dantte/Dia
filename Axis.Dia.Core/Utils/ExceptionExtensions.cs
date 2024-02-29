@@ -2,9 +2,9 @@
 
 namespace Axis.Dia.Core.Utils
 {
-    public static class ExceptionExtensions
+    internal static class ExceptionExtensions
     {
-        public static T ThrowIf<T>(this
+        internal static T ThrowIf<T>(this
             T value,
             Func<T, bool> predicate,
             Func<T, Exception> exceptionMapper)
@@ -20,15 +20,48 @@ namespace Axis.Dia.Core.Utils
             return value;
         }
 
-        public static T ThrowIfNot<T>(this
+        internal static T ThrowIfNot<T>(this
             T value,
             Func<T, bool> predicate,
             Func<T, Exception> exceptionMapper)
             => value.ThrowIf(v => !predicate.Invoke(v), exceptionMapper);
 
-        public static T ThrowIfNull<T>(this
+        internal static T ThrowIfNull<T>(this
             T value,
+            Func<Exception> exceptionMapper)
+            => value.ThrowIf(v => v is null, _ => exceptionMapper.Invoke());
+
+        internal static IEnumerable<T> ThrowIfAny<T>(this
+            IEnumerable<T> items,
+            Func<T, bool> predicate,
             Func<T, Exception> exceptionMapper)
-            => value.ThrowIf(v => v is null, exceptionMapper);
+        {
+            ArgumentNullException.ThrowIfNull(items);
+            ArgumentNullException.ThrowIfNull(predicate);
+            ArgumentNullException.ThrowIfNull(exceptionMapper);
+
+            foreach(var item in items)
+            {
+                if (predicate.Invoke(item))
+                    ExceptionDispatchInfo
+                        .Capture(exceptionMapper.Invoke(item))
+                        .Throw();
+
+                yield return item;
+            }
+        }
+
+        internal static void ForAll<T>(this
+            IEnumerable<T> items,
+            Action<T> consumer)
+        {
+            ArgumentNullException.ThrowIfNull(items);
+            ArgumentNullException.ThrowIfNull(consumer);
+
+            foreach (var item in items)
+            {
+                consumer.Invoke(item);
+            }
+        }
     }
 }

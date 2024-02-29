@@ -1,7 +1,7 @@
 ﻿namespace Axis.Dia.Core
 {
     public interface IDefaultContract<TSelf>
-    where TSelf : IDefaultContract<TSelf>
+    where TSelf : struct, IDefaultContract<TSelf>
     {
         /// <summary>
         /// Indicates if this is the default value for the type

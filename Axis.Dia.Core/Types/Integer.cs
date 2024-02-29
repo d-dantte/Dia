@@ -1,36 +1,42 @@
 ﻿using Axis.Dia.Core.Utils;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 
 namespace Axis.Dia.Core.Types
 {
-    public readonly struct Symbol :
-        IRefValue<string>,
-        IEquatable<Symbol>,
-        INullContract<Symbol>,
-        IDefaultContract<Symbol>
+    public readonly struct Integer :
+        IStructValue<BigInteger>,
+        IEquatable<Integer>,
+        INullContract<Integer>,
+        IDefaultContract<Integer>
     {
-        private readonly string? _value;
+        private readonly BigInteger? _value;
         private readonly AttributeSet _attributes;
 
         #region Construction
 
-        public Symbol(
-            string? value,
+        public Integer(
+            BigInteger? value,
             params Attribute[] attributes)
         {
             _value = value;
             _attributes = attributes;
         }
 
-        public static Symbol Of(
-            string? value,
+        public static Integer Of(
+            BigInteger? value,
             params Attribute[] attributes)
             => new(value, attributes);
+
+        public static implicit operator Integer(
+            BigInteger? value)
+            => new(value);
 
         #endregion
 
         #region DefaultContract
-        public static Symbol Default => default;
+        public static Integer Default => default;
 
         public bool IsDefault
             => _value is null
@@ -38,20 +44,20 @@ namespace Axis.Dia.Core.Types
         #endregion
 
         #region NullContract
-        public static Symbol Null(params
+        public static Integer Null(params
             Types.Attribute[] attributes)
             => new(null, attributes);
 
         public bool IsNull => _value is null;
         #endregion
 
-        #region IRefValue
+        #region IStructValue
 
-        public string? Value => _value;
+        public BigInteger? Value => _value;
 
         public AttributeSet Attributes => _attributes;
 
-        public DiaType Type => DiaType.Symbol;
+        public DiaType Type => DiaType.Int;
 
         #endregion
 
@@ -59,20 +65,12 @@ namespace Axis.Dia.Core.Types
 
         public override string ToString()
         {
-            var text = _value?
-                .Take(20)
-                .Select(CommonExtensions.EscapeUnicodeControlCharacter)
-                .ApplyTo(chars => string.Join("", chars.ToArray()))
-                ?? "null";
-
-            var length = _value?.Length.ToString() ?? "*";
-
-            return $"[@{Type} length: {length}, value: {text}]";
+            return $"[@{Type} {_value?.ToString() ?? "*"}]";
         }
 
         public bool Equals(
-            Symbol other)
-            => EqualityComparer<string>.Default.Equals(_value, other.Value)
+            Integer other)
+            => EqualityComparer<BigInteger?>.Default.Equals(_value, other.Value)
             && _attributes.Equals(other.Attributes);
         #endregion
 
@@ -86,16 +84,16 @@ namespace Axis.Dia.Core.Types
 
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is Symbol other && Equals(other);
+            => obj is Integer other && Equals(other);
 
         public static bool operator ==(
-            Symbol left,
-            Symbol right)
+            Integer left,
+            Integer right)
             => left.Equals(right);
 
         public static bool operator !=(
-            Symbol left,
-            Symbol right)
+            Integer left,
+            Integer right)
             => !left.Equals(right);
 
         #endregion
