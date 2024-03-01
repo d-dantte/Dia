@@ -25,7 +25,7 @@ namespace Axis.Dia.Core.Convert.Axon.Serializers
                 (Options.IndentationStyle.None, true) => $"{attributeText}'#{DiaType.Blob} {base64}'",
                 (Options.IndentationStyle.None, false) => $"{attributeText}<{base64}>",
                 (_, true) => base64
-                    .Batch(context.Options.Blobs.SingleLineCharacterCount)
+                    .BatchGroup(context.Options.Blobs.SingleLineCharacterCount)
                     .Select(tuple => tuple.BatchIndex switch
                     {
                         0 => $"'#{DiaType.Blob} {tuple.Batch.JoinUsing()}'",
@@ -33,7 +33,7 @@ namespace Axis.Dia.Core.Convert.Axon.Serializers
                     })
                     .JoinUsing(),
                 (_, false) => base64
-                    .Batch(context.Options.Blobs.SingleLineCharacterCount)
+                    .BatchGroup(context.Options.Blobs.SingleLineCharacterCount)
                     .Select(tuple => tuple.BatchIndex switch
                     {
                         0 => $"<{tuple.Batch.JoinUsing()}>",

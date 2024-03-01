@@ -1,4 +1,6 @@
-﻿namespace Axis.Dia.Core.Convert.Axon.Serializers
+﻿using static Axis.Dia.Core.Convert.Axon.Serializers.Options;
+
+namespace Axis.Dia.Core.Convert.Axon.Serializers
 {
     public class Options
     {
@@ -85,8 +87,8 @@
 
         public enum StringStyle
         {
-            Verbatim,
-            Inline
+            Inline,
+            Verbatim
         }
 
         /// <summary>
@@ -157,20 +159,27 @@
             public bool IncludeTimezone { get; }
         }
 
-        public class StringOptions
+        public class StringOptions: ICanonical
         {
-            public StringStyle Style { get; }
+            public StringStyle Style { get; init; }
 
             /// <summary>
             /// While in <see cref="StringStyle.Inline"/> mode, determines if the string is broken into multiple concatenated
             /// inline strings, each placed on a new line.
             /// </summary>
-            public bool UseMultiline { get; }
+            public bool UseMultiline { get; init; }
 
             /// <summary>
             /// Character count after which the string is broken up into an extra line
             /// </summary>
-            public ushort MultilineThreshold { get; }
+            public ushort MultilineLineThreshold { get; init; }
+
+            public bool UseCanonicalForm { get; init; }
+
+            /// <summary>
+            /// Character count after which in verbatim mode, the line is broken using a line escape.
+            /// </summary>
+            public ushort? VerbatimLineThreshold { get; init; }
         }
 
         public class SymbolOptions: ICanonical
@@ -296,6 +305,45 @@
         }
         #endregion
 
+        #region String
+        private StringStyle _stringStyle;
+        private bool _stringUseMultiline;
+        private ushort _stringMultilineLineThreshold;
+        private bool _stringUseCanonicalForm;
+        private ushort? _stringVerbatimLineThreshold;
+
+        public OptionsBuilder WithStringStyle(StringStyle style)
+        {
+            _stringStyle = style;
+            return this;
+        }
+
+        public OptionsBuilder WithStringMultiline(bool useMultiline)
+        {
+            _stringUseMultiline = useMultiline;
+            return this;
+        }
+
+        public OptionsBuilder WithStringMultilineLineThreshold(ushort multilineLineThreshold)
+        {
+            _stringMultilineLineThreshold = multilineLineThreshold;
+            return this;
+        }
+
+        public OptionsBuilder WithStringCanonicalForm(bool useCanonicalForm)
+        {
+            _stringUseCanonicalForm = useCanonicalForm;
+            return this;
+        }
+
+        public OptionsBuilder WithStringVerbatimLineThreshold(ushort? verbatimLineThreshold)
+        {
+            _stringVerbatimLineThreshold = verbatimLineThreshold;
+            return this;
+        }
+
+        #endregion
+
 
         public Options Build()
         {
@@ -324,7 +372,14 @@
                     UseCanonicalForm = _decimalUseCanonicalForm
                 },
                 new Options.TimestampOptions(),
-                new Options.StringOptions(),
+                new Options.StringOptions
+                {
+                    UseCanonicalForm = _stringUseCanonicalForm,
+                    Style = _stringStyle,
+                    MultilineLineThreshold = _stringMultilineLineThreshold,
+                    UseMultiline = _stringUseMultiline,
+                    VerbatimLineThreshold = _stringVerbatimLineThreshold
+                },
                 new Options.SymbolOptions(),
                 new Options.SequenceOptions(),
                 new Options.RecordOptions(),

@@ -17,28 +17,11 @@ namespace Axis.Dia.Core.Utils
             return mapper.Invoke(@in);
         }
 
-        //public static bool AttributesSetEquals(this
-        //    ImmutableArray<Types.Attribute> first,
-        //    ImmutableArray<Types.Attribute> second)
-        //{
-        //    if (first.IsDefault && second.IsDefault)
-        //        return true;
-
-        //    if (first.IsDefault ^ second.IsDefault)
-        //        return false;
-
-        //    if (first.Length != second.Length)
-        //        return false;
-
-        //    var firstSet = first.ToImmutableHashSet();
-        //    return second.All(firstSet.Contains);
-        //}
-
         public static bool IsNegative(this
             BigInteger @int)
             => @int < 0;
 
-        public static IEnumerable<(IEnumerable<TItem> Batch, int BatchIndex)> Batch<TItem>(this
+        public static IEnumerable<(IEnumerable<TItem> Batch, int BatchIndex)> BatchGroup<TItem>(this
             IEnumerable<TItem> items,
             int batchSize)
         {
@@ -66,6 +49,11 @@ namespace Axis.Dia.Core.Utils
             if (batch.Count > 0)
                 yield return (batch, index++);
         }
+
+        public static IEnumerable<IEnumerable<TItem>> Batch<TItem>(this
+            IEnumerable<TItem> items,
+            int batchSize)
+            => items.BatchGroup(batchSize).Select(group => group.Batch);
 
         public static string JoinUsing(this
             IEnumerable<string> strings,

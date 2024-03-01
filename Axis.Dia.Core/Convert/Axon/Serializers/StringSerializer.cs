@@ -15,10 +15,11 @@ namespace Axis.Dia.Core.Convert.Axon.Serializers
             if (value.IsNull)
                 return $"{attributeText}{NullTypeText}";
 
-            var stringText = context.Options.Strings.Style switch
+            var stringText = (context.Options.Strings.UseCanonicalForm, context.Options.Strings.Style) switch
             {
-                Options.StringStyle.Inline => SerializeInline(value.Value!, context),
-                Options.StringStyle.Verbatim => SerializeVerbatim(value.Value!, context),
+                (true, _) => SerializeCanonicalForm(value.Value!, context),
+                (false, Options.StringStyle.Inline) => SerializeInline(value.Value!, context),
+                (false, Options.StringStyle.Verbatim) => SerializeVerbatim(value.Value!, context),
                 _ => throw new InvalidOperationException($"Invalid string style: {context.Options.Strings.Style}")
             };
 
@@ -29,12 +30,27 @@ namespace Axis.Dia.Core.Convert.Axon.Serializers
             string value,
             SerializerContext context)
         {
-            // in the future, support the 'new-line', and 'gredy-line' escape sequences, to aid with formatting
-            // the verbatim string.
-            // 1. new-line escape is a '\' followed by the '\xa' character. During interpretation, these escapes are ignored.
-            // 2. greedy-line escape is a '\' followed by the '\x20' character. Same as above, this is ignored.
+            // supports the 'new-line' escape sequences, to aid with formatting the verbatim string.
+            // 1. new-line escape is a '\' followed by the '\n' character, or the '\r\n' sequence. During interpretation, these escapes are ignored.
+            // 2. '`' is escaped as '\`'.
             // 3. Finally, the '\' character is escaped as "\\". Unlike above, this is intepreted as a '\'
-            return $"`{value}`";
+            //return $"`{value}`";
+            return context.Options.Strings.VerbatimLineThreshold switch
+            {
+                null => $"`{value}`",
+                ushort threshold => StringSerializer
+                    .BreakVerbatimLines(value, threshold)
+                    .Select(EscapeBSol)
+                    .Select(EscapeTick)
+                    .Select(EscapeLinebreak)
+                    .Select((line, index) => index switch
+                    {
+                        0 => $"\\{Environment.NewLine}{line}",
+                        _ => line
+                    })
+                    .JoinUsing()
+                    .ApplyTo(SanitizeVerbatim)
+            };
         }
 
         private static string SerializeInline(string value, SerializerContext context)
@@ -42,45 +58,91 @@ namespace Axis.Dia.Core.Convert.Axon.Serializers
             return context.Options.Strings.UseMultiline switch
             {
                 false => value
-                    .Select(EscapeInlineStringCharacter)
-                    .JoinUsing()
+                    .EscapeUnicodeControlCharacters()
                     .ApplyTo(s => $"\"{s}\""),
 
                 true => value
-                    .Batch(context.Options.Strings.MultilineThreshold)
-                    .Select(batch => (LineIndex: batch.BatchIndex, Line: batch.Batch
-                        .Select(EscapeInlineStringCharacter)
-                        .JoinUsing()))
-                    .Select(lines => lines.LineIndex switch
+                    .Batch(context.Options.Strings.MultilineLineThreshold)
+                    .Select(ToString)
+                    .Select(EscapeBSol)
+                    .Select(EscapeDQuote)
+                    .Select(CommonExtensions.EscapeUnicodeControlCharacters)
+                    .Select((line, index) => index switch
                     {
-                        0 => $"\"{lines.Line}\"",
-                        _ => $"{context.Options.NewLine}{context.Indent()}+ \"{lines.Line}\""
+                        0 => $"\"{line}\"",
+                        _ => $"{context.Options.NewLine}{context.Indent()}+ \"{line}\""
                     })
                     .JoinUsing()
             };
         }
 
-        private static string EscapeInlineStringCharacter(char character)
+        private static string SerializeCanonicalForm(string value, SerializerContext context)
         {
-            return character switch
+            return context.Options.Strings.UseMultiline switch
             {
-                '\\' => "\\\\",
-                '\"' => "\\\"",
-                '\n' => "\\\n",
-                '\r' => "\\\r",
-                '\0' => "\\\0",
-                '\a' => "\\\a",
-                '\b' => "\\\b",
-                '\f' => "\\\f",
-                '\t' => "\\\t",
-                '\v' => "\\\v",
-                _ => (char.IsControl(character), character < 256) switch
-                {
-                    (true, true) => $"\\x{(int)character:x2}",
-                    (true, false) => $"\\u{(int)character:x4}",
-                    (_, _) => character.ToString()
-                }
+                false => value
+                    .EscapeUnicodeControlCharacters()
+                    .ApplyTo(s => $"'#{DiaType.String} {s}'"),
+
+                true => value
+                    .Batch(context.Options.Strings.MultilineLineThreshold)
+                    .Select(ToString)
+                    .Select(EscapeBSol)
+                    .Select(EscapeDQuote)
+                    .Select(CommonExtensions.EscapeUnicodeControlCharacters)
+                    .Select((line, index) => index switch
+                    {
+                        0 => $"'#{DiaType.String} {line}'",
+                        _ => $"{context.Options.NewLine}{context.Indent()}+ '{line}'"
+                    })
+                    .JoinUsing()
             };
         }
+
+        private static string EscapeBSol(
+            string value)
+            => value?.Replace("\\", "\\\\")!;
+
+        private static string EscapeDQuote(
+            string value)
+            => value?.Replace("\"", "\\\"")!;
+
+        private static string EscapeTick(
+            string value)
+            => value?.Replace("`", "\\`")!;
+
+        private static string EscapeLinebreak(string value)
+        {
+
+        }
+
+        /// <summary>
+        /// Break the string if
+        /// <list type="number">
+        /// <item>A new-line sequence is encountered: \n, \r, \r\n</item>
+        /// <item>Character count of <paramref name="lineThreshold"/> have been encountered</item>
+        /// </list>
+        /// </summary>
+        /// <param name="value">The string to break up into lines</param>
+        /// <param name="lineThreshold">The maximum number of characters that may exist in a line</param>
+        /// <returns></returns>
+        private static IEnumerable<string> BreakVerbatimLines(string value, ushort lineThreshold)
+        {
+
+        }
+
+        /// <summary>
+        /// If the final sequence in the string is an escaped new-line, remove the sequence.
+        /// </summary>
+        /// <param name="verbatim"></param>
+        /// <returns></returns>
+        private static string SanitizeVerbatim(string verbatim)
+        {
+
+        }
+
+        private static string ToString(
+            IEnumerable<char> chars)
+            => new string(chars.ToArray());
     }
 }

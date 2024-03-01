@@ -24,7 +24,7 @@ namespace Axis.Dia.Core.Convert.Axon.Serializers
                     .ApplyTo(s => $"'#{DiaType.Symbol} {s}'"),
 
                 true => value.Value!
-                    .Batch(context.Options.Symbols.MultilineThreshold)
+                    .BatchGroup(context.Options.Symbols.MultilineThreshold)
                     .Select(batch => (LineIndex: batch.BatchIndex, Line: batch.Batch
                         .Select(EscapeInlineStringCharacter)
                         .JoinUsing()))

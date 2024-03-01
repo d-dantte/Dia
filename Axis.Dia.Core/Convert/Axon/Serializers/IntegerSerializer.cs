@@ -43,7 +43,7 @@ namespace Axis.Dia.Core.Convert.Axon.Serializers
                         .Abs(value.Value!.Value)
                         .ToString()
                         .Reverse()
-                        .Batch(3)
+                        .BatchGroup(3)
                         .Select(batchInfo => batchInfo.Batch.JoinUsing())
                         .JoinUsing("_")
                         .Reverse()
@@ -57,7 +57,7 @@ namespace Axis.Dia.Core.Convert.Axon.Serializers
                         false => $"0x{hex}",
                         true => hex
                             .Reverse()
-                            .Batch(2)
+                            .BatchGroup(2)
                             .Select(batchInfo => batchInfo.Batch.JoinUsing())
                             .JoinUsing("_")
                             .Reverse()
@@ -68,7 +68,7 @@ namespace Axis.Dia.Core.Convert.Axon.Serializers
                     .ApplyTo(BitSequence.Of)
                     .SignificantBits
                     .Select(bit => bit switch {true => '1', false => '0'})
-                    .Batch(4)
+                    .BatchGroup(4)
                     .Select(batchInfo => batchInfo.Batch.JoinUsing())
                     .JoinUsing("_")
                     .Reverse()

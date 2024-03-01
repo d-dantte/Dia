@@ -27,7 +27,7 @@ namespace Axis.Dia.Core.Convert.Axon.Serializers
                     .ApplyTo(s => $"'{s}'"),
 
                 _ => serializedAttributes
-                    .Batch(context.Options.Attributes.SingleLineAttributeCount)
+                    .BatchGroup(context.Options.Attributes.SingleLineAttributeCount)
                     .Select(tuple => tuple.BatchIndex switch
                     {
                         0 => $"'{tuple.Batch.JoinUsing()}'",
