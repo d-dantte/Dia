@@ -1,6 +1,5 @@
-﻿using Axis.Dia.Core.Utils;
-using Axis.Luna.Common.Numerics;
-using System.Collections.Immutable;
+﻿using Axis.Dia.Core.Contracts;
+using Axis.Luna.Numerics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Axis.Dia.Core.Types
@@ -9,6 +8,7 @@ namespace Axis.Dia.Core.Types
         IStructValue<BigDecimal>,
         IEquatable<Decimal>,
         INullContract<Decimal>,
+        IValueEquatable<Decimal>,
         IDefaultContract<Decimal>
     {
         private readonly BigDecimal? _value;
@@ -29,9 +29,7 @@ namespace Axis.Dia.Core.Types
             params Attribute[] attributes)
             => new(value, attributes);
 
-        public static implicit operator Decimal(
-            BigDecimal? value)
-            => new(value);
+        public static implicit operator Decimal(BigDecimal? value) => new(value);
 
         #endregion
 
@@ -63,28 +61,36 @@ namespace Axis.Dia.Core.Types
 
         #region Equatable
 
-        public override string ToString()
-        {
-            return $"[@{Type} {_value?.ToString() ?? "*"}]";
-        }
-
-        public bool Equals(
-            Decimal other)
-            => EqualityComparer<BigDecimal?>.Default.Equals(_value, other.Value)
-            && _attributes.Equals(other.Attributes);
+        public bool Equals(Decimal other) => ValueEquals(other);
         #endregion
 
-        #region overrides
-        public override int GetHashCode()
+        #region IValueEquatable
+        public bool ValueEquals(Decimal other)
+        {
+            return EqualityComparer<BigDecimal?>.Default.Equals(_value, other.Value)
+                && _attributes.Equals(other.Attributes);
+        }
+
+        public int ValueHash()
         {
             return _attributes.Aggregate(
                 HashCode.Combine(_value),
                 HashCode.Combine);
         }
+        #endregion
+
+        #region overrides
+
+        public override string ToString()
+        {
+            return $"[@{Type} {_value?.ToString() ?? "*"}]";
+        }
+
+        public override int GetHashCode() => ValueHash();
 
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is Decimal other && Equals(other);
+            => obj is Decimal other && ValueEquals(other);
 
         public static bool operator ==(
             Decimal left,

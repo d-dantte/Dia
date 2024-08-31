@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Deserializers\axon.xbnf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Deserializers\axon.xbnf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Axis.Luna.BitSequence" Version="7.0.9" />
+    <PackageReference Include="Axis.Luna.Result" Version="7.0.9" />
+    <PackageReference Include="Axis.Pulsar.Core.XBNF" Version="0.3.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Axis.Dia.Core\Axis.Dia.Core.csproj" />
+  </ItemGroup>
+
+</Project>

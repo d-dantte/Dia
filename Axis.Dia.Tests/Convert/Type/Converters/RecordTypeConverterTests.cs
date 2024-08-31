@@ -4,8 +4,6 @@ using Axis.Dia.Convert.Type.Converters;
 using Axis.Dia.Convert.Type.Exceptions;
 using Axis.Dia.Types;
 using Axis.Dia.Utils;
-using Axis.Luna.Common;
-using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 
 namespace Axis.Dia.Tests.Convert.Type.Converters

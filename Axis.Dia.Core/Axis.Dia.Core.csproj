@@ -4,16 +4,13 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Convert\Json\" />
-    <Folder Include="Convert\Anon\" />
-    <Folder Include="Convert\Meson\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Axis.Luna.Common" Version="6.0.30" />
+    <PackageReference Include="Axis.Luna.Common" Version="7.0.9" />
+    <PackageReference Include="Axis.Luna.Extensions" Version="7.0.9" />
+    <PackageReference Include="Axis.Luna.Numerics" Version="7.0.9" />
   </ItemGroup>
 
 </Project>

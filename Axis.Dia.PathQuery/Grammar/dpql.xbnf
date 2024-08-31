@@ -1,0 +1,128 @@
+﻿$dpql -> +[$path $block-space.?]
+
+
+# Path
+$path -> +[$block-space.? $segment].+
+
+
+# Spaces
+$block-space -> ?[$char-space $block-comment $line-comment].+
+$char-space -> ?[$space $tab $new-line $carriage-return $form-feed $vertical-tab]
+$space -> " "
+$tab -> "\t"
+$new-line -> "\n"
+$carriage-return -> "\r"
+$form-feed -> "\f"
+$vertical-tab -> "\v"
+
+
+# Comments
+$block-comment -> @delimited-content{
+	start: '/*',
+	end: '*/',
+	end-escape: '\\*/',
+	content-rule: 'default'
+}
+$line-comment -> @delimited-content{
+	start:'##',
+	content-rule: 'icr: \x0d, \x0a'
+}
+
+
+# Segment
+$segment -> +[ "/" $negation.? $matcher]
+$negation -> "!"
+
+
+# Matcher
+$matcher -> ?[
+	$property-name-matcher
+	$attribute-matcher
+	$index-range-matcher
+	$type-matcher
+]
+
+
+# Property Name Matcher
+$property-name-matcher -> +[
+	":" $token-predicate
+	+[$block-space $attribute-matcher].?
+]
+
+
+# Attribute Matcher
+$attribute-matcher -> +[$block-space.? $attribute-expression].+
+$attribute-expression -> +["@" $attribute-key +[":" $attribute-value].? ";"]
+$attribute-key -> $token-predicate
+$attribute-value -> $regular-expression
+
+
+# Text Pattern
+$token-predicate -> ?[$regular-expression $wildcard-expression]
+
+$regular-expression -> @delimited-content{
+    start:'`',
+	end:'`',
+	end-escape: '\\`',
+	content-rule: 'default'
+}
+
+$wildcard-expression -> $wildcard-tokens
+$wildcard-tokens -> $wildcard-token.+
+$wildcard-token -> +[
+	?[$wildcard-char $group-token]
+	$cardinality.?
+]
+$wildcard-char -> ?[$single-char $escaped-char]
+$single-char -> /^[a-zA-Z0-9._-]\z/
+$escaped-char -> /^\\_\z/{match-type: '2'}
+$group-token -> +["(" $wildcard-tokens ")"]
+
+$cardinality -> +[
+	"{" $block-space.?
+	?[$complex-cardinality $simple-cardinality]
+	$block-space.? "}"
+]
+$simple-cardinality -> ?["*" "+" "?" $digits]
+$complex-cardinality -> +[
+	$min-occurence $block-space.?
+	"," $block-space.?
+	$max-occurence
+]
+$min-occurence -> $digits
+$max-occurence -> ?[$digits "+"]
+$digits -> /^\d+\z/
+
+
+# Index Range Matcher
+$index-range-matcher -> +["#" ?[
+	$index-notation
+	$digits
+]]
+$index-notation -> +[$index.? ".." $index.?]
+$index -> +["^".? $digits]
+
+
+# Type Qualifier Matcher
+$type-matcher -> %1[
+	$bool-type
+	$blob-type
+	$decimal-type
+	$duration-type
+	$integer-type
+	$record-type
+	$sequence-type
+	$string-type
+	$symbol-type
+	$timestamp-type
+]
+$bool-type -> +[$block-space.? ?["$Boolean"{case-insensitive} "$Bool"{case-insensitive}]]
+$blob-type -> +[$block-space.? "$Blob"{case-insensitive}]
+$decimal-type -> +[$block-space.? ?["$Decimal"{case-insensitive} "$Dec"{case-insensitive}]]
+$duration-type -> +[$block-space.? ?["$Duration"{case-insensitive} "$Dur"{case-insensitive}]]
+$integer-type -> +[$block-space.? ?["$Integer"{case-insensitive} "$Int"{case-insensitive}]]
+$record-type -> +[$block-space.? ?["$Record"{case-insensitive} "$Rec"{case-insensitive}]]
+$sequence-type -> +[$block-space.? ?["$Sequence"{case-insensitive} "$Seq"{case-insensitive}]]
+$string-type -> +[$block-space.? ?["$String"{case-insensitive} "$Str"{case-insensitive}]]
+$symbol-type -> +[$block-space.? ?["$Symbol"{case-insensitive} "$Sym"{case-insensitive}]]
+$timestamp-type -> +[$block-space.? ?["$TimeStamp"{case-insensitive} "$TS"{case-insensitive}]]

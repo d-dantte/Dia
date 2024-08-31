@@ -1,0 +1,329 @@
+﻿# 
+# Grammar definition for Axon
+#
+#
+
+# Packet
+$dia -> +[
+	$block-space.?
+	?[ $dia-record $dia-sequence ]
+	$block-space.?
+	@eof
+]
+
+
+# Spaces
+$block-space -> ?[$char-space $block-comment $line-comment].+
+$char-space -> ?[$space $tab $new-line $carriage-return $form-feed $vertical-tab]
+$space -> " "
+$tab -> "\t"
+$new-line -> "\n"
+$carriage-return -> "\r"
+$form-feed -> "\f"
+$vertical-tab -> "\v"
+
+
+# Comments
+$block-comment -> @DelimitedContent{
+	start: '/*',
+	end: '*/',
+	end-escape: '\\*/',
+	content-rule: 'default'
+}
+$line-comment -> @DelimitedContent{
+	start:'//',
+	content-rule: 'icr: \x0d, \x0a'
+}
+
+
+# Attribute
+$attribute-list -> +[$attribute +[$block-space.? $attribute].*]
+$attribute -> ?[$attribute-flag $attribute-kvp]
+$attribute-flag -> +[$attribute-name ";"]
+$attribute-kvp -> +[$attribute-name $attribute-value.?]
+$attribute-name -> +["@" $attribute-identifier]
+$attribute-identifier -> /^[a-zA-Z_](([.-])?[a-zA-Z0-9_])*\z/{ match-type: '1,+' }
+$attribute-value -> @DelimitedContent{
+	start:':',
+	end: ';',
+	end-escape: '\\;',
+	content-rule: 'default'
+}
+
+
+# Bool
+$dia-bool -> +[
+	+[$attribute-list $block-space.?].?
+	?[$null-bool $true-bool $false-bool]
+]
+$null-bool -> "null.bool"
+$true-bool -> "true"{case-insensitive}
+$false-bool -> "false"{case-insensitive}
+
+
+# Int
+$dia-int -> +[
+	+[$attribute-list $block-space.?].?
+	?[$null-int $int-number]
+]
+$int-number -> +["-".? $int-notation]
+$int-notation -> ?[$binary-int $hex-int $regular-int]
+$null-int -> "null.int"
+$binary-int -> /^0[bB][01](_?[01])*\z/{ match-type:'3,+' }
+$hex-int -> /^0[xX][0-9A-Fa-f](_?[0-9A-Fa-f])*\z/{ match-type: '3,+' }
+$regular-int -> /^(0|([1-9](_?\d)*))\z/{ match-type: '2,+' }
+
+
+# Decimal
+$dia-decimal -> +[
+	+[$attribute-list $block-space.?].?
+	?[$null-decimal $scientific-decimal $regular-decimal]
+]
+$null-decimal -> "null.decimal"
+$regular-decimal -> +["-".? $regular-int '.' $dia-digits.?]
+$scientific-decimal -> +[
+	"-".? $regular-int
+	+['.' $dia-digits.?].?
+	"E"{case-insensitive} $number-sign.? $dia-digits]
+$dia-digits -> /^\d(_?\d)*\z/{ match-type: '2,+' }
+$number-sign -> ?['+' "-"]
+
+
+# Timestamp
+# NOTE: Investigate using recognition thresholds to stop shorter presisions from greedily recognizing failed subsets of
+# longer presisions. e.g, 'T 2007-02-23 20:14:33.Z' should fail, but is greedily recognized as a 'day-precision'
+$dia-timestamp ->  +[
+	+[$attribute-list $block-space.?].?
+	?[$null-timestamp $quoted-timestamp]
+]
+$null-timestamp -> "null.timestamp"
+$quoted-timestamp -> +["'" $timestamp-qualifier $timestamp-precisions "'"]
+$timestamp-qualifier -> ?[
+	"timestamp "{case-insensitive}
+	"ts "{case-insensitive}
+	"t "{case-insensitive}
+]
+$timestamp-precisions -> +[
+	$year +["-" $month +["-" $day +[" " $hour +[":" $minute +[":" $second +["." $ticks].?].?].?].?].?].?
+	$time-zone-offset.?
+]
+$time-zone-offset -> +[" " ?[$utc-offset $minute-precision-offset]]
+$minute-precision-offset -> +[?['+' "-"] $hour ':' $minute]
+$utc-offset -> "Z"
+$year -> /^\d{4,}\z/{ match-type: '4,+' }
+$month -> /^(01|02|03|04|05|06|07|08|09|10|11|12)\z/{ match-type: '2,+' }
+$day -> /^(01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31)\z/{ match-type: '2,+' }
+$hour -> /^(00|01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23)\z/{ match-type: '2,+' }
+$minute -> /^[0-5]\d\z/{ match-type: '2,+' }
+$second -> /^[0-5]\d\z/{ match-type: '2,+' }
+$ticks -> /^\d+\z/
+
+
+# Duration
+$dia-duration ->  +[
+	+[$attribute-list $block-space.?].?
+	?[$null-duration $quoted-duration]
+]
+$null-duration -> "null.duration"
+$quoted-duration -> +["'" $duration-qualifier $duration-components "'"]
+$duration-qualifier -> ?[
+	"duration "{case-insensitive}
+	"d "{case-insensitive}
+]
+$duration-components -> +[
+	$duration-days-component.?
+	$duration-main-component
+	$duration-ticks-component.?
+]
+$duration-days-component -> +[/^\d+\z/ '.']
+$duration-main-component -> +[
+	$hour ':' $minute ':' $second
+]
+$duration-ticks-component -> +[
+    '.' $ticks
+]
+
+
+
+# String
+$dia-string -> +[
+	+[$attribute-list $block-space.?].?
+	?[$null-string $singleline-string $multiline-string]
+]
+$null-string -> "null.string"
+$singleline-string -> +[
+    $singleline-string-segment
+	+[$block-space '+' $block-space $singleline-string-segment].*
+]
+$singleline-string-segment -> @DelimitedContent{
+	start:'"',
+	end:'"',
+	end-escape:'\\"',
+	content-rule: 'icr: \x0d, \x0a'
+}
+$multiline-string -> @DelimitedContent{
+	start:'`',
+	end:'`',
+	end-escape:'\\`',
+	content-rule:'default'
+}
+
+
+# Symbols
+$dia-symbol -> +[
+	+[$attribute-list $block-space.?].?
+	?[$null-symbol $symbol-content]
+]
+$null-symbol -> "null.symbol"
+$symbol-qualifier -> ?[
+	"symbol"{case-insensitive}
+	"sym"{case-insensitive}
+	"s"{case-insensitive}
+]
+$symbol-content -> +[
+	$symbol-content-segment1 +[
+		$block-space '+' $block-space $symbol-content-segment2
+	].*
+]
+$symbol-content-segment1 -> +[
+	"'" $symbol-qualifier
+	@DelimitedContent{
+		start:' ',
+		end:'\'',
+		end-escape:'\\\'',
+		content-rule: 'icr: \x0d, \x0a'
+	}
+]
+$symbol-content-segment2 -> @DelimitedContent{
+	start:'\'',
+	end:'\'',
+	end-escape:'\\\'',
+	content-rule: 'icr: \x0d, \x0a'
+}
+
+
+# Blob
+$dia-blob -> +[
+	+[$attribute-list $block-space.?].?
+	?[$null-blob $blob-content]
+]
+$null-blob -> "null.blob"
+$blob-qualifier -> ?[
+	"blob"{case-insensitive}
+	"b"{case-insensitive}
+]
+$blob-content -> +[
+	$blob-content-segment1 +[
+		$block-space '+' $block-space $blob-content-segment2
+	].*
+]
+$blob-content-segment1 -> +[
+	"'" $blob-qualifier
+	@DelimitedContent{
+		start:' ',
+		end:'\'',
+		end-escape:'\\\'',
+		content-rule: 'icr: \x0d, \x0a'
+	}
+]
+$blob-content-segment2 -> @DelimitedContent{
+	start:'\'',
+	end:'\'',
+	end-escape:'\\\'',
+	content-rule: 'icr: \x0d, \x0a'
+}
+
+
+# Sequence
+$dia-sequence -> +[
+    $dia-hash.? $block-space.?
+	+[$attribute-list $block-space.?].?
+	?[$null-sequence $sequence-value]
+]
+$null-sequence -> "null.sequence"
+$sequence-value -> +[
+	'[' +[
+		$block-space.?
+		$dia-value +[
+			$block-space.?
+			","
+			$block-space.?
+			$dia-value
+		].*
+	].?
+	$block-space.? ']'
+]
+
+
+# Record
+$dia-record -> +[
+    $dia-hash.? $block-space.?
+	+[$attribute-list $block-space.?].?
+	?[$null-record $record-value]
+]
+$null-record -> "null.record"
+$record-value -> +[
+	'{' +[
+		$block-space.?
+		$record-field +[
+			$block-space.?
+			","
+			$block-space.?
+			$record-field
+		].*
+	].?
+	$block-space.? '}'
+]
+$record-field -> +[
+	$field-name $block-space.? ':' $block-space.? $dia-value
+]
+$field-name -> +[
+	+[$attribute-list $block-space.?].?
+	?[$attribute-identifier $singleline-string]
+]
+
+
+# Ref
+$dia-ref -> +[
+	"'" $ref-qualifier
+	":" $type-qualifier
+	" 0x"{case-insensitive}
+	/^[0-9A-Fa-f]+\z/
+	"'"
+]
+$ref-qualifier -> ?[
+	"ref"{case-insensitive}
+	"r"{case-insensitive}
+]
+$type-qualifier -> ?[
+	"Boolean"{case-insensitive}
+	"Decimal"{case-insensitive}
+	"Integer"{case-insensitive}
+	"Duration"{case-insensitive}
+	"Timestamp"{case-insensitive}
+	"String"{case-insensitive}
+	"Symbol"{case-insensitive}
+	"Blob"{case-insensitive}
+	"Sequence"{case-insensitive}
+	"Record"{case-insensitive}
+]
+
+
+# Hash
+$dia-hash -> +["#" /^[0-9A-Fa-f]+\z/ ";"]
+
+
+# Values
+$dia-value -> ?[
+	$dia-bool
+	$dia-decimal
+	$dia-int
+	$dia-duration
+	$dia-timestamp
+	$dia-string
+	$dia-symbol
+	$dia-blob
+	$dia-ref
+	$dia-sequence
+	$dia-record
+]

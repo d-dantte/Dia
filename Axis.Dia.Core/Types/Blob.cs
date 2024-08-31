@@ -1,14 +1,15 @@
-﻿using Axis.Dia.Core.Utils;
+﻿using Axis.Dia.Core.Contracts;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Axis.Dia.Core.Types
 {
     public readonly struct Blob :
-        IStructValue<ImmutableArray<byte>>,
         IEquatable<Blob>,
         INullContract<Blob>,
-        IDefaultContract<Blob>
+        IValueEquatable<Blob>,
+        IDefaultContract<Blob>,
+        IStructValue<ImmutableArray<byte>>
     {
         private readonly ImmutableArray<byte>? _value;
         private readonly AttributeSet _attributes;
@@ -28,13 +29,9 @@ namespace Axis.Dia.Core.Types
             params Attribute[] attributes)
             => new(value, attributes);
 
-        public static implicit operator Blob(
-            byte[]? value)
-            => new(value);
+        public static implicit operator Blob(byte[]? value) => new(value);
 
-        public static implicit operator Blob(
-            List<byte>? value)
-            => new(value);
+        public static implicit operator Blob(List<byte>? value) => new(value);
 
         #endregion
 
@@ -47,9 +44,7 @@ namespace Axis.Dia.Core.Types
         #endregion
 
         #region NullContract
-        public static Blob Null(params
-            Types.Attribute[] attributes)
-            => new(null, attributes);
+        public static Blob Null(params Types.Attribute[] attributes) => new(null, attributes);
 
         public bool IsNull => _value is null;
         #endregion
@@ -66,13 +61,11 @@ namespace Axis.Dia.Core.Types
 
         #region Equatable
 
-        public override string ToString()
-        {
-            return $"[@{Type} length: {_value?.Length.ToString() ?? "*"}]";
-        }
+        public bool Equals(Blob other) => ValueEquals(other);
+        #endregion
 
-        public bool Equals(
-            Blob other)
+        #region IValueEquatable
+        public bool ValueEquals(Blob other)
         {
             if (IsNull ^ other.IsNull)
                 return false;
@@ -85,10 +78,8 @@ namespace Axis.Dia.Core.Types
 
             return _value!.Value.SequenceEqual(other.Value!.Value);
         }
-        #endregion
 
-        #region overrides
-        public override int GetHashCode()
+        public int ValueHash()
         {
             var attHash = _attributes.Aggregate(0, HashCode.Combine);
             var valueHash = _value?
@@ -97,20 +88,24 @@ namespace Axis.Dia.Core.Types
 
             return HashCode.Combine(attHash, valueHash);
         }
+        #endregion
+
+        #region overrides
+
+        public override string ToString()
+        {
+            return $"[@{Type} length: {_value?.Length.ToString() ?? "*"}]";
+        }
+
+        public override int GetHashCode() => ValueHash();
 
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is Blob other && Equals(other);
+            => obj is Blob other && ValueEquals(other);
 
-        public static bool operator ==(
-            Blob left,
-            Blob right)
-            => left.Equals(right);
+        public static bool operator ==(Blob left, Blob right) => left.Equals(right);
 
-        public static bool operator !=(
-            Blob left,
-            Blob right)
-            => !left.Equals(right);
+        public static bool operator !=(Blob left, Blob right) => !left.Equals(right);
 
         #endregion
     }

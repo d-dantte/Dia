@@ -1,4 +1,4 @@
-﻿using Axis.Luna.Common.Results;
+﻿using Axis.Luna.Result;
 using Axis.Pulsar.Grammar.CST;
 
 namespace Axis.Dia.Convert.Axon.Parsers

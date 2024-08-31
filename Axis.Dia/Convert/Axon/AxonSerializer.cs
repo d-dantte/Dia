@@ -2,7 +2,7 @@
 using Axis.Dia.Convert.Axon.Parsers;
 using Axis.Dia.Types;
 using Axis.Dia.Utils;
-using Axis.Luna.Common.Results;
+using Axis.Luna.Result;
 using Axis.Pulsar.Grammar.CST;
 using Axis.Pulsar.Grammar.Recognizers.Results;
 

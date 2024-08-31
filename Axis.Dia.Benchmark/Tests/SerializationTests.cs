@@ -1,6 +1,5 @@
 ﻿using Axis.Dia.Benchmark.Types;
 using Axis.Dia.Contracts;
-using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
 using BenchmarkDotNet.Attributes;
 using Newtonsoft.Json;

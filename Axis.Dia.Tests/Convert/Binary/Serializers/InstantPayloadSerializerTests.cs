@@ -3,8 +3,6 @@ using Axis.Dia.Convert.Binary;
 using Axis.Dia.Convert.Binary.Metadata;
 using Axis.Dia.Convert.Binary.Serializers;
 using Axis.Dia.Types;
-using Axis.Luna.Common;
-using Axis.Luna.Common.Results;
 using System.Numerics;
 
 namespace Axis.Dia.Tests.Convert.Binary.Serializers
@@ -324,16 +322,6 @@ namespace Axis.Dia.Tests.Convert.Binary.Serializers
             Assert.IsTrue(result.IsDataResult());
             resultValue = result.Resolve();
             Assert.AreEqual(value, resultValue);
-        }
-
-        [TestMethod]
-        public void meh()
-        {
-            var bint = new BigInteger(2001);
-            Console.WriteLine(bint.ToVarBytes(false));
-            Console.WriteLine(bint.ToVarBytes(true));
-            Console.WriteLine(BitSequence.Of(bint.ToVarBytes(true).ToByteArray()));
-            Console.WriteLine(BitSequence.Of(bint.ToVarBytes(false).ToByteArray()));
         }
     }
 }

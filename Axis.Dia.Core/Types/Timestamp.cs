@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Axis.Dia.Core.Contracts;
 
 namespace Axis.Dia.Core.Types
 {
@@ -54,24 +55,37 @@ namespace Axis.Dia.Core.Types
 
         public AttributeSet Attributes => _attributes;
 
-        public DiaType Type => DiaType.Int;
+        public DiaType Type => DiaType.Timestamp;
 
         #endregion
 
         #region Equatable
+
+        public bool Equals(Timestamp other) => ValueEquals(other);
+        #endregion
+
+        #region IValueEquatable
+        public bool ValueEquals(Timestamp other)
+        {
+            return EqualityComparer<DateTimeOffset?>.Default.Equals(_value, other.Value)
+                && _attributes.Equals(other.Attributes);
+        }
+
+        public int ValueHash()
+        {
+            return _attributes.Aggregate(
+                HashCode.Combine(_value),
+                HashCode.Combine);
+        }
+        #endregion
+
+        #region overrides
 
         public override string ToString()
         {
             return $"[@{Type} {_value?.ToString() ?? "*"}]";
         }
 
-        public bool Equals(
-            Timestamp other)
-            => EqualityComparer<DateTimeOffset?>.Default.Equals(_value, other.Value)
-            && _attributes.Equals(other.Attributes);
-        #endregion
-
-        #region overrides
         public override int GetHashCode()
         {
             return _attributes.Aggregate(

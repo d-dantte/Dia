@@ -1,5 +1,7 @@
-﻿using Axis.Dia.Core.Utils;
+﻿using Axis.Dia.Core.Contracts;
+using Axis.Luna.Extensions;
 using System.Collections;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
@@ -10,11 +12,11 @@ namespace Axis.Dia.Core.Types
         IDefaultContract<Attribute>,
         IEquatable<Attribute>
     {
-        private static readonly Regex KeyPattern = new(
+        internal static readonly Regex KeyPattern = new(
             "^[a-zA-Z_](([.-])?[a-zA-Z0-9_])*\\z",
             RegexOptions.Compiled);
 
-        public DiaType Type { get; }
+        public DiaType Type => DiaType.Attribute;
 
         public string Key { get; }
 
@@ -90,7 +92,7 @@ namespace Axis.Dia.Core.Types
         IDefaultContract<AttributeSet>,
         IEquatable<AttributeSet>
     {
-        private readonly HashSet<Attribute> attributes;
+        private readonly ImmutableHashSet<Attribute> attributes;
 
         #region DefaultContract
 
@@ -112,13 +114,35 @@ namespace Axis.Dia.Core.Types
 
         #region API
 
+        public ImmutableHashSet<string> AttributeKeys => attributes
+            .Select(att => att.Key)
+            .ToImmutableHashSet();
+
         public bool IsEmpty => IsDefault || attributes.Count == 0;
 
         public bool Contains(
             Attribute attribute)
             => !IsDefault && attributes.Contains(attribute);
 
+        public bool ContainsKey(
+            string attributeKey)
+            => !IsDefault && AttributeKeys.Contains(attributeKey);
+
         public int Count => IsDefault ? 0: attributes.Count;
+
+        public bool TryGetAttribute(string key, out Attribute? attribute)
+        {
+            attribute = attributes.FirstOrNull(att => att.Key.Equals(key));
+            return attribute is not null;
+        }
+
+        public bool TryGetAttributes(string key, out ImmutableArray<Attribute> attributes)
+        {
+            attributes = this.attributes
+                .Where(att => att.Key.Equals(key))
+                .ToImmutableArray();
+            return !attributes.IsEmpty; 
+        }
         #endregion
 
         #region overrides
@@ -140,10 +164,9 @@ namespace Axis.Dia.Core.Types
 
         public override int GetHashCode()
         {
-            return IsDefault
-                ? 0 : attributes
-                    .OrderBy(att => $"{att.Key}:{att.Value}")
-                    .Aggregate(0, HashCode.Combine);
+            return IsDefault ? 0 : attributes
+                .OrderBy(att => $"{att.Key}:{att.Value}")
+                .Aggregate(0, HashCode.Combine);
         }
 
         public static bool operator ==(
@@ -159,7 +182,8 @@ namespace Axis.Dia.Core.Types
         #endregion
 
         #region Construction
-        public AttributeSet(params Attribute[] attributes) : this(attributes.AsEnumerable())
+        public AttributeSet(params Attribute[] attributes)
+            : this(attributes.AsEnumerable())
         {
         }
 
@@ -170,7 +194,7 @@ namespace Axis.Dia.Core.Types
                 .ThrowIfAny(
                     att => att.IsDefault,
                     _ => new ArgumentException($"Invalid attribute: default"))
-                .ToHashSet();
+                .ToImmutableHashSet();
         }
 
         public static AttributeSet Of(

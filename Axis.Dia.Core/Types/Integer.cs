@@ -1,5 +1,4 @@
-﻿using Axis.Dia.Core.Utils;
-using System.Collections.Immutable;
+﻿using Axis.Dia.Core.Contracts;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
@@ -9,6 +8,7 @@ namespace Axis.Dia.Core.Types
         IStructValue<BigInteger>,
         IEquatable<Integer>,
         INullContract<Integer>,
+        IValueEquatable<Integer>,
         IDefaultContract<Integer>
     {
         private readonly BigInteger? _value;
@@ -63,18 +63,31 @@ namespace Axis.Dia.Core.Types
 
         #region Equatable
 
+        public bool Equals(Integer other) => ValueEquals(other);
+        #endregion
+
+        #region IValueEquatable
+        public bool ValueEquals(Integer other)
+        {
+            return EqualityComparer<BigInteger?>.Default.Equals(_value, other.Value)
+                && _attributes.Equals(other.Attributes);
+        }
+
+        public int ValueHash()
+        {
+            return _attributes.Aggregate(
+                HashCode.Combine(_value),
+                HashCode.Combine);
+        }
+        #endregion
+
+        #region overrides
+
         public override string ToString()
         {
             return $"[@{Type} {_value?.ToString() ?? "*"}]";
         }
 
-        public bool Equals(
-            Integer other)
-            => EqualityComparer<BigInteger?>.Default.Equals(_value, other.Value)
-            && _attributes.Equals(other.Attributes);
-        #endregion
-
-        #region overrides
         public override int GetHashCode()
         {
             return _attributes.Aggregate(

@@ -1,7 +1,7 @@
 ﻿using Axis.Dia.Types;
 using Axis.Dia.Utils;
-using Axis.Luna.Common.Results;
 using Axis.Luna.Extensions;
+using Axis.Luna.Result;
 using Axis.Pulsar.Grammar.CST;
 using static Axis.Dia.Convert.Axon.SerializerOptions;
 

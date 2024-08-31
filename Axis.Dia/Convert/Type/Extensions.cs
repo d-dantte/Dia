@@ -1,5 +1,4 @@
 ﻿using Axis.Dia.Contracts;
-using Axis.Luna.Common.Numerics;
 using Axis.Luna.Extensions;
 using System.Collections.Immutable;
 using System.Numerics;

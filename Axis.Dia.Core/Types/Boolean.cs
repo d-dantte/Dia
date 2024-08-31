@@ -1,6 +1,5 @@
-﻿using Axis.Dia.Core.Utils;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using Axis.Dia.Core.Contracts;
 
 namespace Axis.Dia.Core.Types
 {
@@ -8,6 +7,7 @@ namespace Axis.Dia.Core.Types
         IStructValue<bool>,
         IEquatable<Boolean>,
         INullContract<Boolean>,
+        IValueEquatable<Boolean>,
         IDefaultContract<Boolean>
     {
         private readonly bool? _value;
@@ -28,9 +28,7 @@ namespace Axis.Dia.Core.Types
             params Attribute[] attributes)
             => new(value, attributes);
 
-        public static implicit operator Boolean(
-            bool? value)
-            => new(value);
+        public static implicit operator Boolean(bool? value) => new(value);
 
         #endregion
 
@@ -43,9 +41,7 @@ namespace Axis.Dia.Core.Types
         #endregion
 
         #region NullContract
-        public static Boolean Null(params
-            Types.Attribute[] attributes)
-            => new(null, attributes);
+        public static Boolean Null(params Types.Attribute[] attributes) => new(null, attributes);
 
         public bool IsNull => _value is null;
         #endregion
@@ -62,38 +58,39 @@ namespace Axis.Dia.Core.Types
 
         #region Equatable
 
-        public override string ToString()
-        {
-            return $"[@{Type} {_value?.ToString() ?? "*"}]";
-        }
-
-        public bool Equals(
-            Boolean other)
-            => EqualityComparer<bool?>.Default.Equals(_value, other.Value)
-            && _attributes.Equals(other.Attributes);
+        public bool Equals(Boolean other) => ValueEquals(other);
         #endregion
 
-        #region overrides
-        public override int GetHashCode()
+        #region IValueEquatable
+        public bool ValueEquals(Boolean other)
+        {
+            return EqualityComparer<bool?>.Default.Equals(_value, other.Value)
+                && _attributes.Equals(other.Attributes);
+        }
+
+        public int ValueHash()
         {
             return _attributes.Aggregate(
                 HashCode.Combine(_value),
                 HashCode.Combine);
         }
+        #endregion
+
+        #region overrides
+        public override string ToString()
+        {
+            return $"[@{Type} {_value?.ToString() ?? "*"}]";
+        }
+
+        public override int GetHashCode() => ValueHash();
 
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is Boolean other && Equals(other);
+            => obj is Boolean other && ValueEquals(other);
 
-        public static bool operator ==(
-            Boolean left,
-            Boolean right)
-            => left.Equals(right);
+        public static bool operator ==(Boolean left, Boolean right) => left.Equals(right);
 
-        public static bool operator !=(
-            Boolean left,
-            Boolean right)
-            => !left.Equals(right);
+        public static bool operator !=(Boolean left, Boolean right) => !left.Equals(right);
 
         #endregion
     }
