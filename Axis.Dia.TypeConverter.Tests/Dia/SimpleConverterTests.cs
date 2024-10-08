@@ -42,7 +42,7 @@ namespace Axis.Dia.TypeConverter.Tests.Dia
             var result = converter.ToDia(typeInfo, null, default!);
             Assert.IsNotNull(result);
             Assert.AreEqual(Core.DiaType.Bool, result.Type);
-            Assert.IsTrue(result.As<INullableContract>().IsNull);
+            Assert.IsTrue(result.As<INullable>().IsNull);
 
             result = converter.ToDia(typeInfo, true, default!);
             Assert.IsTrue(result.Is(out Core.Types.Boolean @bool));

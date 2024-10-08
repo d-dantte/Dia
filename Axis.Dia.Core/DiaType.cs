@@ -6,7 +6,7 @@
     public enum DiaType
     {
         // Unofficial type: Unknown
-        // Unknown = 0,
+        Unknown = 0,
 
         Attribute = 1,
         Bool,

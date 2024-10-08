@@ -72,7 +72,7 @@ namespace Axis.Dia.AxonSerializer.Deserializers
         {
             ArgumentNullException.ThrowIfNull(value);
 
-            if (value.As<INullableContract>().IsNull
+            if (value.As<INullable>().IsNull
                 && value.As<IAttributeContainer>().Attributes
                     .TryGetAttribute(RefMarkerAttribute, out var att))
             {

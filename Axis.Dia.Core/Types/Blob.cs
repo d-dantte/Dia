@@ -29,9 +29,15 @@ namespace Axis.Dia.Core.Types
             params Attribute[] attributes)
             => new(value, attributes);
 
+        public static Blob Of(
+            params byte[] bytes)
+            => new(bytes, []);
+
         public static implicit operator Blob(byte[]? value) => new(value);
 
         public static implicit operator Blob(List<byte>? value) => new(value);
+
+        public static implicit operator Blob(ImmutableArray<byte>? value) => new(value);
 
         #endregion
 
@@ -108,5 +114,7 @@ namespace Axis.Dia.Core.Types
         public static bool operator !=(Blob left, Blob right) => !left.Equals(right);
 
         #endregion
+
+        public bool IsEmpty => _value?.IsEmpty ?? true;
     }
 }

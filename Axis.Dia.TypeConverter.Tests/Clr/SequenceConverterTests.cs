@@ -169,39 +169,39 @@ namespace Axis.Dia.TypeConverter.Tests.Clr
         public void NewCollection()
         {
             var collection = SequenceConverter.NewCollection<int>(
-                typeof(List<int>).ToTypeInfo());
+                typeof(List<int>));
             Assert.IsInstanceOfType<List<int>>(collection);
 
             collection = SequenceConverter.NewCollection<int>(
-                typeof(LinkedList<int>).ToTypeInfo());
+                typeof(LinkedList<int>));
             Assert.IsInstanceOfType<LinkedList<int>>(collection);
 
             collection = SequenceConverter.NewCollection<int>(
-                typeof(FakeCollection<int>).ToTypeInfo());
+                typeof(FakeCollection<int>));
             Assert.IsInstanceOfType<FakeCollection<int>>(collection);
 
             collection = SequenceConverter.NewCollection<int>(
-                typeof(IEnumerable<int>).ToTypeInfo());
+                typeof(IEnumerable<int>));
             Assert.IsInstanceOfType<List<int>>(collection);
 
             collection = SequenceConverter.NewCollection<int>(
-                typeof(ICollection<int>).ToTypeInfo());
+                typeof(ICollection<int>));
             Assert.IsInstanceOfType<List<int>>(collection);
 
             collection = SequenceConverter.NewCollection<int>(
-                typeof(IList<int>).ToTypeInfo());
+                typeof(IList<int>));
             Assert.IsInstanceOfType<List<int>>(collection);
 
             collection = SequenceConverter.NewCollection<int>(
-                typeof(IReadOnlyCollection<int>).ToTypeInfo());
+                typeof(IReadOnlyCollection<int>));
             Assert.IsInstanceOfType<List<int>>(collection);
 
             collection = SequenceConverter.NewCollection<int>(
-                typeof(IReadOnlyList<int>).ToTypeInfo());
+                typeof(IReadOnlyList<int>));
             Assert.IsInstanceOfType<List<int>>(collection);
 
             Assert.ThrowsException<InvalidOperationException>(
-                () => SequenceConverter.NewCollection<int>(typeof(FakeCollection2<int>).ToTypeInfo()));
+                () => SequenceConverter.NewCollection<int>(typeof(FakeCollection2<int>)));
         }
 
         [TestMethod]
@@ -250,19 +250,19 @@ namespace Axis.Dia.TypeConverter.Tests.Clr
         public void NewSet()
         {
             var collection = SequenceConverter.NewSet<int>(
-                typeof(HashSet<int>).ToTypeInfo());
+                typeof(HashSet<int>));
             Assert.IsInstanceOfType<HashSet<int>>(collection);
 
             collection = SequenceConverter.NewSet<int>(
-                typeof(FakeSet<int>).ToTypeInfo());
+                typeof(FakeSet<int>));
             Assert.IsInstanceOfType<FakeSet<int>>(collection);
 
             collection = SequenceConverter.NewSet<int>(
-                typeof(ISet<int>).ToTypeInfo());
+                typeof(ISet<int>));
             Assert.IsInstanceOfType<HashSet<int>>(collection);
 
             Assert.ThrowsException<InvalidOperationException>(
-                () => SequenceConverter.NewSet<int>(typeof(FakeSet2<int>).ToTypeInfo()));
+                () => SequenceConverter.NewSet<int>(typeof(FakeSet2<int>)));
         }
 
         [TestMethod]

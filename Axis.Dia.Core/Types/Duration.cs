@@ -40,9 +40,9 @@ namespace Axis.Dia.Core.Types
             => new(value);
 
         public static Duration Of(
-            long? nanoSEconds,
+            long? nanoSeconds,
             params Attribute[] attributes)
-            => new(nanoSEconds, attributes);
+            => new(nanoSeconds, attributes);
 
         public static implicit operator Duration(
             long? nanoSeconds)
@@ -69,6 +69,8 @@ namespace Axis.Dia.Core.Types
         #region IStructValue
 
         public TimeSpan? Value => _nanoSeconds?.ApplyTo(n => TimeSpan.FromTicks(n/100));
+
+        public long? NanoSeconds => _nanoSeconds;
 
         public AttributeSet Attributes => _attributes;
 

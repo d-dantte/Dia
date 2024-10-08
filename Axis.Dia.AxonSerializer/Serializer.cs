@@ -5,7 +5,7 @@ using Axis.Dia.Core;
 
 namespace Axis.Dia.Axon
 {
-    public class Converter :
+    public class Serializer :
         IValueSerializer<IDiaValue>,
         IValueDeserializer<IDiaValue>
     {

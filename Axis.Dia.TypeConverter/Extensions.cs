@@ -3,6 +3,7 @@ using Axis.Luna.Extensions;
 using Axis.Luna.Numerics;
 using System.Collections.Immutable;
 using System.Numerics;
+using System.Reflection;
 
 namespace Axis.Dia.TypeConverter
 {
@@ -371,6 +372,12 @@ namespace Axis.Dia.TypeConverter
             return !genericTypeArguments.IsEmpty;
         }
 
+        internal static bool HasNoArgConstructor(this Type type)
+        {
+            return type
+                .GetConstructors(BindingFlags.Instance | BindingFlags.Public)
+                .Any(ctor => ctor.GetParameters().IsEmpty());
+        }
 
         internal static void ForEvery(
             this System.Collections.IEnumerable enm,

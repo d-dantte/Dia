@@ -26,13 +26,13 @@ namespace Axis.Dia.AxonSerializer.Tests
                 .Builder()
                 .Build();
             var cxt = new SerializerContext(options);
-            var text = Converter.Serialize(rec, cxt);
+            var text = Serializer.Serialize(rec, cxt);
 
             var expectedText = "#0; @flag.abc; @flag.xyz;{abcd: 5.2E-4, selense: #1; [true, \"me\"], when: 'Timestamp 2024-07-25 19:26:41.9781812 +01:00'}";
             Assert.AreEqual(expectedText, text);
 
             rec["self.ref"] = rec;
-            text = Converter.Serialize(rec, new SerializerContext(options));
+            text = Serializer.Serialize(rec, new SerializerContext(options));
             expectedText = "#0; @flag.abc; @flag.xyz;{abcd: 5.2E-4, selense: #1; [true, \"me\"], when: 'Timestamp 2024-07-25 19:26:41.9781812 +01:00', self.ref: 'Ref:Record 0x0'}";
             Assert.AreEqual(expectedText, text);
 
@@ -42,7 +42,7 @@ namespace Axis.Dia.AxonSerializer.Tests
                 .WithRecordUseMultiline(true)
                 .WithSequenceUseMultiline(true)
                 .Build();
-            text = Converter.Serialize(rec, new SerializerContext(options));
+            text = Serializer.Serialize(rec, new SerializerContext(options));
             expectedText = "#0; @flag.abc; @flag.xyz;{\r\n    abcd: 5.2E-4,\r\n    selense: #1; [\r\n        true,\r\n        \"me\"\r\n    ],\r\n    when: 'Timestamp 2024-07-25 19:26:41.9781812 +01:00',\r\n    self.ref: 'Ref:Record 0x0'\r\n}";
             Assert.AreEqual(expectedText, text);
         }
@@ -51,7 +51,7 @@ namespace Axis.Dia.AxonSerializer.Tests
         public void Deserialize_Tests()
         {
             var text = "#0; @flag.abc; @flag.xyz;{\r\n    abcd: 5.2E-4,\r\n    selense: #1; [\r\n        true,\r\n        \"me\"\r\n    ],\r\n    when: 'Timestamp 2024-07-25 19:00:00.1234567 +01:00',\r\n    self.ref: 'Ref:Record 0x0'\r\n}";
-            var value = Converter.Deserialize(text);
+            var value = Serializer.Deserialize(text);
 
             var expected = new Record(["flag.abc", "flag.xyz"], [])
             {

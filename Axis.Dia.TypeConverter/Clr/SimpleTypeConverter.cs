@@ -38,7 +38,7 @@ namespace Axis.Dia.TypeConverter.Clr
                 throw new InvalidOperationException(
                     $"Invalid Dia - Simple-Type conversion [source: {sourceInstance.Type}, destination: {destinationTypeInfo.Type}]");
 
-            if (sourceInstance.As<INullableContract>().IsNull)
+            if (sourceInstance.As<INullable>().IsNull)
                 return null;
 
             else if (destinationTypeInfo.Type.IsBoolean(out _))

@@ -2,7 +2,7 @@
 
 namespace Axis.Dia.Core.Contracts
 {
-    public interface INullableContract
+    public interface INullable
     {
         /// <summary>
         /// Indicates if this is a null value for the type
@@ -11,7 +11,7 @@ namespace Axis.Dia.Core.Contracts
     }
 
     public interface INullContract<TSelf>
-        : INullableContract
+        : INullable
         where TSelf : struct, INullContract<TSelf>
     {
         /// <summary>

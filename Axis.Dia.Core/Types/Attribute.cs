@@ -24,6 +24,8 @@ namespace Axis.Dia.Core.Types
 
         public bool HasValue => Value is not null;
 
+        public bool IsScalar => !HasValue;
+
         public bool IsDefault => Key is null && Value is null;
 
         public static Attribute Default => default;
@@ -94,6 +96,10 @@ namespace Axis.Dia.Core.Types
     {
         private readonly ImmutableHashSet<Attribute> attributes;
 
+        private IEnumerable<Attribute> Ordered => !IsDefault
+            ? attributes.OrderBy(att => $"{att.Key}:{att.Value}")
+            : [];
+
         #region DefaultContract
 
         public static AttributeSet Default => default;
@@ -106,7 +112,7 @@ namespace Axis.Dia.Core.Types
         {
             return IsDefault
                 ? Enumerable.Empty<Attribute>().GetEnumerator()
-                : attributes.GetEnumerator();
+                : Ordered.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -118,7 +124,7 @@ namespace Axis.Dia.Core.Types
             .Select(att => att.Key)
             .ToImmutableHashSet();
 
-        public bool IsEmpty => IsDefault || attributes.Count == 0;
+        public bool IsEmpty => IsDefault || attributes.IsEmpty;
 
         public bool Contains(
             Attribute attribute)
@@ -164,9 +170,9 @@ namespace Axis.Dia.Core.Types
 
         public override int GetHashCode()
         {
-            return IsDefault ? 0 : attributes
-                .OrderBy(att => $"{att.Key}:{att.Value}")
-                .Aggregate(0, HashCode.Combine);
+            return !IsDefault
+                ? Ordered.Aggregate(0, HashCode.Combine)
+                : 0;
         }
 
         public static bool operator ==(

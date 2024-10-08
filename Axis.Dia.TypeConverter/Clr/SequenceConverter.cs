@@ -18,13 +18,17 @@ namespace Axis.Dia.TypeConverter.Clr
 
         public bool CanConvert(DiaType sourceType, TypeInfo destinationTypeInfo)
         {
-            return DiaType.Sequence.Equals(sourceType) &&
-               (IsArray(destinationTypeInfo)
-               || IsImmutableArray(destinationTypeInfo)
-               || IsImmutableList(destinationTypeInfo)
-               || IsSet(destinationTypeInfo)
-               || IsCollection(destinationTypeInfo)
-               || IsEnumerable(destinationTypeInfo));
+            return sourceType switch
+            {
+                DiaType.Sequence =>
+                    IsArray(destinationTypeInfo)
+                    || IsImmutableArray(destinationTypeInfo)
+                    || IsImmutableList(destinationTypeInfo)
+                    || IsSet(destinationTypeInfo)
+                    || IsCollection(destinationTypeInfo)
+                    || IsEnumerable(destinationTypeInfo),
+                _ => false
+            };
         }
 
         public object? ToClr(
@@ -40,6 +44,10 @@ namespace Axis.Dia.TypeConverter.Clr
                     $"Invalid sequence conversion [source: {sourceInstance.Type}, destination: {destinationTypeInfo.Type}]");
 
             var sequence = sourceInstance.As<Sequence>();
+
+            if (sequence.IsNull)
+                return null;
+
             return destinationTypeInfo switch
             {
                 TypeInfo info when IsArray(info) => ToArray(sequence, destinationTypeInfo, context),
@@ -83,8 +91,11 @@ namespace Axis.Dia.TypeConverter.Clr
             TypeInfo destinationTypeInfo,
             ConverterContext context)
         {
+            if (!IsArray(destinationTypeInfo))
+                throw new ArgumentException($"Invalid {nameof(destinationTypeInfo)}: Not an Array");
+
             var itemTypeInfo = typeof(TItemType).ToTypeInfo();
-            if (context.Tracker.TryAdd(sequence, seq => new TItemType[seq.As<Sequence>().Count], out var array))
+            if (context.Tracker.TryAdd(sequence, destinationTypeInfo.Type, (seq, _) => new TItemType[seq.As<Sequence>().Count], out var array))
             {
                 sequence
                     .Select(value => context.ValueConverter.ToClr(value.Payload, itemTypeInfo, context))
@@ -132,6 +143,9 @@ namespace Axis.Dia.TypeConverter.Clr
             TypeInfo destinationTypeInfo,
             ConverterContext context)
         {
+            if (!IsImmutableArray(destinationTypeInfo))
+                throw new ArgumentException($"Invalid {nameof(destinationTypeInfo)}: Not an ImmutableArray");
+
             var itemTypeInfo = typeof(TItemType).ToTypeInfo();
             return sequence
                 .Select(value => context.ValueConverter.ToClr(value.Payload, itemTypeInfo, context))
@@ -178,6 +192,9 @@ namespace Axis.Dia.TypeConverter.Clr
             TypeInfo destinationTypeInfo,
             ConverterContext context)
         {
+            if (!IsImmutableList(destinationTypeInfo))
+                throw new ArgumentException($"Invalid {nameof(destinationTypeInfo)}: Not an ImmutableList");
+
             var itemTypeInfo = typeof(TItemType).ToTypeInfo();
             return sequence
                 .Select(value => context.ValueConverter.ToClr(value.Payload, itemTypeInfo, context))
@@ -224,8 +241,11 @@ namespace Axis.Dia.TypeConverter.Clr
             TypeInfo destinationTypeInfo,
             ConverterContext context)
         {
+            if (!IsCollection(destinationTypeInfo) && !IsEnumerable(destinationTypeInfo))
+                throw new ArgumentException($"Invalid {nameof(destinationTypeInfo)}: Not a supported collection/enumerable");
+
             var itemTypeInfo = typeof(TItemType).ToTypeInfo();
-            if (context.Tracker.TryAdd(sequence, _ => NewCollection<TItemType>(destinationTypeInfo), out var collection))
+            if (context.Tracker.TryAdd(sequence, destinationTypeInfo.Type, (seq, type) => NewCollection<TItemType>(type), out var collection))
             {
                 sequence
                     .Select(value => context.ValueConverter.ToClr(value.Payload, itemTypeInfo, context))
@@ -250,13 +270,13 @@ namespace Axis.Dia.TypeConverter.Clr
                 && typeInfo.Type.IsOrImplementsGenericInterface(typeof(IEnumerable<>));
         }
 
-        internal static ICollection<TItemType> NewCollection<TItemType>(TypeInfo destinationTypeInfo)
+        internal static ICollection<TItemType> NewCollection<TItemType>(Type destinationType)
         {
-            return destinationTypeInfo.Type switch
+            return destinationType switch
             {
                 Type t when t.Equals(typeof(List<TItemType>)) => new List<TItemType>(),
                 Type t when t.Equals(typeof(LinkedList<TItemType>)) => new LinkedList<TItemType>(),
-                Type t when HasNoArgConstructor(t) => Activator.CreateInstance(t).As<ICollection<TItemType>>(),
+                Type t when t.HasNoArgConstructor() => Activator.CreateInstance(t).As<ICollection<TItemType>>(),
 
                 // collection interfaces
                 Type t when t.Equals(typeof(IEnumerable<TItemType>))
@@ -265,7 +285,7 @@ namespace Axis.Dia.TypeConverter.Clr
                 || t.Equals(typeof(IReadOnlyList<TItemType>))
                 || t.Equals(typeof(IReadOnlyCollection<TItemType>)) => new List<TItemType>(),
 
-                _ => throw new InvalidOperationException($"Invalid collection type: {destinationTypeInfo.Type}")
+                _ => throw new InvalidOperationException($"Invalid collection type: '{destinationType}'")
             };
         }
         #endregion
@@ -301,8 +321,11 @@ namespace Axis.Dia.TypeConverter.Clr
             TypeInfo destinationTypeInfo,
             ConverterContext context)
         {
+            if (!IsSet(destinationTypeInfo))
+                throw new ArgumentException($"Invalid {nameof(destinationTypeInfo)}: Not a Set");
+
             var itemTypeInfo = typeof(TItemType).ToTypeInfo();
-            if (context.Tracker.TryAdd(sequence, _ => NewSet<TItemType>(destinationTypeInfo), out var set))
+            if (context.Tracker.TryAdd(sequence, destinationTypeInfo.Type, (seq, type) => NewSet<TItemType>(type), out var set))
             {
                 sequence
                     .Select(value => context.ValueConverter.ToClr(value.Payload, itemTypeInfo, context))
@@ -313,17 +336,17 @@ namespace Axis.Dia.TypeConverter.Clr
             return set;
         }
 
-        internal static ISet<TItemType> NewSet<TItemType>(TypeInfo destinationTypeInfo)
+        internal static ISet<TItemType> NewSet<TItemType>(Type destinationType)
         {
-            return destinationTypeInfo.Type switch
+            return destinationType switch
             {
                 Type t when t.Equals(typeof(HashSet<TItemType>)) => new HashSet<TItemType>(),
-                Type t when HasNoArgConstructor(t) => Activator.CreateInstance(t).As<ISet<TItemType>>(),
+                Type t when t.HasNoArgConstructor() => Activator.CreateInstance(t).As<ISet<TItemType>>(),
 
                 // set interfaces
                 Type t when t.Equals(typeof(ISet<TItemType>)) => new HashSet<TItemType>(),
 
-                _ => throw new InvalidOperationException($"Invalid set type: {destinationTypeInfo.Type}")
+                _ => throw new InvalidOperationException($"Invalid set type: {destinationType}")
             };
         }
 
@@ -341,13 +364,6 @@ namespace Axis.Dia.TypeConverter.Clr
             return template.Replace(
                 ContextHashParam,
                 context.GetHashCode().ToString());
-        }
-
-        private static bool HasNoArgConstructor(Type type)
-        {
-            return type
-                .GetConstructors(BindingFlags.Instance | BindingFlags.Public)
-                .Any(ctor => ctor.GetParameters().IsEmpty());
         }
     }
 }

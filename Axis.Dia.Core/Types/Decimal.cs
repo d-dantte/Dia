@@ -4,6 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Axis.Dia.Core.Types
 {
+    /// <summary>
+    /// TODO: support NAN, and +/-Infinity
+    /// </summary>
     public readonly struct Decimal :
         IStructValue<BigDecimal>,
         IEquatable<Decimal>,
