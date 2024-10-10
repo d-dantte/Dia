@@ -1,6 +1,5 @@
 ﻿using Axis.Dia.Axon;
 using Axis.Dia.Axon.Deserializers;
-using Axis.Dia.Core;
 using Axis.Luna.Extensions;
 using Axis.Pulsar.Core.CST;
 using static Axis.Pulsar.Core.CST.ISymbolNode;

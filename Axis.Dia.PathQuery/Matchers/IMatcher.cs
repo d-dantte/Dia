@@ -1,8 +1,8 @@
 ﻿using Axis.Dia.PathQuery.Grammar;
 using Axis.Luna.Extensions;
 using Axis.Pulsar.Core.CST;
-using Axis.Dia.Core;
 using static Axis.Pulsar.Core.CST.ISymbolNode;
+using Axis.Dia.Core.Contracts;
 
 namespace Axis.Dia.PathQuery.Matchers
 {

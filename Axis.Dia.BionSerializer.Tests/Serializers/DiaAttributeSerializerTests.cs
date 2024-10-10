@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.BionSerializer.Serializers;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
 
 namespace Axis.Dia.BionSerializer.Tests.Serializers
 {

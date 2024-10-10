@@ -182,7 +182,7 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Equatable
-        public bool Equals(RecordValue? other) => Equals(other, false);
+        public bool ValueEquals(RecordValue? other) => Equals(other, false);
 
         public bool Equals(RecordValue? other, bool ignorePropertyKeyAnnotations)
         {
@@ -195,7 +195,7 @@ namespace Axis.Dia.Types
         #region Overrides
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is RecordValue other && Equals(other);
+            => obj is RecordValue other && ValueEquals(other);
 
         public override int GetHashCode()
         {
@@ -222,7 +222,7 @@ namespace Axis.Dia.Types
 
         #region operators
 
-        public static bool operator ==(RecordValue lhs, RecordValue rhs) => lhs.Equals(rhs);
+        public static bool operator ==(RecordValue lhs, RecordValue rhs) => lhs.ValueEquals(rhs);
 
         public static bool operator !=(RecordValue lhs, RecordValue rhs) => !(lhs != rhs);
         #endregion
@@ -276,7 +276,7 @@ namespace Axis.Dia.Types
                 {
                     if (propertyName.HasAnnotations())
                     {
-                        if (_symbolMap![propertyName.Value!].Equals(propertyName))
+                        if (_symbolMap![propertyName.Value!].ValueEquals(propertyName))
                             return value;
 
                         else throw new KeyNotFoundException($"{propertyName}");
@@ -298,7 +298,7 @@ namespace Axis.Dia.Types
                 return false;
 
             return _symbolMap!.TryGetValue(propertyName.Value!, out var symbol)
-                && symbol.Equals(propertyName);
+                && symbol.ValueEquals(propertyName);
         }
 
         public bool ContainsKey(string propertyName)

@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.Core.Contracts;
+using Axis.Dia.Core.Utils;
 using Axis.Luna.Extensions;
 using System.Diagnostics.CodeAnalysis;
 
@@ -15,15 +16,25 @@ namespace Axis.Dia.Core.Types
         IRefEquatable<Sequence>,
         IValueEquatable<Sequence>,
         IDefaultContract<Sequence>,
-        IValueContainer<Sequence, ContainerValue>
+        IValueContainer<Sequence, DiaValue>
     {
-        private readonly List<ContainerValue>? _items;
+        /// <summary>
+        /// Recursion Guard.
+        /// <para/>
+        /// To avoid infinite recursion in situations where this sequence contains itself, and is compared with itself.
+        /// </summary>
+        private static readonly AsyncLocal<HashSet<(Sequence First, Sequence Second)>> EqualityRecursionGuard = new()
+        {
+            Value = []
+        };
+
+        private readonly List<DiaValue>? _items;
         private readonly AttributeSet _attributes;
 
         #region Construction
 
         public Sequence(
-            IEnumerable<ContainerValue>? items,
+            IEnumerable<DiaValue>? items,
             params Attribute[] attributes)
         {
             ArgumentNullException.ThrowIfNull(attributes);
@@ -39,36 +50,36 @@ namespace Axis.Dia.Core.Types
 
         public Sequence(
             Attribute[] attributes,
-            params ContainerValue[] items)
+            params DiaValue[] items)
             : this(items, attributes)
         { }
 
         public Sequence(
-            params ContainerValue[] items)
+            params DiaValue[] items)
             : this(items, Array.Empty<Attribute>())
         { }
 
         public Sequence()
-            : this(Array.Empty<ContainerValue>())
+            : this(Array.Empty<DiaValue>())
         { }
 
 
         public static implicit operator Sequence(
-            ContainerValue[] items)
+            DiaValue[] items)
             => new(items);
 
         public static Sequence Of(
-            IEnumerable<ContainerValue>? items,
+            IEnumerable<DiaValue>? items,
             params Attribute[] attributes)
             => new(items, attributes);
 
         public static Sequence Of(
             Attribute[] attributes,
-            params ContainerValue[]? items)
+            params DiaValue[]? items)
             => new(items, attributes);
 
         public static Sequence Of(
-            params ContainerValue[] items)
+            params DiaValue[] items)
             => new(items, []);
 
         #endregion
@@ -103,30 +114,75 @@ namespace Axis.Dia.Core.Types
 
         public static Sequence Empty() => Empty([]);
 
-        public bool IsEmpty => _items is null || _items.Count == 0;
+        public bool IsEmpty => (_items?.Count ?? 0) == 0;
 
-        public int Count => _items is not null
-            ? _items.Count
-            : 0;
+        public int Count => IsEmpty ? 0 : _items!.Count;
 
         public AttributeSet Attributes => _attributes;
 
-        public bool RefEquals(IRefValue<IEnumerable<ContainerValue>> other)
+        public IEnumerable<DiaValue>? Value => _items?.Select(item => item);
+
+        public IEnumerator<DiaValue> GetEnumerator()
+            => _items is null
+            ? Enumerable.Empty<DiaValue>().GetEnumerator()
+            : _items!.GetEnumerator();
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+
+        #region Add
+        public void Add(DiaValue item) => AddItem(item);
+
+        public Sequence AddItem(DiaValue item)
+        {
+            AssertNonDefault();
+
+            _items!.Add(item);
+            return this;
+        }
+
+        public void AddAll(params DiaValue[] items) => AddAllItems(items);
+
+        public Sequence AddAllItems(params DiaValue[] items)
+        {
+            ArgumentNullException.ThrowIfNull(items);
+
+            items.ForEvery(Add);
+            return this;
+        }
+        #endregion
+
+        #region Remove
+        public void Remove(DiaValue item) => RemoveItem(item);
+
+        public Sequence RemoveItem(DiaValue item)
+        {
+            AssertNonDefault();
+            _items!.Remove(item);
+            return this;
+        }
+
+        public void RemoveAll(params DiaValue[] items) => RemoveAllItems(items);
+
+        public Sequence RemoveAllItems(params DiaValue[] items)
+        {
+            ArgumentNullException.ThrowIfNull(items);
+
+            items.ForEvery(Remove);
+            return this;
+        }
+        #endregion
+
+        #endregion
+
+        #region IRefValue
+
+        public bool RefEquals(IRefValue<IEnumerable<DiaValue>> other)
         {
             if (other is Sequence otherSeq)
                 return ReferenceEquals(_items, otherSeq._items);
 
             return false;
         }
-
-        public IEnumerable<ContainerValue>? Value => _items?.Select(item => item);
-
-        public IEnumerator<ContainerValue> GetEnumerator()
-            => _items is null
-            ? Enumerable.Empty<ContainerValue>().GetEnumerator()
-            : _items!.GetEnumerator();
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
         #endregion
 
@@ -144,19 +200,30 @@ namespace Axis.Dia.Core.Types
 
         public bool ValueEquals(Sequence other)
         {
+            if (RefEquals(other))
+                return true;
+
             if (IsNull && other.IsNull)
                 return true;
 
             if (IsNull ^ other.IsNull)
                 return false;
 
-            if (!_attributes.Equals(other._attributes))
+            if (!_attributes.ValueEquals(other._attributes))
                 return false;
 
             if (_items!.Count != other._items!.Count)
                 return false;
 
-            return _items!.SequenceEqual(other._items!);
+            if (_items.Count == 0)
+                return true;
+
+            return EqualityRecursionGuard.RecursionGuard(
+                (First: this, Second: other),
+                pair => pair.First._items!
+                    .Select((item, index) => (Item: item, Index: index))
+                    .All(tuple => tuple.Item.ValueEquals(pair.Second._items![tuple.Index])),
+                true);
         }
 
         public int ValueHash()
@@ -198,113 +265,78 @@ namespace Axis.Dia.Core.Types
 
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is Sequence other && Equals(other);
+            => obj is Sequence other && ValueEquals(other);
 
         public static bool operator ==(
             Sequence left,
             Sequence right)
-            => left.Equals(right);
+            => left.ValueEquals(right);
 
         public static bool operator !=(
             Sequence left,
             Sequence right)
-            => !left.Equals(right);
+            => !left.ValueEquals(right);
 
         #endregion
 
-        #region List Api - All methods here throw NullReferenceException if the instance is Default/Null
+        #region Api
 
-        public ContainerValue this[int index]
+        public DiaValue this[int index]
         {
-            get => _items![index];
-            set => _items![index] = value.IsDefault
-                ? throw new ArgumentException($"Invalid value: default")
-                : value;
+            get
+            {
+                AssertNonDefault();
+                return _items![index];
+            }
+            set
+            {
+                AssertNonDefault();
+                _items![index] = value.IsDefault
+                    ? throw new ArgumentException($"Invalid value: default")
+                    : value;
+            }
         }
 
-        public void Set(int index, IDiaValue value) => this[index] = ContainerValue.Of(value);
+        public void Set(int index, DiaValue value) => this[index] = value;
 
-        public bool ContainsValue(ContainerValue value) => _items!.Contains(value);
-
-        #region Add
-        public void Add(ContainerValue value) => AddItem(value);
-
-        public Sequence AddItem(ContainerValue item)
-        {
-            _items!.Add(item);
-            return this;
-        }
-
-        public Sequence AddItem(
-            IDiaValue value)
-            => AddItem(ContainerValue.Of(value));
-
-        public void AddAll(IEnumerable<ContainerValue> items) => AddItems(items);
-
-        public void AddAll(
-            IEnumerable<IDiaValue> items)
-            => AddAll(items.Select(ContainerValue.Of));
-
-        public void AddAll(
-            params ContainerValue[] items)
-            => AddAll(items as IEnumerable<ContainerValue>);
-
-        public void AddAll(
-            params IDiaValue[] items)
-            => AddAll(items as IEnumerable<IDiaValue>);
-
-        public Sequence AddItems(IEnumerable<ContainerValue> items)
-        {
-            _items!.AddRange(items);
-            return this;
-        }
-
-        public Sequence AddItems(
-            IEnumerable<IDiaValue> items)
-            => AddItems(items.Select(ContainerValue.Of));
-
-        public Sequence AddItems(
-            params ContainerValue[] items)
-            => AddItems(items as IEnumerable<ContainerValue>);
-
-        public Sequence AddItems(
-            params IDiaValue[] items)
-            => AddItems(items.Select(ContainerValue.Of).ToArray());
-        #endregion
+        public bool ContainsValue(DiaValue value) => AssertNonDefault(@this => @this._items!.Contains(value));
 
         #region Insert
-        public Sequence InsertItemAt(int index, ContainerValue item)
+        public Sequence InsertItemAt(int index, DiaValue item)
         {
+            AssertNonDefault();
             _items!.Insert(index, item);
             return this;
         }
 
-        public ContainerValue InsertAt(int index, ContainerValue item)
+        public DiaValue InsertAt(int index, DiaValue item)
         {
+            AssertNonDefault();
             _items!.Insert(index, item);
             return item;
         }
 
         public Sequence InsertItemAt(int index, IDiaValue item)
-            => InsertItemAt(index, ContainerValue.Of(item));
+            => InsertItemAt(index, DiaValue.Of(item));
 
-        public ContainerValue InsertAt(int index, IDiaValue item)
-            => InsertAt(index, ContainerValue.Of(item));
+        public DiaValue InsertAt(int index, IDiaValue item)
+            => InsertAt(index, DiaValue.Of(item));
         #endregion
 
         #region Remove
         public bool TryRemove(
-            ContainerValue item)
-            => _items!.Remove(item);
+            DiaValue item)
+            => AssertNonDefault(@this => @this._items!.Remove(item));
 
         public bool TryRemove(
             IDiaValue item)
-            => TryRemove(ContainerValue.Of(item));
+            => TryRemove(DiaValue.Of(item));
 
         public bool TryRemoveAt(
             int index,
-            out ContainerValue? item)
+            out DiaValue? item)
         {
+            AssertNonDefault();
             if (index >= 0 && index < _items!.Count)
             {
                 item = _items![index];
@@ -317,6 +349,18 @@ namespace Axis.Dia.Core.Types
         }
 
         #endregion
+
+        private void AssertNonDefault()
+        {
+            if (IsDefault)
+                throw new InvalidOperationException($"Invalid record instance: default");
+        }
+
+        private T AssertNonDefault<T>(Func<Sequence, T> func)
+        {
+            AssertNonDefault();
+            return func.Invoke(this);
+        }
 
         #endregion
     }

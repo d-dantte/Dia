@@ -131,7 +131,7 @@ namespace Axis.Dia.Tests.Types
             Assert.IsNull(value.Value);
 
             value = ListValue.Null(Annotation.Of("stuff"));
-            Assert.IsFalse(ListValue.Null().Equals(value));
+            Assert.IsFalse(ListValue.Null().ValueEquals(value));
             Assert.IsTrue(ListValue.Null().ValueEquals(value));
             Assert.AreEqual(ListValue.Null().Value, value.Value);
             Assert.AreNotEqual(ListValue.Null().Annotations.Length, value.Annotations.Length);
@@ -156,9 +156,9 @@ namespace Axis.Dia.Tests.Types
             ListValue second = ArrayUtil.Of<IDiaValue>(SymbolValue.Of("things"));
             ListValue third = ListValue.Of(ArrayUtil.Of<Annotation>("annotated"), IntValue.Of(345));
 
-            Assert.IsTrue(first.Equals(first));
-            Assert.IsFalse(first.Equals(third));
-            Assert.IsFalse(first.Equals(second));
+            Assert.IsTrue(first.ValueEquals(first));
+            Assert.IsFalse(first.ValueEquals(third));
+            Assert.IsFalse(first.ValueEquals(second));
         }
 
         [TestMethod]

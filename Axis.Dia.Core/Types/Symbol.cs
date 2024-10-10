@@ -41,6 +41,10 @@ namespace Axis.Dia.Core.Types
             params Attribute[] attributes)
             => new(value, attributes);
 
+        public static implicit operator Symbol(
+            string? value)
+            => new(value);
+
         #endregion
 
         #region DefaultContract
@@ -89,7 +93,7 @@ namespace Axis.Dia.Core.Types
         public bool ValueEquals(Symbol other)
         {
             return EqualityComparer<string?>.Default.Equals(_ref, other.Value)
-                && _attributes.Equals(other.Attributes);
+                && _attributes.ValueEquals(other.Attributes);
         }
 
         public int ValueHash()
@@ -140,17 +144,17 @@ namespace Axis.Dia.Core.Types
 
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is Symbol other && Equals(other);
+            => obj is Symbol other && ValueEquals(other);
 
         public static bool operator ==(
             Symbol left,
             Symbol right)
-            => left.Equals(right);
+            => left.ValueEquals(right);
 
         public static bool operator !=(
             Symbol left,
             Symbol right)
-            => !left.Equals(right);
+            => !left.ValueEquals(right);
 
         #endregion
     }

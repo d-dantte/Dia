@@ -84,7 +84,7 @@ namespace Axis.Dia.Core.Types
         public bool ValueEquals(String other)
         {
             return EqualityComparer<string?>.Default.Equals(_ref, other.Value)
-                && _attributes.Equals(other.Attributes);
+                && _attributes.ValueEquals(other.Attributes);
         }
 
         public int ValueHash()
@@ -135,17 +135,17 @@ namespace Axis.Dia.Core.Types
 
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is String other && Equals(other);
+            => obj is String other && ValueEquals(other);
 
         public static bool operator ==(
             String left,
             String right)
-            => left.Equals(right);
+            => left.ValueEquals(right);
 
         public static bool operator !=(
             String left,
             String right)
-            => !left.Equals(right);
+            => !left.ValueEquals(right);
 
         #endregion
     }

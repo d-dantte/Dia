@@ -37,15 +37,15 @@ namespace Axis.Dia.AxonSerializer.Tests.Deserializers
 
             result = RecordDeserializer.Deserialize("#2; {}", cxt);
             Assert.IsTrue(cxt.ReferenceMap.TryGetRef(2, out var r));
-            Assert.IsTrue(result.Equals((Record)r!));
+            Assert.IsTrue(result.ValueEquals((Record)r!));
 
             result = RecordDeserializer.Deserialize("#6; {some.thing.else: 65456}", cxt);
             Assert.IsTrue(cxt.ReferenceMap.TryGetRef(6, out r));
-            Assert.IsTrue(result.Equals((Record)r!));
+            Assert.IsTrue(result.ValueEquals((Record)r!));
 
             result = RecordDeserializer.Deserialize("#7; {more: @bleh; []}", cxt);
             Assert.IsTrue(cxt.ReferenceMap.TryGetRef(7, out r));
-            Assert.IsTrue(result.Equals((Record)r!));
+            Assert.IsTrue(result.ValueEquals((Record)r!));
 
             cxt = new();
             result = RecordDeserializer.Deserialize("#2; {abcd: 1, \"xyz\": 'Ref:Record 0x2', some.thing.else: 65.6E-2, more: @bleh; []}", cxt);

@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.Core;
+using Axis.Dia.Core.Contracts;
 using Axis.Dia.Core.Types;
 using Axis.Luna.Extensions;
 
@@ -39,7 +40,7 @@ namespace Axis.Dia.TypeConverter.Dia
                 sourceInstance
                     .As<System.Collections.IEnumerable>()
                     .SelectObject(obj => context.ValueConverter.ToDia(itemTypeInfo, obj, context))
-                    .Select(ContainerValue.Of)
+                    .Select(DiaValue.Of)
                     .ForEvery(seq.Add);
             }
 

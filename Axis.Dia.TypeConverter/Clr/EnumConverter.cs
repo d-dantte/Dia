@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.Core;
+using Axis.Dia.Core.Contracts;
 using Axis.Luna.Extensions;
 
 namespace Axis.Dia.TypeConverter.Clr

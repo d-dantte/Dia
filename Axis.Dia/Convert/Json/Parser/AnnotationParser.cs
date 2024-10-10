@@ -45,7 +45,7 @@ namespace Axis.Dia.Convert.Json.Parser
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            if (Annotation.Default.Equals(annotation))
+            if (Annotation.Default.ValueEquals(annotation))
                 return Result.Of<string>(new ArgumentException($"Invalid anntotation: {annotation}"));
 
             return annotation.Text

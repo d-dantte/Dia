@@ -105,7 +105,7 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Equatable
-        public bool Equals(ClobValue other)
+        public bool ValueEquals(ClobValue other)
         {
             return ValueEquals(other)
                 && Enumerable.SequenceEqual(Annotations, other._annotations);
@@ -115,7 +115,7 @@ namespace Axis.Dia.Types
         #region Overrides
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is ClobValue other && Equals(other);
+            => obj is ClobValue other && ValueEquals(other);
 
         public override int GetHashCode()
         {
@@ -136,7 +136,7 @@ namespace Axis.Dia.Types
 
         #region operators
 
-        public static bool operator ==(ClobValue lhs, ClobValue rhs) => lhs.Equals(rhs);
+        public static bool operator ==(ClobValue lhs, ClobValue rhs) => lhs.ValueEquals(rhs);
 
         public static bool operator !=(ClobValue lhs, ClobValue rhs) => !(lhs != rhs);
         #endregion

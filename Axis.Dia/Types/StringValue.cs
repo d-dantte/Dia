@@ -102,7 +102,7 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Equatable
-        public bool Equals(StringValue other)
+        public bool ValueEquals(StringValue other)
         {
             return ValueEquals(other)
                 && Enumerable.SequenceEqual(Annotations, other.Annotations);
@@ -112,7 +112,7 @@ namespace Axis.Dia.Types
         #region Overrides
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is StringValue other && Equals(other);
+            => obj is StringValue other && ValueEquals(other);
 
         public override int GetHashCode()
         {
@@ -133,7 +133,7 @@ namespace Axis.Dia.Types
 
         #region operators
 
-        public static bool operator ==(StringValue lhs, StringValue rhs) => lhs.Equals(rhs);
+        public static bool operator ==(StringValue lhs, StringValue rhs) => lhs.ValueEquals(rhs);
 
         public static bool operator !=(StringValue lhs, StringValue rhs) => !(lhs != rhs);
         #endregion

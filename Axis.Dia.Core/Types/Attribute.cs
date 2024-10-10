@@ -1,7 +1,5 @@
 ﻿using Axis.Dia.Core.Contracts;
 using Axis.Luna.Extensions;
-using System.Collections;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
@@ -10,7 +8,8 @@ namespace Axis.Dia.Core.Types
     public readonly struct Attribute:
         IDiaType,
         IDefaultContract<Attribute>,
-        IEquatable<Attribute>
+        IEquatable<Attribute>,
+        IValueEquatable<Attribute>
     {
         internal static readonly Regex KeyPattern = new(
             "^[a-zA-Z_](([.-])?[a-zA-Z0-9_])*\\z",
@@ -69,151 +68,31 @@ namespace Axis.Dia.Core.Types
         #region Overrides
         public override string ToString()
         {
-            return $"[@{Type} {Key}:{Value}]";
+            return IsScalar switch
+            {
+                false => $"[@{Type} {Key}:{Value}]",
+                true => $"[@{Type} {Key}]"
+            };
         }
 
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is Attribute other && Equals(other);
+            => obj is Attribute other && ValueEquals(other);
 
-        public bool Equals(
+        public bool ValueEquals(
             Attribute other)
             => EqualityComparer<string>.Default.Equals(Key, other.Key)
             && EqualityComparer<string>.Default.Equals(Value, other.Value);
 
+        public bool Equals(Attribute other) => ValueEquals(other);
+
         public override int GetHashCode() => HashCode.Combine(Key, Value);
 
-        public static bool operator ==(Attribute left, Attribute right) => left.Equals(right);
+        public int ValueHash() => GetHashCode();
+
+        public static bool operator ==(Attribute left, Attribute right) => left.ValueEquals(right);
 
         public static bool operator !=(Attribute left, Attribute right) => !(left == right);
-        #endregion
-    }
-
-    public readonly struct AttributeSet :
-        IEnumerable<Attribute>,
-        IDefaultContract<AttributeSet>,
-        IEquatable<AttributeSet>
-    {
-        private readonly ImmutableHashSet<Attribute> attributes;
-
-        private IEnumerable<Attribute> Ordered => !IsDefault
-            ? attributes.OrderBy(att => $"{att.Key}:{att.Value}")
-            : [];
-
-        #region DefaultContract
-
-        public static AttributeSet Default => default;
-
-        public bool IsDefault => attributes is null;
-        #endregion
-
-        #region IEnumerable
-        public IEnumerator<Attribute> GetEnumerator()
-        {
-            return IsDefault
-                ? Enumerable.Empty<Attribute>().GetEnumerator()
-                : Ordered.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        #endregion
-
-        #region API
-
-        public ImmutableHashSet<string> AttributeKeys => attributes
-            .Select(att => att.Key)
-            .ToImmutableHashSet();
-
-        public bool IsEmpty => IsDefault || attributes.IsEmpty;
-
-        public bool Contains(
-            Attribute attribute)
-            => !IsDefault && attributes.Contains(attribute);
-
-        public bool ContainsKey(
-            string attributeKey)
-            => !IsDefault && AttributeKeys.Contains(attributeKey);
-
-        public int Count => IsDefault ? 0: attributes.Count;
-
-        public bool TryGetAttribute(string key, out Attribute? attribute)
-        {
-            attribute = attributes.FirstOrNull(att => att.Key.Equals(key));
-            return attribute is not null;
-        }
-
-        public bool TryGetAttributes(string key, out ImmutableArray<Attribute> attributes)
-        {
-            attributes = this.attributes
-                .Where(att => att.Key.Equals(key))
-                .ToImmutableArray();
-            return !attributes.IsEmpty; 
-        }
-        #endregion
-
-        #region overrides
-        public bool Equals(AttributeSet other)
-        {
-            if (IsDefault && other.IsDefault)
-                return true;
-
-            if (IsDefault ^ other.IsDefault)
-                return false;
-
-           return attributes.Count == other.attributes.Count
-                && attributes.SetEquals(other.attributes);
-        }
-
-        public override bool Equals(
-            [NotNullWhen(true)] object? obj)
-            => obj is AttributeSet other && Equals(other);
-
-        public override int GetHashCode()
-        {
-            return !IsDefault
-                ? Ordered.Aggregate(0, HashCode.Combine)
-                : 0;
-        }
-
-        public static bool operator ==(
-            AttributeSet left,
-            AttributeSet right)
-            => left.Equals(right);
-
-        public static bool operator !=(
-            AttributeSet left,
-            AttributeSet right)
-            => !(left == right);
-
-        #endregion
-
-        #region Construction
-        public AttributeSet(params Attribute[] attributes)
-            : this(attributes.AsEnumerable())
-        {
-        }
-
-        public AttributeSet(IEnumerable<Attribute> attributes)
-        {
-            this.attributes = attributes
-                .ThrowIfNull(() => new ArgumentNullException(nameof(attributes)))
-                .ThrowIfAny(
-                    att => att.IsDefault,
-                    _ => new ArgumentException($"Invalid attribute: default"))
-                .ToImmutableHashSet();
-        }
-
-        public static AttributeSet Of(
-            params Attribute[] attributes)
-            => new(attributes);
-
-        public static AttributeSet Of(
-            IEnumerable<Attribute> attributes)
-            => new(attributes);
-
-        public static implicit operator AttributeSet(
-            Attribute[] attributes)
-            => new(attributes);
         #endregion
     }
 }

@@ -1,4 +1,5 @@
-﻿using Axis.Dia.BionSerializer.Metadata;
+﻿using Axis.Dia.BionSerializer.Deserializers.Contracts;
+using Axis.Dia.BionSerializer.Metadata;
 using Axis.Dia.BionSerializer.Types;
 using Axis.Dia.BionSerializer.Utils;
 using Axis.Luna.Extensions;

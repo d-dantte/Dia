@@ -174,7 +174,7 @@ namespace Axis.Dia.BionSerializer.Tests.Utils
 
             // Act & Assert
             Assert.IsFalse(byteChunk1.Equals(byteChunk2));
-            Assert.IsTrue(byteChunk1.Equals(byteChunk1));
+            Assert.IsTrue(byteChunk1.ValueEquals(byteChunk1));
         }
 
         [TestMethod]

@@ -2,9 +2,9 @@
 
 namespace Axis.Dia.Axon.Serializers
 {
-    public class ValueSerializer: ISerializer<ContainerValue>
+    public class ValueSerializer: ISerializer<DiaValue>
     {
-        public static string Serialize(ContainerValue value, SerializerContext context)
+        public static string Serialize(DiaValue value, SerializerContext context)
         {
             return value.Type switch
             {

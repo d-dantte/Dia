@@ -2,6 +2,7 @@
 using Axis.Dia.Axon.Serializers;
 using Axis.Dia.AxonSerializer.Deserializers;
 using Axis.Dia.Core;
+using Axis.Dia.Core.Contracts;
 
 namespace Axis.Dia.Axon
 {
@@ -12,7 +13,7 @@ namespace Axis.Dia.Axon
         public static string Serialize(
             IDiaValue value,
             SerializerContext context)
-            => ValueSerializer.Serialize(ContainerValue.Of(value), context);
+            => ValueSerializer.Serialize(DiaValue.Of(value), context);
 
         public static IDiaValue Deserialize(string text, DeserializerContext? context = null)
         {

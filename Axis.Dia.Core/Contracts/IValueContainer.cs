@@ -32,5 +32,21 @@
         /// A count of the values contained.
         /// </summary>
         int Count { get; }
+
+        void Add(TValue item);
+
+        TSelf AddItem(TValue item);
+
+        void AddAll(params TValue[] items);
+
+        TSelf AddAllItems(params TValue[] items);
+
+        void Remove(TValue item);
+
+        TSelf RemoveItem(TValue item);
+
+        void RemoveAll(params TValue[] items);
+
+        TSelf RemoveAllItems(params TValue[] items);
     }
 }

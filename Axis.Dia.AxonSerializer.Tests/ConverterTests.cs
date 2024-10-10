@@ -66,10 +66,10 @@ namespace Axis.Dia.AxonSerializer.Tests
             expected["self.ref"] = expected;
 
             Assert.IsTrue(value.Is(out Record rec));
-            Assert.IsTrue(expected["abcd"].Equals(rec["abcd"]));
-            Assert.IsFalse(expected["selense"].Equals(rec["selense"]));
-            Assert.IsTrue(expected["when"].Equals(rec["when"]));
-            Assert.IsFalse(expected["self.ref"].Equals(rec["self.ref"]));
+            Assert.IsTrue(expected["abcd"].ValueEquals(rec["abcd"]));
+            Assert.IsTrue(expected["selense"].ValueEquals(rec["selense"]));
+            Assert.IsTrue(expected["when"].ValueEquals(rec["when"]));
+            Assert.IsTrue(expected["self.ref"].ValueEquals(rec["self.ref"]));
         }
 
         [TestMethod]

@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.Core;
+using Axis.Dia.Core.Contracts;
 using Axis.Dia.Core.Types;
 using Axis.Luna.Extensions;
 using Axis.Luna.FInvoke;
@@ -94,7 +95,7 @@ namespace Axis.Dia.TypeConverter.Dia
             var itemTypeInfo = typeof(TItemType).ToTypeInfo();
             sourceInstance
                 .Select(kvp => (kvp.Key, Item: context.ValueConverter.ToDia(itemTypeInfo, kvp.Value, context)))
-                .Select(pair => (pair.Key, Item: ContainerValue.Of(pair.Item)))
+                .Select(pair => (pair.Key, Item: DiaValue.Of(pair.Item)))
                 .ForEvery(pair => rec[pair.Key] = pair.Item);
 
             return rec;
@@ -123,7 +124,7 @@ namespace Axis.Dia.TypeConverter.Dia
                     pair.Property.PropertyType.ToTypeInfo(),
                     pair.Value,
                     context)))
-                .ForEvery(pair => rec[pair.Property.Name] = ContainerValue.Of(pair.DiaValue));
+                .ForEvery(pair => rec[pair.Property.Name] = DiaValue.Of(pair.DiaValue));
 
             return rec;
         }

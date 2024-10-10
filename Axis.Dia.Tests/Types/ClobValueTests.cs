@@ -146,7 +146,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(default, value);
 
             value = ClobValue.Null(Annotation.Of("stuff"));
-            Assert.IsFalse(default(ClobValue).Equals(value));
+            Assert.IsFalse(default(ClobValue).ValueEquals(value));
             Assert.IsTrue(default(ClobValue).ValueEquals(value));
             Assert.AreEqual(default(ClobValue).Value, value.Value);
             Assert.AreNotEqual(default(ClobValue).Annotations.Length, value.Annotations.Length);
@@ -171,9 +171,9 @@ namespace Axis.Dia.Tests.Types
             ClobValue second = "other thing";
             ClobValue third = ClobValue.Of("something", Annotation.Of("annotated"));
 
-            Assert.IsTrue(first.Equals(first));
-            Assert.IsFalse(first.Equals(third));
-            Assert.IsFalse(first.Equals(second));
+            Assert.IsTrue(first.ValueEquals(first));
+            Assert.IsFalse(first.ValueEquals(third));
+            Assert.IsFalse(first.ValueEquals(second));
         }
     }
 }

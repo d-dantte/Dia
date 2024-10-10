@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.BionSerializer.Metadata;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
 using Axis.Dia.BionSerializer.Types;
 using Axis.Dia.BionSerializer.Utils;
 using Axis.Luna.Extensions;
@@ -17,7 +18,7 @@ namespace Axis.Dia.BionSerializer.Serializers
             return TypeMetadata.Of(Reference.ReferenceType);
         }
 
-        public void SerializeType(Reference value, SerializerContext context)
+        public void SerializeType(Reference value, ISerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 

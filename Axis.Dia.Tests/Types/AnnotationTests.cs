@@ -89,9 +89,9 @@ namespace Axis.Dia.Tests.Types
             Annotation second = "other something";
             Annotation third = Annotation.Of("something");
 
-            Assert.IsTrue(first.Equals(first));
-            Assert.IsTrue(first.Equals(third));
-            Assert.IsFalse(first.Equals(second));
+            Assert.IsTrue(first.ValueEquals(first));
+            Assert.IsTrue(first.ValueEquals(third));
+            Assert.IsFalse(first.ValueEquals(second));
         }
 
         [TestMethod]

@@ -125,7 +125,7 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Equatable
-        public bool Equals(DecimalValue other)
+        public bool ValueEquals(DecimalValue other)
         {
             return ValueEquals(other)
                 && Enumerable.SequenceEqual(Annotations, other._annotations);
@@ -135,7 +135,7 @@ namespace Axis.Dia.Types
         #region Overrides
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is DecimalValue other && Equals(other);
+            => obj is DecimalValue other && ValueEquals(other);
 
         public override int GetHashCode()
         {
@@ -156,7 +156,7 @@ namespace Axis.Dia.Types
 
         #region operators
 
-        public static bool operator ==(DecimalValue lhs, DecimalValue rhs) => lhs.Equals(rhs);
+        public static bool operator ==(DecimalValue lhs, DecimalValue rhs) => lhs.ValueEquals(rhs);
 
         public static bool operator !=(DecimalValue lhs, DecimalValue rhs) => !(lhs != rhs);
         #endregion

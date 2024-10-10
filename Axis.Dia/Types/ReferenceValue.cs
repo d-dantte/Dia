@@ -47,7 +47,7 @@ namespace Axis.Dia.Types
         #region DefaultValueProvider
         public static ReferenceValue Default => default;
 
-        public bool IsDefault => default(ReferenceValue).Equals(this);
+        public bool IsDefault => default(ReferenceValue).ValueEquals(this);
         #endregion
 
         #region Constructors
@@ -136,7 +136,7 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Equatable
-        public bool Equals(ReferenceValue other)
+        public bool ValueEquals(ReferenceValue other)
         {
             return ValueEquals(other)
                 && Enumerable.SequenceEqual(Annotations, other._annotations);
@@ -146,7 +146,7 @@ namespace Axis.Dia.Types
         #region Overrides
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is ReferenceValue other && Equals(other);
+            => obj is ReferenceValue other && ValueEquals(other);
 
         public override int GetHashCode()
         {
@@ -167,7 +167,7 @@ namespace Axis.Dia.Types
 
         #region operators
 
-        public static bool operator ==(ReferenceValue lhs, ReferenceValue rhs) => lhs.Equals(rhs);
+        public static bool operator ==(ReferenceValue lhs, ReferenceValue rhs) => lhs.ValueEquals(rhs);
 
         public static bool operator !=(ReferenceValue lhs, ReferenceValue rhs) => !(lhs != rhs);
         #endregion

@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.BionSerializer.Metadata;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
 using Axis.Dia.Core.Types;
 using Axis.Luna.Extensions;
 
@@ -20,7 +21,7 @@ namespace Axis.Dia.BionSerializer.Serializers
                 .WithCustomBit(!value.Value?.IsEmpty ?? false); // true only if the blob contains items
         }
 
-        public void SerializeType(Blob value, SerializerContext context)
+        public void SerializeType(Blob value, ISerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
@@ -30,7 +31,7 @@ namespace Axis.Dia.BionSerializer.Serializers
                 .Consume(array => context.Buffer.Write(array));
 
             // Write attributes
-            context.TypeSerializer.SerializeAttributeSet(value.Attributes, context);
+            context.AttributeSetSerializer.SerializeAttributeSet(value.Attributes, context);
 
             // Write data
             if (!value.IsEmpty)

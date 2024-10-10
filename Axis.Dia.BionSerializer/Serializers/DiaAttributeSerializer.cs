@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.BionSerializer.Metadata;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
 using Axis.Dia.BionSerializer.Utils;
 using Axis.Luna.Extensions;
 using System.Text;
@@ -19,7 +20,7 @@ namespace Axis.Dia.BionSerializer.Serializers
                 .WithCustomBit(value.HasValue);
         }
 
-        public void SerializeType(Core.Types.Attribute value, SerializerContext context)
+        public void SerializeType(Core.Types.Attribute value, ISerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 

@@ -1,5 +1,6 @@
 ﻿using Axis.Dia.BionSerializer.Deserializers;
 using Axis.Dia.BionSerializer.Serializers;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
 using Axis.Dia.BionSerializer.Types;
 
 namespace Axis.Dia.BionSerializer.Tests.Deserializers

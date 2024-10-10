@@ -68,7 +68,7 @@ namespace Axis.Dia.Core.Types
         public bool ValueEquals(Timestamp other)
         {
             return EqualityComparer<DateTimeOffset?>.Default.Equals(_value, other.Value)
-                && _attributes.Equals(other.Attributes);
+                && _attributes.ValueEquals(other.Attributes);
         }
 
         public int ValueHash()
@@ -95,17 +95,17 @@ namespace Axis.Dia.Core.Types
 
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is Timestamp other && Equals(other);
+            => obj is Timestamp other && ValueEquals(other);
 
         public static bool operator ==(
             Timestamp left,
             Timestamp right)
-            => left.Equals(right);
+            => left.ValueEquals(right);
 
         public static bool operator !=(
             Timestamp left,
             Timestamp right)
-            => !left.Equals(right);
+            => !left.ValueEquals(right);
 
         #endregion
     }

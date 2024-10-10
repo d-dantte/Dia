@@ -71,7 +71,7 @@ namespace Axis.Dia.Core.Types
         public bool ValueEquals(Decimal other)
         {
             return EqualityComparer<BigDecimal?>.Default.Equals(_value, other.Value)
-                && _attributes.Equals(other.Attributes);
+                && _attributes.ValueEquals(other.Attributes);
         }
 
         public int ValueHash()
@@ -98,12 +98,12 @@ namespace Axis.Dia.Core.Types
         public static bool operator ==(
             Decimal left,
             Decimal right)
-            => left.Equals(right);
+            => left.ValueEquals(right);
 
         public static bool operator !=(
             Decimal left,
             Decimal right)
-            => !left.Equals(right);
+            => !left.ValueEquals(right);
 
         #endregion
     }

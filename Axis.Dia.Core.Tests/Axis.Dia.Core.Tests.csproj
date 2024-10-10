@@ -21,7 +21,10 @@
 
   <ItemGroup>
     <Folder Include="Utils\" />
-    <Folder Include="Types\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Axis.Dia.Core\Axis.Dia.Core.csproj" />
   </ItemGroup>
 
 </Project>

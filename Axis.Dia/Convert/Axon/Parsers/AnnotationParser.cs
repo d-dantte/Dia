@@ -118,7 +118,7 @@ namespace Axis.Dia.Convert.Axon.Parsers
         /// <returns></returns>
         public static IResult<string> Serialize(Annotation annotation)
         {
-            if (Annotation.Default.Equals(annotation))
+            if (Annotation.Default.ValueEquals(annotation))
                 return Result.Of<string>(new ArgumentException($"Invalid anntotation: {annotation}"));
 
             return annotation.Text

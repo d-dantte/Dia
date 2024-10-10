@@ -152,7 +152,7 @@ namespace Axis.Dia.Tests.Types
             Assert.IsNull(value.Value);
 
             value = RecordValue.Null(Annotation.Of("stuff"));
-            Assert.IsFalse(RecordValue.Null().Equals(value));
+            Assert.IsFalse(RecordValue.Null().ValueEquals(value));
             Assert.IsTrue(RecordValue.Null().ValueEquals(value));
             Assert.AreEqual(RecordValue.Null().Value, value.Value);
             Assert.AreNotEqual(RecordValue.Null().Annotations.Length, value.Annotations.Length);
@@ -187,9 +187,9 @@ namespace Axis.Dia.Tests.Types
             RecordValue third = ArrayUtil.Of(
                 (SymbolValue.Of("key", "annotated"), DecimalValue.Of(654) as IDiaValue));
 
-            Assert.IsTrue(first.Equals(first));
-            Assert.IsFalse(first.Equals(third));
-            Assert.IsFalse(first.Equals(second));
+            Assert.IsTrue(first.ValueEquals(first));
+            Assert.IsFalse(first.ValueEquals(third));
+            Assert.IsFalse(first.ValueEquals(second));
         }
 
         [TestMethod]

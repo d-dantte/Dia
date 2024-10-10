@@ -67,7 +67,12 @@ namespace Axis.Dia.Core.Types
 
         #region Equatable
 
-        public bool Equals(Blob other) => ValueEquals(other);
+        public bool Equals(Blob other)
+        {
+            return EqualityComparer<ImmutableArray<byte>?>.Default.Equals(
+                _value,
+                other._value);
+        }
         #endregion
 
         #region IValueEquatable
@@ -76,7 +81,7 @@ namespace Axis.Dia.Core.Types
             if (IsNull ^ other.IsNull)
                 return false;
 
-            if (!_attributes.Equals(other.Attributes))
+            if (!_attributes.ValueEquals(other.Attributes))
                 return false;
 
             if (IsNull && other.IsNull)
@@ -109,9 +114,9 @@ namespace Axis.Dia.Core.Types
             [NotNullWhen(true)] object? obj)
             => obj is Blob other && ValueEquals(other);
 
-        public static bool operator ==(Blob left, Blob right) => left.Equals(right);
+        public static bool operator ==(Blob left, Blob right) => left.ValueEquals(right);
 
-        public static bool operator !=(Blob left, Blob right) => !left.Equals(right);
+        public static bool operator !=(Blob left, Blob right) => !left.ValueEquals(right);
 
         #endregion
 

@@ -146,7 +146,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(default, symbol);
 
             symbol = SymbolValue.Null(Annotation.Of("stuff"));
-            Assert.IsFalse(default(SymbolValue).Equals(symbol));
+            Assert.IsFalse(default(SymbolValue).ValueEquals(symbol));
             Assert.IsTrue(default(SymbolValue).ValueEquals(symbol));
             Assert.AreEqual(default(SymbolValue).Value, symbol.Value);
             Assert.AreNotEqual(default(SymbolValue).Annotations.Length, symbol.Annotations.Length);
@@ -171,9 +171,9 @@ namespace Axis.Dia.Tests.Types
             SymbolValue second = "other something";
             SymbolValue third = SymbolValue.Of("something", Annotation.Of("annotated"));
 
-            Assert.IsTrue(first.Equals(first));
-            Assert.IsFalse(first.Equals(third));
-            Assert.IsFalse(first.Equals(second));
+            Assert.IsTrue(first.ValueEquals(first));
+            Assert.IsFalse(first.ValueEquals(third));
+            Assert.IsFalse(first.ValueEquals(second));
         }
 
         [TestMethod]

@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.BionSerializer.Serializers;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
 
 namespace Axis.Dia.BionSerializer.Tests.Serializers
 {
@@ -26,11 +27,20 @@ namespace Axis.Dia.BionSerializer.Tests.Serializers
             Assert.IsFalse(tmeta.IsOverflowFlagSet);
             Assert.AreEqual(Core.DiaType.Timestamp, tmeta.Type);
 
-            symbol = Core.Types.Timestamp.Of(DateTimeOffset.Now);
+            symbol = Core.Types.Timestamp.Of(DateTimeOffset.MinValue);
             tmeta = serializer.ExtractMetadata(symbol);
             Assert.IsFalse(tmeta.IsNull);
             Assert.IsFalse(tmeta.IsAnnotated);
             Assert.IsFalse(tmeta.IsCustomFlagSet);
+            Assert.IsFalse(tmeta.IsOverflowFlagSet);
+            Assert.AreEqual(0, tmeta.CustomMetadata.Length);
+            Assert.AreEqual(Core.DiaType.Timestamp, tmeta.Type);
+
+            symbol = Core.Types.Timestamp.Of(DateTimeOffset.Now);
+            tmeta = serializer.ExtractMetadata(symbol);
+            Assert.IsFalse(tmeta.IsNull);
+            Assert.IsFalse(tmeta.IsAnnotated);
+            Assert.IsTrue(tmeta.IsCustomFlagSet);
             Assert.IsFalse(tmeta.IsOverflowFlagSet);
             Assert.AreEqual(0, tmeta.CustomMetadata.Length);
             Assert.AreEqual(Core.DiaType.Timestamp, tmeta.Type);
@@ -47,7 +57,7 @@ namespace Axis.Dia.BionSerializer.Tests.Serializers
             serializer.SerializeType(value, context);
             Assert.AreEqual(15, context.Buffer.Stream.Length);
             CollectionAssert.AreEqual(
-                new byte[] { 6, 0, 0, 240, 154, 233, 87, 36, 20, 5, 229, 143, 128, 128, 0 },
+                new byte[] { 70, 0, 0, 240, 154, 233, 87, 36, 20, 5, 229, 143, 128, 128, 0 },
                 context.Buffer.StreamData);
 
             value = Core.Types.Timestamp.Null();
@@ -63,7 +73,15 @@ namespace Axis.Dia.BionSerializer.Tests.Serializers
             serializer.SerializeType(value, context);
             Assert.AreEqual(25, context.Buffer.Stream.Length);
             CollectionAssert.AreEqual(
-                new byte[] { 22, 1, 1, 6, 0, 97, 0, 116, 0, 116, 0, 0, 0, 240, 154, 233, 87, 36, 20, 5, 229, 143, 128, 128, 0 },
+                new byte[] { 86, 1, 1, 6, 0, 97, 0, 116, 0, 116, 0, 0, 0, 240, 154, 233, 87, 36, 20, 5, 229, 143, 128, 128, 0 },
+                context.Buffer.StreamData);
+
+            value = Core.Types.Timestamp.Of(DateTimeOffset.MinValue);
+            context = new SerializerContext();
+            serializer.SerializeType(value, context);
+            Assert.AreEqual(1, context.Buffer.Stream.Length);
+            CollectionAssert.AreEqual(
+                new byte[] { 6 },
                 context.Buffer.StreamData);
         }
     }

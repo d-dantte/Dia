@@ -13,6 +13,10 @@ namespace Axis.Dia.Core.Types
         private readonly bool? _value;
         private readonly AttributeSet _attributes;
 
+        public static Boolean True { get; } = new Boolean(true);
+
+        public static Boolean False { get; } = new Boolean(false);
+
         #region Construction
 
         public Boolean(
@@ -65,7 +69,7 @@ namespace Axis.Dia.Core.Types
         public bool ValueEquals(Boolean other)
         {
             return EqualityComparer<bool?>.Default.Equals(_value, other.Value)
-                && _attributes.Equals(other.Attributes);
+                && _attributes.ValueEquals(other.Attributes);
         }
 
         public int ValueHash()
@@ -88,9 +92,9 @@ namespace Axis.Dia.Core.Types
             [NotNullWhen(true)] object? obj)
             => obj is Boolean other && ValueEquals(other);
 
-        public static bool operator ==(Boolean left, Boolean right) => left.Equals(right);
+        public static bool operator ==(Boolean left, Boolean right) => left.ValueEquals(right);
 
-        public static bool operator !=(Boolean left, Boolean right) => !left.Equals(right);
+        public static bool operator !=(Boolean left, Boolean right) => !left.ValueEquals(right);
 
         #endregion
     }

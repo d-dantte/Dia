@@ -172,7 +172,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(default, value);
 
             value = IntValue.Null(Annotation.Of("stuff"));
-            Assert.IsFalse(default(IntValue).Equals(value));
+            Assert.IsFalse(default(IntValue).ValueEquals(value));
             Assert.IsTrue(default(IntValue).ValueEquals(value));
             Assert.AreEqual(default(IntValue).Value, value.Value);
             Assert.AreNotEqual(default(IntValue).Annotations.Length, value.Annotations.Length);
@@ -197,9 +197,9 @@ namespace Axis.Dia.Tests.Types
             IntValue second = 987654321;
             IntValue third = IntValue.Of(123456789, Annotation.Of("annotated"));
 
-            Assert.IsTrue(first.Equals(first));
-            Assert.IsFalse(first.Equals(third));
-            Assert.IsFalse(first.Equals(second));
+            Assert.IsTrue(first.ValueEquals(first));
+            Assert.IsFalse(first.ValueEquals(third));
+            Assert.IsFalse(first.ValueEquals(second));
         }
     }
 }

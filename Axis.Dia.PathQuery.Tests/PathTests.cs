@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.Core;
+using Axis.Dia.Core.Contracts;
 using Axis.Dia.Core.Types;
 using Axis.Dia.PathQuery.Matchers;
 using Axis.Dia.PathQuery.Predicates;

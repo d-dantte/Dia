@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.BionSerializer.Metadata;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
 using Axis.Dia.BionSerializer.Utils;
 using Axis.Dia.Core;
 using Axis.Luna.BitSequence;
@@ -20,10 +21,11 @@ namespace Axis.Dia.BionSerializer.Serializers
             return TypeMetadata
                 .Of(DiaType.Timestamp)
                 .WithAnnotated(!value.Attributes.IsEmpty)
-                .WithNull(value.IsNull);
+                .WithNull(value.IsNull)
+                .WithCustomBit(!DateTimeOffset.MinValue.Equals(value.Value ?? DateTimeOffset.MinValue));
         }
 
-        public void SerializeType(Core.Types.Timestamp value, SerializerContext context)
+        public void SerializeType(Core.Types.Timestamp value, ISerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
@@ -33,10 +35,10 @@ namespace Axis.Dia.BionSerializer.Serializers
                 .Consume(array => context.Buffer.Write(array));
 
             // Write attributes
-            context.TypeSerializer.SerializeAttributeSet(value.Attributes, context);
+            context.AttributeSetSerializer.SerializeAttributeSet(value.Attributes, context);
 
             // Write data
-            if (value.IsNull)
+            if (value.IsNull || DateTimeOffset.MinValue.Equals(value.Value!))
                 return;
 
             var timestamp = value.Value!.Value;
@@ -53,7 +55,9 @@ namespace Axis.Dia.BionSerializer.Serializers
 
             // Time component (47 bits)
             var timebits = timestamp
-                .ApplyTo(ts => ts - new DateTimeOffset(ts.Year, ts.Month, ts.Day, 0, 0, 0, 0, 0, ts.Offset))
+                .ApplyTo(dto => TimeOnly
+                    .FromDateTime(dto.DateTime)
+                    .ToTimeSpan())
                 .ApplyTo(ts => (long)ts.TotalNanoseconds)
                 .ApplyTo(BitConverter.GetBytes)
                 .ApplyTo(BitSequence.Of)
@@ -71,6 +75,7 @@ namespace Axis.Dia.BionSerializer.Serializers
                 .ApplyTo(BitSequence.Of)
                 .ApplyTo(seq => seq[..4]);
 
+            // 9 bytes (11 + 47 + 5 + 4 = 67 bits)
             tzbits
                 .Concat(timebits)
                 .Concat(daybits)

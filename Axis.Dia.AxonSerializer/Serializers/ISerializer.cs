@@ -1,4 +1,4 @@
-﻿using Axis.Dia.Core;
+﻿using Axis.Dia.Core.Contracts;
 
 namespace Axis.Dia.Axon.Serializers
 {

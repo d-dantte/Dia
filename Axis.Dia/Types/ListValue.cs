@@ -131,7 +131,7 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Equatable
-        public bool Equals(ListValue? other)
+        public bool ValueEquals(ListValue? other)
         {
             if (other is null)
                 return false;
@@ -145,7 +145,7 @@ namespace Axis.Dia.Types
         #region Overrides
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is ListValue other && Equals(other);
+            => obj is ListValue other && ValueEquals(other);
 
         public override int GetHashCode()
         {
@@ -167,7 +167,7 @@ namespace Axis.Dia.Types
 
         #region operators
 
-        public static bool operator ==(ListValue lhs, ListValue rhs) => lhs.Equals(rhs);
+        public static bool operator ==(ListValue lhs, ListValue rhs) => lhs.ValueEquals(rhs);
 
         public static bool operator !=(ListValue lhs, ListValue rhs) => !(lhs != rhs);
         #endregion

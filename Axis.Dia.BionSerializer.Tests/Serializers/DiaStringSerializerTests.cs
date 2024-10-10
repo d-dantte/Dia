@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.BionSerializer.Serializers;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
 
 namespace Axis.Dia.BionSerializer.Tests.Serializers
 {
@@ -30,6 +31,15 @@ namespace Axis.Dia.BionSerializer.Tests.Serializers
             tmeta = serializer.ExtractMetadata(@string);
             Assert.IsFalse(tmeta.IsNull);
             Assert.IsFalse(tmeta.IsAnnotated);
+            Assert.IsFalse(tmeta.IsCustomFlagSet);
+            Assert.IsFalse(tmeta.IsOverflowFlagSet);
+            Assert.AreEqual(0, tmeta.CustomMetadata.Length);
+            Assert.AreEqual(Core.DiaType.String, tmeta.Type);
+
+            @string = Core.Types.String.Of("some value");
+            tmeta = serializer.ExtractMetadata(@string);
+            Assert.IsFalse(tmeta.IsNull);
+            Assert.IsFalse(tmeta.IsAnnotated);
             Assert.IsTrue(tmeta.IsCustomFlagSet);
             Assert.IsFalse(tmeta.IsOverflowFlagSet);
             Assert.AreEqual(0, tmeta.CustomMetadata.Length);
@@ -46,7 +56,7 @@ namespace Axis.Dia.BionSerializer.Tests.Serializers
             serializer.SerializeType(value, context);
             Assert.AreEqual(1, context.Buffer.Stream.Length);
             CollectionAssert.AreEqual(
-                new byte[] { 71 },
+                new byte[] { 7 },
                 context.Buffer.StreamData);
 
             value = Core.Types.String.Null();
@@ -62,7 +72,7 @@ namespace Axis.Dia.BionSerializer.Tests.Serializers
             serializer.SerializeType(value, context);
             Assert.AreEqual(13, context.Buffer.Stream.Length);
             CollectionAssert.AreEqual(
-                new byte[] { 7, 10, 0, 45, 0, 50, 0, 53, 0, 53, 0, 52, 0 },
+                new byte[] { 71, 10, 0, 45, 0, 50, 0, 53, 0, 53, 0, 52, 0 },
                 context.Buffer.StreamData);
 
             value = Core.Types.String.Of("1234567", "att");
@@ -70,7 +80,7 @@ namespace Axis.Dia.BionSerializer.Tests.Serializers
             serializer.SerializeType(value, context);
             Assert.AreEqual(27, context.Buffer.Stream.Length);
             CollectionAssert.AreEqual(
-                new byte[] { 23, 1, 1, 6, 0, 97, 0, 116, 0, 116, 0, 14, 0, 49, 0, 50, 0, 51, 0, 52, 0, 53, 0, 54, 0, 55, 0 },
+                new byte[] { 87, 1, 1, 6, 0, 97, 0, 116, 0, 116, 0, 14, 0, 49, 0, 50, 0, 51, 0, 52, 0, 53, 0, 54, 0, 55, 0 },
                 context.Buffer.StreamData);
         }
     }

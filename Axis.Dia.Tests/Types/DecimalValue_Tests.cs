@@ -133,7 +133,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(default, value);
 
             value = DecimalValue.Null(Annotation.Of("stuff"));
-            Assert.IsFalse(default(DecimalValue).Equals(value));
+            Assert.IsFalse(default(DecimalValue).ValueEquals(value));
             Assert.IsTrue(default(DecimalValue).ValueEquals(value));
             Assert.AreEqual(default(DecimalValue).Value, value.Value);
             Assert.AreNotEqual(default(DecimalValue).Annotations.Length, value.Annotations.Length);
@@ -158,9 +158,9 @@ namespace Axis.Dia.Tests.Types
             DecimalValue second = 1.234m;
             DecimalValue third = DecimalValue.Of(0.000000000000000000065434m, Annotation.Of("annotated"));
 
-            Assert.IsTrue(first.Equals(first));
-            Assert.IsFalse(first.Equals(third));
-            Assert.IsFalse(first.Equals(second));
+            Assert.IsTrue(first.ValueEquals(first));
+            Assert.IsFalse(first.ValueEquals(third));
+            Assert.IsFalse(first.ValueEquals(second));
         }
     }
 }

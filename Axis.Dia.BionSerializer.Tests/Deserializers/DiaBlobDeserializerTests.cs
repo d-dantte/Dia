@@ -1,6 +1,7 @@
 ﻿using Axis.Dia.BionSerializer.Deserializers;
 using Axis.Dia.BionSerializer.Metadata;
 using Axis.Dia.BionSerializer.Serializers;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
 using Axis.Dia.Core.Types;
 
 namespace Axis.Dia.BionSerializer.Tests.Deserializers
@@ -75,7 +76,7 @@ namespace Axis.Dia.BionSerializer.Tests.Deserializers
             var tmeta = tdeserializer.DeserializeTypeMetadata(scontext.Buffer.Stream, dcontext);
             var result = deserializer.DeserializeType(scontext.Buffer.Stream, tmeta, dcontext);
 
-            Assert.AreEqual(blob, result);
+            Assert.IsTrue(blob.ValueEquals(result));
         }
 
         [TestMethod]
@@ -93,7 +94,7 @@ namespace Axis.Dia.BionSerializer.Tests.Deserializers
             var tmeta = tdeserializer.DeserializeTypeMetadata(scontext.Buffer.Stream, dcontext);
             var result = deserializer.DeserializeType(scontext.Buffer.Stream, tmeta, dcontext);
 
-            Assert.AreEqual(blob, result);
+            Assert.IsTrue(blob.ValueEquals(result));
         }
 
         [TestMethod]

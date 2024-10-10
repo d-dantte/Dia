@@ -1,4 +1,4 @@
-﻿using Axis.Dia.Core;
+﻿using Axis.Dia.Core.Contracts;
 using Axis.Dia.TypeConverter.Clr;
 using System.Collections.Immutable;
 using System.Numerics;

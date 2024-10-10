@@ -113,7 +113,7 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Equatable
-        public bool Equals(IntValue other)
+        public bool ValueEquals(IntValue other)
         {
             return ValueEquals(other)
                 && Enumerable.SequenceEqual(Annotations, other._annotations);
@@ -123,7 +123,7 @@ namespace Axis.Dia.Types
         #region Overrides
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is IntValue other && Equals(other);
+            => obj is IntValue other && ValueEquals(other);
 
         public override int GetHashCode()
         {
@@ -144,7 +144,7 @@ namespace Axis.Dia.Types
 
         #region operators
 
-        public static bool operator ==(IntValue lhs, IntValue rhs) => lhs.Equals(rhs);
+        public static bool operator ==(IntValue lhs, IntValue rhs) => lhs.ValueEquals(rhs);
 
         public static bool operator !=(IntValue lhs, IntValue rhs) => !(lhs != rhs);
         #endregion

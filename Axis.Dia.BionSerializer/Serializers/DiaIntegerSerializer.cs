@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.BionSerializer.Metadata;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
 using Axis.Dia.BionSerializer.Utils;
 using Axis.Dia.Core;
 using Axis.Luna.Extensions;
@@ -22,7 +23,7 @@ namespace Axis.Dia.BionSerializer.Serializers
                 .WithCustomBit(!BigInteger.Zero.Equals(value.Value ?? 0));
         }
 
-        public void SerializeType(Core.Types.Integer value, SerializerContext context)
+        public void SerializeType(Core.Types.Integer value, ISerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
@@ -32,7 +33,7 @@ namespace Axis.Dia.BionSerializer.Serializers
                 .Consume(array => context.Buffer.Write(array));
 
             // Write attributes
-            context.TypeSerializer.SerializeAttributeSet(value.Attributes, context);
+            context.AttributeSetSerializer.SerializeAttributeSet(value.Attributes, context);
 
             // Write data
             if (value.IsNull || BigInteger.Zero.Equals(value.Value!))

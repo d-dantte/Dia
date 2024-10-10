@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.BionSerializer.Metadata;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
 using Axis.Dia.BionSerializer.Utils;
 using Axis.Dia.Core;
 using Axis.Luna.Extensions;
@@ -21,7 +22,7 @@ namespace Axis.Dia.BionSerializer.Serializers
                 .WithCustomBit(!TimeSpan.Zero.Equals(value.Value ?? TimeSpan.Zero));
         }
 
-        public void SerializeType(Core.Types.Duration value, SerializerContext context)
+        public void SerializeType(Core.Types.Duration value, ISerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
@@ -31,7 +32,7 @@ namespace Axis.Dia.BionSerializer.Serializers
                 .Consume(array => context.Buffer.Write(array));
 
             // Write attributes
-            context.TypeSerializer.SerializeAttributeSet(value.Attributes, context);
+            context.AttributeSetSerializer.SerializeAttributeSet(value.Attributes, context);
 
             // Write data
             long nanoSeconds = 0;

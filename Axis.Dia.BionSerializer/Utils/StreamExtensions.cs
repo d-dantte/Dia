@@ -29,6 +29,17 @@ namespace Axis.Dia.BionSerializer.Utils
         }
         #endregion
 
+        #region Read bytes
+        internal static byte[] ReadExactly(this Stream stream, int count)
+        {
+            ArgumentNullException.ThrowIfNull(stream);
+
+            var bytes = new byte[count];
+            stream.ReadExactly(bytes, 0, count);
+            return bytes;
+        }
+        #endregion
+
         #region Read VarBytes
         internal static VarBytes ReadVarBytes(this Stream stream)
         {

@@ -15,7 +15,7 @@ namespace Axis.Dia.BionSerializer.Types
 
         public BigInteger Ref => _value;
 
-        public static DiaType ReferenceType => (DiaType)(byte)15;
+        public const DiaType ReferenceType = (DiaType)15;
 
         public DiaType Type => ReferenceType;
 
@@ -45,7 +45,7 @@ namespace Axis.Dia.BionSerializer.Types
         #region overrides
         public override string ToString()
         {
-            return $"[@Ref({Type}) {_value: X}]";
+            return $"[@Ref({Type}) {_value:X}]";
         }
 
         public override int GetHashCode() => ValueHash();
@@ -54,9 +54,9 @@ namespace Axis.Dia.BionSerializer.Types
             [NotNullWhen(true)] object? obj)
             => obj is Reference other && ValueEquals(other);
 
-        public static bool operator ==(Reference left, Reference right) => left.Equals(right);
+        public static bool operator ==(Reference left, Reference right) => left.ValueEquals(right);
 
-        public static bool operator !=(Reference left, Reference right) => !left.Equals(right);
+        public static bool operator !=(Reference left, Reference right) => !left.ValueEquals(right);
 
         #endregion
 

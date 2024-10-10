@@ -1,4 +1,6 @@
 ﻿using Axis.Dia.BionSerializer.Serializers;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
+using Axis.Dia.Core;
 
 namespace Axis.Dia.BionSerializer.Tests.Serializers
 {
@@ -34,6 +36,15 @@ namespace Axis.Dia.BionSerializer.Tests.Serializers
             Assert.IsFalse(tmeta.IsOverflowFlagSet);
             Assert.AreEqual(0, tmeta.CustomMetadata.Length);
             Assert.AreEqual(Core.DiaType.Sequence, tmeta.Type);
+
+            symbol = Core.Types.Sequence.Of(Enumerable.Empty<DiaValue>(), []);
+            tmeta = serializer.ExtractMetadata(symbol);
+            Assert.IsFalse(tmeta.IsNull);
+            Assert.IsFalse(tmeta.IsAnnotated);
+            Assert.IsFalse(tmeta.IsCustomFlagSet);
+            Assert.IsFalse(tmeta.IsOverflowFlagSet);
+            Assert.AreEqual(0, tmeta.CustomMetadata.Length);
+            Assert.AreEqual(Core.DiaType.Sequence, tmeta.Type);
         }
 
         [TestMethod]
@@ -62,7 +73,7 @@ namespace Axis.Dia.BionSerializer.Tests.Serializers
             serializer.SerializeType(value, context);
             Assert.AreEqual(8, context.Buffer.Stream.Length);
             CollectionAssert.AreEqual(
-                new byte[] { 74, 130, 0, 3, 1, 0, 2, 2 },
+                new byte[] { 74, 130, 0, 67, 1, 0, 2, 2 },
                 context.Buffer.StreamData);
 
             value = Core.Types.Sequence.Of([("key", "value")], "1234567", TimeSpan.FromSeconds(343454));
@@ -71,8 +82,8 @@ namespace Axis.Dia.BionSerializer.Tests.Serializers
             Assert.AreEqual(53, context.Buffer.Stream.Length);
             CollectionAssert.AreEqual(
                 new byte[] {
-                    90, 1, 65, 6, 0, 107, 0, 101, 0, 121, 0, 10, 0, 118, 0, 97, 0, 108, 0, 117, 0, 101, 0, 130, 0, 7,
-                    14, 0, 49, 0, 50, 0, 51, 0, 52, 0, 53, 0, 54, 0, 55, 0, 5, 8, 0, 0, 99, 137, 170, 31, 3, 0, 0
+                    90, 1, 65, 6, 0, 107, 0, 101, 0, 121, 0, 10, 0, 118, 0, 97, 0, 108, 0, 117, 0, 101, 0, 130, 0, 71,
+                    14, 0, 49, 0, 50, 0, 51, 0, 52, 0, 53, 0, 54, 0, 55, 0, 69, 8, 0, 0, 172, 170, 157, 94, 56, 1, 0
                 },
                 context.Buffer.StreamData);
 
@@ -82,8 +93,8 @@ namespace Axis.Dia.BionSerializer.Tests.Serializers
             Assert.AreEqual(57, context.Buffer.Stream.Length);
             CollectionAssert.AreEqual(
                 new byte[] {
-                    90, 1, 65, 6, 0, 107, 0, 101, 0, 121, 0, 10, 0, 118, 0, 97, 0, 108, 0, 117, 0, 101, 0, 131, 0, 7,
-                    14, 0, 49, 0, 50, 0, 51, 0, 52, 0, 53, 0, 54, 0, 55, 0, 5, 8, 0, 0, 99, 137, 170, 31, 3, 0, 0, 15, 1, 0, 0
+                    90, 1, 65, 6, 0, 107, 0, 101, 0, 121, 0, 10, 0, 118, 0, 97, 0, 108, 0, 117, 0, 101, 0, 131, 0, 71, 14,
+                    0, 49, 0, 50, 0, 51, 0, 52, 0, 53, 0, 54, 0, 55, 0, 69, 8, 0, 0, 172, 170, 157, 94, 56, 1, 0, 15, 1, 0, 0
                 },
                 context.Buffer.StreamData);
         }

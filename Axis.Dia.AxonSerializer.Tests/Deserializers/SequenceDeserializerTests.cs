@@ -36,7 +36,7 @@ namespace Axis.Dia.AxonSerializer.Tests.Deserializers
 
             result = SequenceDeserializer.Deserialize("#2; []", cxt);
             Assert.IsTrue(cxt.ReferenceMap.TryGetRef(2, out var r));
-            Assert.IsTrue(result.Equals((Sequence)r!));
+            Assert.IsTrue(result.ValueEquals((Sequence)r!));
 
             cxt = new();
             result = SequenceDeserializer.Deserialize("#2; [1, 'Ref:Sequence 0x2']", cxt);

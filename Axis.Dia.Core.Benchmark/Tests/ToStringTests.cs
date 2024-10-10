@@ -69,9 +69,20 @@ namespace Axis.Dia.Core.Benchmark.Tests
         }
 
         [Benchmark]
+        public void DiaToStringWithNewContext()
+        {
+            var text = RecordSerializer.Serialize(
+                this.diaRecord,
+                Options
+                    .Builder()
+                    .Build()
+                    .ApplyTo(SerializerContext.Of));
+        }
+
+        [Benchmark]
         public void JsonToString()
         {
-            var text = jobject!.ToString();
+            var text = jobject!.ToString(); jobject.WriteTo
         }
     }
 }

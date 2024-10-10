@@ -1,4 +1,5 @@
 ﻿using Axis.Dia.Core;
+using Axis.Dia.Core.Contracts;
 using Axis.Dia.PathQuery.Grammar;
 using Axis.Luna.Extensions;
 using Axis.Pulsar.Core.CST;

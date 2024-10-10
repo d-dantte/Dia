@@ -166,7 +166,7 @@ namespace Axis.Dia.BionSerializer.Utils
 
         public override bool Equals([NotNullWhen(true)] object? obj)
         {
-            return obj is ByteChunks other && Equals(other);
+            return obj is ByteChunks other && ValueEquals(other);
         }
 
         public bool Equals(ByteChunks other)
@@ -174,8 +174,8 @@ namespace Axis.Dia.BionSerializer.Utils
             return _data == other._data;
         }
 
-        public static bool operator ==(ByteChunks first, ByteChunks second) => first.Equals(second);
-        public static bool operator !=(ByteChunks first, ByteChunks second) => !first.Equals(second);
+        public static bool operator ==(ByteChunks first, ByteChunks second) => first.ValueEquals(second);
+        public static bool operator !=(ByteChunks first, ByteChunks second) => !first.ValueEquals(second);
         #endregion
 
         #region Internals

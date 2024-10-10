@@ -141,7 +141,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(default, value);
 
             value = StringValue.Null(Annotation.Of("stuff"));
-            Assert.IsFalse(default(StringValue).Equals(value));
+            Assert.IsFalse(default(StringValue).ValueEquals(value));
             Assert.IsTrue(default(StringValue).ValueEquals(value));
             Assert.AreEqual(default(StringValue).Value, value.Value);
             Assert.AreNotEqual(default(StringValue).Annotations.Length, value.Annotations.Length);
@@ -166,9 +166,9 @@ namespace Axis.Dia.Tests.Types
             StringValue second = "fascination";
             StringValue third = StringValue.Of("worry", Annotation.Of("annotated"));
 
-            Assert.IsTrue(first.Equals(first));
-            Assert.IsFalse(first.Equals(third));
-            Assert.IsFalse(first.Equals(second));
+            Assert.IsTrue(first.ValueEquals(first));
+            Assert.IsFalse(first.ValueEquals(third));
+            Assert.IsFalse(first.ValueEquals(second));
         }
     }
 }

@@ -1,5 +1,6 @@
-﻿using Axis.Dia.BionSerializer.Types;
-using Axis.Dia.Core;
+﻿using Axis.Dia.BionSerializer.Serializers.Contracts;
+using Axis.Dia.BionSerializer.Types;
+using Axis.Dia.Core.Contracts;
 using Axis.Dia.Core.Types;
 using Axis.Luna.Extensions;
 using System.Numerics;
@@ -8,11 +9,12 @@ namespace Axis.Dia.BionSerializer.Serializers
 {
     public class TypeSerializer :
         ITypeSerializer<IDiaType>,
+        IAttributeSetSerializer,
         IDefaultInstance<TypeSerializer>
     {
         public static TypeSerializer DefaultInstance { get; } = new();
 
-        public void SerializeType(IDiaType value, SerializerContext context)
+        public void SerializeType(IDiaType value, ISerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(value);
 
@@ -56,7 +58,7 @@ namespace Axis.Dia.BionSerializer.Serializers
                 throw new NotImplementedException();
         }
 
-        public void SerializeAttributeSet(AttributeSet attributes, SerializerContext context)
+        public void SerializeAttributeSet(AttributeSet attributes, ISerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
@@ -70,8 +72,7 @@ namespace Axis.Dia.BionSerializer.Serializers
                     .ApplyTo(@int => @int.ToByteArray(true))
                     .Consume(array => context.Buffer.Write(array));
 
-            var attributeSerializer = DiaAttributeSerializer.DefaultInstance;
-            attributes.ForEvery(att => attributeSerializer.SerializeType(att, context));
+            attributes.ForEvery(att => SerializeType(att, context));
         }
     }
 }

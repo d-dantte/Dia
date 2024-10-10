@@ -1,19 +1,14 @@
 ﻿
+using Axis.Dia.BionSerializer.Deserializers.Contracts;
+using Axis.Dia.BionSerializer.Types;
 using Axis.Dia.BionSerializer.Utils;
 using Axis.Dia.Core;
+using Axis.Dia.Core.Contracts;
+using Axis.Dia.Core.Types;
 using Axis.Luna.Extensions;
 
 namespace Axis.Dia.BionSerializer.Deserializers
 {
-    public interface IDeserializerContext
-    {
-        IValueTracker ValueTracker { get; }
-
-        IValueDeserializer ValueDeserializer { get; }
-
-        IAttributeSetDeserializer AttributeSetDeserializer { get; }
-    }
-
     public class DeserializerContext: IDeserializerContext
     {
         public IValueTracker ValueTracker { get; }
@@ -66,12 +61,26 @@ namespace Axis.Dia.BionSerializer.Deserializers
 
             public IDiaValue DeserializeValue(Stream stream, IDeserializerContext context)
             {
+                var position = stream.Position;
                 var tmeta = DeserializeTypeMetadata(stream, context);
 
                 if (!IsValueMetadata(tmeta))
                     throw new InvalidOperationException($"Invalid value-metadata: {tmeta}");
 
-                return DeserializeType(stream, tmeta, context).As<IDiaValue>();
+                return tmeta.Type switch
+                {
+                    DiaType.Sequence => DiaSequenceDeserializer.DefaultInstance
+                        .ApplyTo(Converter => (Converter, Instance: Converter.DeserializeInstance(stream, tmeta, context)))
+                        .ApplyTo(tuple => (tuple.Converter, Instance: context.ValueTracker.Track(position, tuple.Instance)))
+                        .ApplyTo(tuple => tuple.Converter.DeserializeItems(stream, tuple.Instance.As<Sequence>(), context)),
+
+                    DiaType.Record => DiaRecordDeserializer.DefaultInstance
+                        .ApplyTo(Converter => (Converter, Instance: Converter.DeserializeInstance(stream, tmeta, context)))
+                        .ApplyTo(tuple => (tuple.Converter, Instance: context.ValueTracker.Track(position, tuple.Instance)))
+                        .ApplyTo(tuple => tuple.Converter.DeserializeItems(stream, tuple.Instance.As<Record>(), context)),
+
+                    _ => DeserializeType(stream, tmeta, context).As<IDiaValue>()
+                };
             }
 
             public IDiaType DeserializeType(
@@ -82,6 +91,7 @@ namespace Axis.Dia.BionSerializer.Deserializers
                 ArgumentNullException.ThrowIfNull(stream);
                 ArgumentNullException.ThrowIfNull(context);
 
+                var position = stream.Position;
                 return typeMetadata.Type switch
                 {
                     DiaType.Attribute => DiaAttributeDeserializer.DefaultInstance.DeserializeType(stream, typeMetadata, context),
@@ -90,6 +100,18 @@ namespace Axis.Dia.BionSerializer.Deserializers
                     DiaType.Decimal => DiaDecimalDeserializer.DefaultInstance.DeserializeType(stream, typeMetadata, context),
                     DiaType.Duration => DiaDurationDeserializer.DefaultInstance.DeserializeType(stream, typeMetadata, context),
                     DiaType.Int => DiaIntegerDeserializer.DefaultInstance.DeserializeType(stream, typeMetadata, context),
+                    DiaType.String => DiaStringDeserializer.DefaultInstance.DeserializeType(stream, typeMetadata, context),
+                    DiaType.Symbol => DiaSymbolDeserializer.DefaultInstance.DeserializeType(stream, typeMetadata, context),
+                    DiaType.Timestamp => DiaTimestampDeserializer.DefaultInstance.DeserializeType(stream, typeMetadata, context),
+
+                    DiaType.Sequence 
+                    or DiaType.Record => throw new InvalidOperationException(
+                        $"Invalid metadata-type: ({typeMetadata.Type}). '{DiaType.Record}' or '{DiaType.Sequence}' are not valid for this method."),
+
+                    Reference.ReferenceType => DiaReferenceDeserializer.DefaultInstance
+                        .DeserializeType(stream, typeMetadata, context)
+                        .ApplyTo(@ref => context.ValueTracker.GetValue(@ref.Ref)),
+
                     _ => throw new InvalidOperationException($"Invalid type: {typeMetadata.Type}")
                 };
             }

@@ -108,7 +108,7 @@ namespace Axis.Dia.PathQuery
                 {
                     var provided = tryProvideValue((info.Accessor.Key, info.Value), out var newValue);
                     if (provided)
-                        info.Accessor.Source.Set(info.Accessor.Key, newValue!);
+                        info.Accessor.Source.Set(info.Accessor.Key, DiaValue.Of(newValue!));
 
                     return provided;
                 });
@@ -120,7 +120,7 @@ namespace Axis.Dia.PathQuery
                 {
                     var provided = tryProvideValue((info.Accessor.Key, info.Value), out var newValue);
                     if (provided)
-                        info.Accessor.Source.SetProperty(info.Accessor.Key, ContainerValue.Of(newValue!));
+                        info.Accessor.Source.SetProperty(info.Accessor.Key, DiaValue.Of(newValue!));
 
                     return provided;
                 });

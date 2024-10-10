@@ -142,7 +142,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(default, value);
 
             value = BlobValue.Null(Annotation.Of("stuff"));
-            Assert.IsFalse(default(BlobValue).Equals(value));
+            Assert.IsFalse(default(BlobValue).ValueEquals(value));
             Assert.IsTrue(default(BlobValue).ValueEquals(value));
             Assert.AreEqual(default(BlobValue).Value, value.Value);
             Assert.AreNotEqual(default(BlobValue).Annotations.Length, value.Annotations.Length);
@@ -171,9 +171,9 @@ namespace Axis.Dia.Tests.Types
             BlobValue second = otherThing;
             BlobValue third = BlobValue.Of(something, Annotation.Of("annotated"));
 
-            Assert.IsTrue(first.Equals(first));
-            Assert.IsFalse(first.Equals(third));
-            Assert.IsFalse(first.Equals(second));
+            Assert.IsTrue(first.ValueEquals(first));
+            Assert.IsFalse(first.ValueEquals(third));
+            Assert.IsFalse(first.ValueEquals(second));
         }
     }
 }

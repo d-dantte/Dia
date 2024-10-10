@@ -132,7 +132,7 @@ namespace Axis.Dia.Tests.Types
             Assert.AreEqual(default, value);
 
             value = BoolValue.Null(Annotation.Of("stuff"));
-            Assert.IsFalse(default(BoolValue).Equals(value));
+            Assert.IsFalse(default(BoolValue).ValueEquals(value));
             Assert.IsTrue(default(BoolValue).ValueEquals(value));
             Assert.AreEqual(default(BoolValue).Value, value.Value);
             Assert.AreNotEqual(default(BoolValue).Annotations.Length, value.Annotations.Length);
@@ -157,9 +157,9 @@ namespace Axis.Dia.Tests.Types
             BoolValue second = false;
             BoolValue third = BoolValue.Of(true, Annotation.Of("annotated"));
 
-            Assert.IsTrue(first.Equals(first));
-            Assert.IsFalse(first.Equals(third));
-            Assert.IsFalse(first.Equals(second));
+            Assert.IsTrue(first.ValueEquals(first));
+            Assert.IsFalse(first.ValueEquals(third));
+            Assert.IsFalse(first.ValueEquals(second));
         }
     }
 }

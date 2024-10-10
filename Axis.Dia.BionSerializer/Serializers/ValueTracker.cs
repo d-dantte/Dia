@@ -1,9 +1,10 @@
-﻿using Axis.Dia.BionSerializer.Types;
-using Axis.Dia.Core;
+﻿using Axis.Dia.BionSerializer.Serializers.Contracts;
+using Axis.Dia.BionSerializer.Types;
+using Axis.Dia.Core.Contracts;
 
 namespace Axis.Dia.BionSerializer.Serializers
 {
-    public class ValueTracker
+    public class ValueTracker: IValueTracker
     {
         private readonly Dictionary<IDiaValue, Reference> indexCache = new();
 

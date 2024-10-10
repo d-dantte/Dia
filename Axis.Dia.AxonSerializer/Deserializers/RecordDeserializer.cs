@@ -86,7 +86,7 @@ namespace Axis.Dia.AxonSerializer.Deserializers
                         DeserializePropertyName(fieldNode.FindNodes(Symbol_FieldName).First()),
                         ValueDeserializer
                             .Deserialize(fieldNode.FindNodes(Symbol_DiaValue).First(), context)
-                            .ApplyTo(ContainerValue.Of));
+                            .ApplyTo(DiaValue.Of));
                 })
                 .ForEvery(prop =>
                 {
@@ -98,7 +98,7 @@ namespace Axis.Dia.AxonSerializer.Deserializers
                             if (!context.ReferenceMap.TryGetRef(axonHash, out var resolvedValue))
                                 throw new InvalidOperationException();
 
-                            record[prop.Name] = ContainerValue.Of(resolvedValue!);
+                            record[prop.Name] = DiaValue.Of(resolvedValue!);
                         });
                 });
 

@@ -1,5 +1,6 @@
 ﻿using Axis.Dia.BionSerializer.Deserializers;
 using Axis.Dia.BionSerializer.Serializers;
+using Axis.Dia.BionSerializer.Serializers.Contracts;
 using Axis.Dia.Core.Types;
 using Axis.Luna.Common;
 using Axis.Luna.Extensions;
@@ -35,7 +36,7 @@ namespace Axis.Dia.BionSerializer.Tests.Deserializers
                     scontext.Buffer.Stream.Seek(0, SeekOrigin.Begin);
                     var result = typeDeserializer.DeserializeAttributeSet(scontext.Buffer.Stream, new DeserializerContext());
 
-                    Assert.AreEqual(attset, result);
+                    Assert.IsTrue(attset.ValueEquals(result));
                 });
         }
     }

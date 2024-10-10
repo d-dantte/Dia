@@ -1,7 +1,6 @@
 ﻿using Axis.Dia.Axon;
 using Axis.Dia.Axon.Deserializers;
 using Axis.Dia.Core;
-using Axis.Dia.Core.Contracts;
 using Axis.Dia.Core.Types;
 using Axis.Luna.Extensions;
 using Axis.Luna.Optional;
@@ -81,7 +80,7 @@ namespace Axis.Dia.AxonSerializer.Deserializers
                 .Select(node => ValueDeserializer.Deserialize(node, context))
                 .ForEvery((index, value) =>
                 {
-                    seq.AddItem(value);
+                    seq.AddItem(DiaValue.Of(value));
 
                     if (RefDeserializer.IsTypeRef(value, out var axonHash))
                         context.TryAddValueResolver(axonHash, () =>
@@ -89,7 +88,7 @@ namespace Axis.Dia.AxonSerializer.Deserializers
                             if (!context.ReferenceMap.TryGetRef(axonHash, out var resolvedValue))
                                 throw new InvalidOperationException();
 
-                            seq.Set((int)index, resolvedValue!);
+                            seq.Set((int)index, DiaValue.Of(resolvedValue!));
                         });
                 });
 

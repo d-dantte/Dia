@@ -1,7 +1,9 @@
 ﻿using Axis.Dia.Core.Contracts;
+using Axis.Dia.Core.Utils;
 using Axis.Luna.Extensions;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using static Axis.Dia.Core.Types.Record;
 
 namespace Axis.Dia.Core.Types
 {
@@ -16,9 +18,19 @@ namespace Axis.Dia.Core.Types
         IRefEquatable<Record>,
         IValueEquatable<Record>,
         IDefaultContract<Record>,
-        IValueContainer<Record, Record.Property>
+        IValueContainer<Record, Property>
     {
-        private readonly Dictionary<string, (PropertyName Name, ContainerValue Value)>? _properties;
+        /// <summary>
+        /// Recursion Guard.
+        /// <para/>
+        /// To avoid infinite recursion in situations where this sequence contains itself, and is compared with itself.
+        /// </summary>
+        private static readonly AsyncLocal<HashSet<(Record First, Record Second)>> EqualityRecursionGuard = new()
+        {
+            Value = []
+        };
+
+        private readonly Dictionary<string, (PropertyName Name, DiaValue Value)>? _properties;
         private readonly AttributeSet _attributes;
 
         #region Construction
@@ -105,9 +117,9 @@ namespace Axis.Dia.Core.Types
 
         public static Record Empty() => Empty([]);
 
-        public bool IsEmpty => _properties is null || _properties.Count == 0;
+        public bool IsEmpty => (_properties?.Count ?? 0) == 0;
 
-        public int Count => _properties is not null ? _properties.Count : 0;
+        public int Count => IsDefault ? 0 : _properties!.Count;
 
         public AttributeSet Attributes => _attributes;
 
@@ -119,6 +131,49 @@ namespace Axis.Dia.Core.Types
                 .GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+
+        #region Add
+        public void Add(Property item) => AddItem(item);
+
+        public Record AddItem(Property item)
+        {
+            AssertNonDefault();
+
+            _properties![item.Name.Name] = item.Tuple;
+            return this;
+        }
+
+        public void AddAll(params Property[] items) => AddAllItems(items);
+
+        public Record AddAllItems(params Property[] items)
+        {
+            ArgumentNullException.ThrowIfNull(items);
+
+            items.ForEvery(Add);
+            return this;
+        }
+        #endregion
+
+        #region Remove
+        public void Remove(Property item) => RemoveItem(item);
+
+        public Record RemoveItem(Property item)
+        {
+            AssertNonDefault();
+            _properties!.Remove(item.Name.Name);
+            return this;
+        }
+
+        public void RemoveAll(params Property[] items) => RemoveAllItems(items);
+
+        public Record RemoveAllItems(params Property[] items)
+        {
+            ArgumentNullException.ThrowIfNull(items);
+
+            items.ForEvery(Remove);
+            return this;
+        }
+        #endregion
 
         #endregion
 
@@ -136,26 +191,33 @@ namespace Axis.Dia.Core.Types
 
         public bool ValueEquals(Record other)
         {
+            if (RefEquals(other))
+                return true;
+
             if (IsNull && other.IsNull)
                 return true;
 
             if (IsNull ^ other.IsNull)
                 return false;
 
-            if (!_attributes.Equals(other._attributes))
+            if (!_attributes.ValueEquals(other._attributes))
                 return false;
 
             if (_properties!.Count != other._properties!.Count)
                 return false;
 
-            var props = _properties;
-            return props.All(kvp =>
-            {
-                if (!other._properties!.TryGetValue(kvp.Key, out var ovalue))
-                    return false;
+            return EqualityRecursionGuard.RecursionGuard(
+                (First: this, Second: other),
+                pair => pair.First._properties!.All(kvp =>
+                {
+                    if (!pair.Second._properties!.TryGetValue(kvp.Key, out var ovalue))
+                        return false;
 
-                return kvp.Value.Equals(ovalue);
-            });
+                    return
+                        kvp.Value.Name.ValueEquals(ovalue.Name)
+                        && kvp.Value.Value.ValueEquals(ovalue.Value);
+                }),
+                true);
         }
 
         public int ValueHash()
@@ -199,61 +261,81 @@ namespace Axis.Dia.Core.Types
 
         public override bool Equals(
             [NotNullWhen(true)] object? obj)
-            => obj is Record other && Equals(other);
+            => obj is Record other && ValueEquals(other);
 
         public static bool operator ==(
             Record left,
             Record right)
-            => left.Equals(right);
+            => left.ValueEquals(right);
 
         public static bool operator !=(
             Record left,
             Record right)
-            => !left.Equals(right);
+            => !left.ValueEquals(right);
 
         #endregion
 
-        #region Map Api - All methods here throw NullReferenceException if the instance is Default/Null
+        #region IRefValue
 
-        public ContainerValue this[PropertyName propertyKey]
+        public IEnumerable<Property>? Value => IsDefault ? null : (IEnumerable<Property>)this;
+
+        #endregion
+
+        #region Api
+
+        public DiaValue this[PropertyName propertyName]
         {
-            get => _properties![propertyKey.Name].Value;
-            set => _properties![propertyKey.Name] = (propertyKey, value);
+            get => _properties![propertyName.Name].Value;
+            set => SetProperty(propertyName, value);
         }
 
-        public ContainerValue this[string propertyName]
+        public DiaValue this[string propertyName]
         {
             get => _properties![propertyName].Value;
-            set
-            {
-                if (_properties!.TryGetValue(propertyName, out var tuple))
-                    _properties![propertyName] = (tuple.Name, value);
-
-                _properties![propertyName] = (PropertyName.Of(propertyName), value);
-            }
+            set => SetProperty(propertyName, value);
         }
 
         public bool ContainsProperty(
-            string propertyKey)
-            => _properties!.ContainsKey(propertyKey);
+            string propertyName)
+            => _properties?.ContainsKey(propertyName) ?? false;
 
-        public ImmutableDictionary<string, PropertyName> PropertyMap => _properties!
-            .Select(kvp => (kvp.Key, kvp.Value.Name))
-            .ToImmutableDictionary(
-                tuple => tuple.Key,
-                tuple => tuple.Name);
+        public bool ContainsProperty(
+            PropertyName propertyName)
+            => (_properties?.TryGetValue(propertyName.Name, out var value) ?? false)
+            && value.Name.ValueEquals(propertyName);
 
-        public ImmutableArray<ContainerValue> Values => _properties!
-            .Select(kvp => kvp.Value.Value)
-            .ToImmutableArray();
+        public ImmutableArray<PropertyName> PropertyNames => _properties
+            ?.Select(prop => prop.Value.Name)
+            .ToImmutableArray()
+            ?? ImmutableArray<PropertyName>.Empty;
 
-        public IEnumerable<Property>? Value => _properties?.Select(kvp => Property.Of(kvp.Value.Name, kvp.Value.Value));
+        public ImmutableArray<DiaValue> PropertyValues => _properties
+            ?.Select(prop => prop.Value.Value)
+            .ToImmutableArray()
+            ?? ImmutableArray<DiaValue>.Empty;
 
         public bool TryGet(
-            string propertyKey,
-            out ContainerValue? value)
+            string propertName,
+            out DiaValue? value)
         {
-            if (_properties!.TryGetValue(propertyKey, out var tuple))
+            AssertNonDefault();
+            if (_properties!.TryGetValue(propertName, out var tuple))
+            {
+                value = tuple.Value;
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
+        public bool TryGet(
+            PropertyName propertyName,
+            out DiaValue? value)
+        {
+            AssertNonDefault();
+            if (_properties!.TryGetValue(propertyName.Name, out var tuple)
+                && tuple.Name.ValueEquals(propertyName))
             {
                 value = tuple.Value;
                 return true;
@@ -264,162 +346,175 @@ namespace Axis.Dia.Core.Types
         }
 
         public Record SetProperty(
-            string propertyKey,
-            ContainerValue value)
-            => SetProperty(PropertyName.Of(propertyKey), value);
-
-        public Record SetProperty(
-            PropertyName propertyName,
-            ContainerValue value)
+            string propertyName,
+            DiaValue value)
         {
-            this[propertyName] = value;
+            ArgumentException.ThrowIfNullOrEmpty(propertyName);
+
+            if (value.IsDefault)
+                throw new ArgumentException("Invalid value: default");
+
+            AssertNonDefault();
+
+            if (_properties!.TryGetValue(propertyName, out var oldValue))
+                _properties![propertyName] = (oldValue.Name, value);
+
+            else
+                _properties![propertyName] = (propertyName, value);
+
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="propertyKey"></param>
-        /// <param name="valueProvider"></param>
-        /// <returns></returns>
-        public ContainerValue GetOrAdd(
+        public Record SetProperty(
+            PropertyName propertyName,
+            DiaValue value)
+        {
+            if (propertyName.IsDefault)
+                throw new ArgumentException("Invalid propertyName: default");
+
+            if (value.IsDefault)
+                throw new ArgumentException("Invalid value: default");
+
+            AssertNonDefault();
+            _properties![propertyName.Name] = (propertyName, value);
+            return this;
+        }
+
+        public Record SetProperty(Property property)
+        {
+            return SetProperty(property.Name, property.Value);
+        }
+
+        public DiaValue GetOrAdd(
             string propertyKey,
             Func<PropertyName, Property> valueProvider)
         {
             ArgumentNullException.ThrowIfNull(valueProvider);
             ArgumentException.ThrowIfNullOrEmpty(propertyKey);
 
+            AssertNonDefault();
             var props = _properties!;
-            return _properties!.TryGetValue(propertyKey, out var value)
+            var @this = this;
+            return props.TryGetValue(propertyKey, out var value)
                 ? value.Value
                 : valueProvider
                     .Invoke(PropertyName.Of(propertyKey))
                     .ThrowIf(
-                        prop => prop.Value.IsDefault,
-                        _ => new InvalidOperationException($"Invalid value provided: default"))
-                    .ApplyTo(prop => props[prop.Name.Name] = prop.Tuple)
-                    .Value;
+                        prop => prop.IsDefault,
+                        _ => new InvalidOperationException($"Invalid property provided: default"))
+                    .ApplyTo(prop => (prop, @this.SetProperty(prop)))
+                    .ApplyTo(tuple => tuple.prop.Value);
         }
 
-        /// <summary>
-        /// Adds the value if it already does not exist
-        /// </summary>
-        /// <param name="propertyKey"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public bool TryAdd(PropertyName propertyKey, ContainerValue value)
+        public bool TryAdd(string propertyName, DiaValue value)
         {
-            ArgumentNullException.ThrowIfNull(value);
-
-            return _properties!.TryAdd(propertyKey.Name, (propertyKey, value));
+            return TryAdd(PropertyName.Of(propertyName), value);
         }
 
-        /// <summary>
-        /// Attempts to remove the property with the given name
-        /// </summary>
-        /// <param name="propertyKey"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public bool TryRemove(string propertyKey, out ContainerValue? value)
+        public bool TryAdd(PropertyName propertyName, DiaValue value)
         {
-            if (_properties!.TryGetValue(propertyKey, out var tuple))
+            return TryAdd(Property.Of(propertyName, value));
+        }
+
+        public bool TryAdd(Property property)
+        {
+            if (property.IsDefault)
+                throw new ArgumentException("Invalid property: default");
+
+            AssertNonDefault();
+            return _properties!.TryAdd(property.Name.Name, property.Tuple);
+        }
+
+        public bool TryRemove(string propertyName, out Property property)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(propertyName);
+
+            AssertNonDefault();
+            if (_properties!.TryGetValue(propertyName, out var tuple))
             {
-                value = tuple.Value;
-                return _properties!.Remove(propertyKey); ;
+                property = tuple;
+                return _properties.Remove(propertyName);
             }
 
-            value = null;
+            property = default;
             return false;
         }
 
-        /// <summary>
-        /// Attempts to remove the property with the given name
-        /// </summary>
-        /// <param name="propertyKey"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public bool TryRemove(PropertyName propertyKey, out ContainerValue? value)
+        public bool TryRemove(PropertyName propertyName, out Property property)
         {
-            return TryRemove(propertyKey.Name, out value);
+            if (propertyName.IsDefault)
+                throw new ArgumentException("Invalid propertyName: default");
+
+            return TryRemove(propertyName.Name, out property);
         }
 
-
-        public Record AddAll(IEnumerable<Property> properties)
+        private void AssertNonDefault()
         {
-            var props = _properties;
-            properties
-                .ThrowIfNull(() => new ArgumentNullException(nameof(properties)))
-                .ForEvery(prop => props![prop.Name.Name] = prop.Tuple);
-
-            return this;
+            if (IsDefault)
+                throw new InvalidOperationException($"Invalid record instance: default");
         }
-
-        public Record AddAll(
-            params Property[] properties)
-            => AddAll(properties as IEnumerable<Property>);
-
-        public IEnumerable<Property> AddProperties(IEnumerable<Property> properties)
-        {
-            _ = AddAll(properties);
-            return properties;
-        }
-
-        public IEnumerable<Property> AddProperties(
-            params Property[] items)
-            => AddProperties(items as IEnumerable<Property>);
 
         #endregion
 
         #region Nested types
         public readonly struct Property :
             IDefaultContract<Property>,
+            IValueEquatable<Property>,
             IEquatable<Property>
         {
             public PropertyName Name { get; }
 
-            public ContainerValue Value { get; }
+            public DiaValue Value { get; }
 
             public bool IsDefault => Name.IsDefault && Value.IsDefault;
 
             public static Property Default => default;
 
-            public (PropertyName PropertyName, ContainerValue Value) Tuple => (Name, Value);
+            public (PropertyName PropertyName, DiaValue Value) Tuple => (Name, Value);
 
             public Property(
                 PropertyName name,
-                ContainerValue value)
+                DiaValue value)
             {
+                if (name.IsDefault)
+                    throw new ArgumentException("Invalid name: default");
+
+                if (value.IsDefault)
+                    throw new ArgumentException("Invalid value: default");
+
                 Name = name;
                 Value = value;
             }
 
             public static Property Of(
                 PropertyName name,
-                ContainerValue value)
+                DiaValue value)
                 => new(name, value);
 
             public static Property Of(
-                (PropertyName name, ContainerValue value) tuple)
+                (PropertyName name, DiaValue value) tuple)
                 => new(tuple.name, tuple.value);
 
             public static implicit operator Property(
-                (PropertyName name, ContainerValue value) tuple)
+                (PropertyName name, DiaValue value) tuple)
                 => new(tuple.name, tuple.value);
 
             #region overrides
-            public bool Equals(
+            public bool ValueEquals(
                 Property other)
-                => EqualityComparer<ContainerValue>.Default.Equals(Value, other.Value)
-                && Name.Equals(other.Name);
+                => EqualityComparer<DiaValue>.Default.Equals(Value, other.Value)
+                && Name.ValueEquals(other.Name);
+
+            public bool Equals(Property other) => ValueEquals(other);
 
             public override bool Equals(
                 object? obj)
-                => obj is Property other && Equals(other);
+                => obj is Property other && ValueEquals(other);
 
             public static bool operator ==(
                 Property left,
                 Property right)
-                => left.Equals(right);
+                => left.ValueEquals(right);
 
             public static bool operator !=(
                 Property left,
@@ -427,12 +522,15 @@ namespace Axis.Dia.Core.Types
                 => !(left == right);
 
             public override int GetHashCode() => HashCode.Combine(Name, Value);
+
+            public int ValueHash() => GetHashCode();
             #endregion
         }
 
         public readonly struct PropertyName :
             IAttributeContainer,
             IEquatable<PropertyName>,
+            IValueEquatable<PropertyName>,
             IDefaultContract<PropertyName>
         {
             private readonly string _name;
@@ -472,7 +570,12 @@ namespace Axis.Dia.Core.Types
                 string name)
                 => new(name);
 
+            public static PropertyName Of(
+                String name)
+                => new(name.Value!, [.. name.Attributes]);
+
             public static implicit operator PropertyName(string name) => new(name);
+            public static implicit operator PropertyName(String name) => Of(name);
 
             public override int GetHashCode()
             {
@@ -481,20 +584,24 @@ namespace Axis.Dia.Core.Types
                     : _name.GetHashCode();
             }
 
-            public bool Equals(
+            public bool ValueEquals(
                 PropertyName other)
                 => EqualityComparer<string>.Default.Equals(_name, other._name)
-                && _attribtues.Equals(other._attribtues);
+                && _attribtues.ValueEquals(other._attribtues);
+
+            public int ValueHash() => GetHashCode();
+
+            public bool Equals(PropertyName other) => ValueEquals(other);
 
             public override bool Equals(
                 object? obj)
                 => obj is PropertyName other
-                && Equals(other);
+                && ValueEquals(other);
 
             public static bool operator ==(
                 PropertyName left,
                 PropertyName right)
-                => left.Equals(right);
+                => left.ValueEquals(right);
 
             public static bool operator !=(
                 PropertyName left,

@@ -76,7 +76,7 @@ namespace Axis.Dia.Types
         #endregion
 
         #region Equatable
-        public bool Equals(Annotation other) => _value.NullOrEquals(other._value);
+        public bool ValueEquals(Annotation other) => _value.NullOrEquals(other._value);
         #endregion
 
         #region Overrides
@@ -88,12 +88,12 @@ namespace Axis.Dia.Types
         public override bool Equals([NotNullWhen(true)] object? obj)
         {
             return obj is Annotation other
-                && Equals(other);
+                && ValueEquals(other);
         }
 
         public override int GetHashCode() => _value.GetHashCode();
 
-        public static bool operator ==(Annotation left, Annotation right) => left.Equals(right);
+        public static bool operator ==(Annotation left, Annotation right) => left.ValueEquals(right);
 
         public static bool operator !=(Annotation left, Annotation right) => !(left == right);
         #endregion
