@@ -36,9 +36,8 @@ namespace Axis.Dia.Axon.Tests.Deserializers
             result = StringDeserializer.Deserialize("`stuff here`");
             Assert.AreEqual("stuff here", result.Value!);
 
-            result = StringDeserializer.Deserialize(@"`stuff
-here`");
-            Assert.AreEqual("stuff\r\nhere", result.Value!);
+            result = StringDeserializer.Deserialize($"`stuff{Environment.NewLine}here`");
+            Assert.AreEqual($"stuff{Environment.NewLine}here", result.Value!);
 
             result = StringDeserializer.Deserialize(@"@flag;`stuff \
     here`");

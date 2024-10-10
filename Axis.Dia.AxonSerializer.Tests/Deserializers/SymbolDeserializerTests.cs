@@ -1,10 +1,5 @@
 ﻿using Axis.Dia.Axon.Deserializers;
 using Axis.Pulsar.Core.CST;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Axis.Dia.Axon.Tests.Deserializers
 {
