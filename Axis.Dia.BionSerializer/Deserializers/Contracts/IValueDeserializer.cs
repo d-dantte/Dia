@@ -1,6 +1,6 @@
 ﻿using Axis.Dia.Core.Contracts;
 
-namespace Axis.Dia.BionSerializer.Deserializers.Contracts
+namespace Axis.Dia.Bion.Deserializers.Contracts
 {
     public interface IValueDeserializer
     {

@@ -20,8 +20,32 @@ jobs:
     - name: Test
       run: dotnet test --configuration Release /p:Version=${VERSION} --no-build
 
-    # Axis.Dia
+    # Axis.Dia.Core
     - name: Pack
-      run: dotnet pack ./Axis.Dia/Axis.Dia.csproj --configuration Release /p:Version=${VERSION} --output .
+      run: dotnet pack ./Axis.Dia/Axis.Dia.Core.csproj --configuration Release /p:Version=${VERSION} --output .
     - name: Push
-      run: dotnet nuget push Axis.Dia.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_TOKEN }}
+      run: dotnet nuget push Axis.Dia.Core.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_TOKEN }}
+
+    # Axis.Dia.PathQuery
+    - name: Pack
+      run: dotnet pack ./Axis.Dia/Axis.Dia.PathQuery.csproj --configuration Release /p:Version=${VERSION} --output .
+    - name: Push
+      run: dotnet nuget push Axis.Dia.PathQuery.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_TOKEN }}
+
+    # Axis.Dia.AxonSerializer
+    - name: Pack
+      run: dotnet pack ./Axis.Dia/Axis.Dia.AxonSerializer.csproj --configuration Release /p:Version=${VERSION} --output .
+    - name: Push
+      run: dotnet nuget push Axis.Dia.AxonSerializer.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_TOKEN }}
+
+    # Axis.Dia.BionSerializer
+    - name: Pack
+      run: dotnet pack ./Axis.Dia/Axis.Dia.BionSerializer.csproj --configuration Release /p:Version=${VERSION} --output .
+    - name: Push
+      run: dotnet nuget push Axis.Dia.BionSerializer.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_TOKEN }}
+
+    # Axis.Dia.TyphonSerializer
+    - name: Pack
+      run: dotnet pack ./Axis.Dia/Axis.Dia.TyphonSerializer.csproj --configuration Release /p:Version=${VERSION} --output .
+    - name: Push
+      run: dotnet nuget push Axis.Dia.TyphonSerializer.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_TOKEN }}

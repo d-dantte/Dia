@@ -1,10 +1,10 @@
-﻿using Axis.Dia.BionSerializer.Metadata;
-using Axis.Dia.BionSerializer.Serializers.Contracts;
-using Axis.Dia.BionSerializer.Types;
-using Axis.Dia.BionSerializer.Utils;
+﻿using Axis.Dia.Bion.Metadata;
+using Axis.Dia.Bion.Serializers.Contracts;
+using Axis.Dia.Bion.Types;
+using Axis.Dia.Bion.Utils;
 using Axis.Luna.Extensions;
 
-namespace Axis.Dia.BionSerializer.Serializers
+namespace Axis.Dia.Bion.Serializers
 {
     public class DiaReferenceSerializer :
         ITypeSerializer<Reference>,

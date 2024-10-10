@@ -1,8 +1,8 @@
-﻿using Axis.Dia.BionSerializer.Serializers;
-using Axis.Dia.BionSerializer.Serializers.Contracts;
+﻿using Axis.Dia.Bion.Serializers;
+using Axis.Dia.Bion.Serializers.Contracts;
 using Axis.Dia.Core;
 
-namespace Axis.Dia.BionSerializer.Tests.Serializers
+namespace Axis.Dia.Bion.Tests.Serializers
 {
     [TestClass]
     public class DiaSequenceSerializerTests

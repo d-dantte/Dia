@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Axis.Dia.AxonSerializer.Tests.Deserializers
+namespace Axis.Dia.Axon.Tests.Deserializers
 {
     [TestClass]
     public class ValueDeserializerTests

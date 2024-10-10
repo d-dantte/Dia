@@ -5,7 +5,7 @@ using Axis.Pulsar.Core.Lang;
 using Axis.Pulsar.Core.XBNF.Definitions;
 using Axis.Pulsar.Core.XBNF.Lang;
 
-namespace Axis.Dia.AxonSerializer.Deserializers
+namespace Axis.Dia.Axon.Deserializers
 {
     internal static class GrammarUtil
     {
@@ -18,7 +18,7 @@ namespace Axis.Dia.AxonSerializer.Deserializers
             {
                 // get language string
                 using var langDefStream = typeof(GrammarUtil).Assembly.GetManifestResourceStream(
-                    "Axis.Dia.AxonSerializer.Deserializers.axon.xbnf");
+                    $"{typeof(GrammarUtil).Namespace}.axon.xbnf");
                 var langText = new StreamReader(langDefStream!).ReadToEnd();
 
                 // build importer

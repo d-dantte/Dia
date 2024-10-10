@@ -1,9 +1,9 @@
-﻿using Axis.Dia.BionSerializer.Utils;
+﻿using Axis.Dia.Bion.Utils;
 using Axis.Luna.BitSequence;
 using Axis.Luna.Common;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Axis.Dia.BionSerializer.Metadata
+namespace Axis.Dia.Bion.Metadata
 {
     public readonly struct CustomMetadata : IDefaultValueProvider<CustomMetadata>
     {

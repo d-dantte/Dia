@@ -1,11 +1,11 @@
-﻿using Axis.Dia.BionSerializer.Deserializers;
-using Axis.Dia.BionSerializer.Serializers;
-using Axis.Dia.BionSerializer.Serializers.Contracts;
+﻿using Axis.Dia.Bion.Deserializers;
+using Axis.Dia.Bion.Serializers;
+using Axis.Dia.Bion.Serializers.Contracts;
 using Axis.Dia.Core.Types;
 using Axis.Luna.Common;
 using Axis.Luna.Extensions;
 
-namespace Axis.Dia.BionSerializer.Tests.Deserializers
+namespace Axis.Dia.Bion.Tests.Deserializers
 {
     [TestClass]
     public class TypeDeserializerTests

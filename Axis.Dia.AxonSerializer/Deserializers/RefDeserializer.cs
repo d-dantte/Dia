@@ -6,7 +6,7 @@ using static Axis.Pulsar.Core.CST.ISymbolNode;
 using Axis.Dia.Core.Types;
 using Axis.Dia.Core.Contracts;
 
-namespace Axis.Dia.AxonSerializer.Deserializers
+namespace Axis.Dia.Axon.Deserializers
 {
     public class RefDeserializer : IValueDeserializer<IDiaValue>
     {

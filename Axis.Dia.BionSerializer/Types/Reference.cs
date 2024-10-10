@@ -3,7 +3,7 @@ using Axis.Dia.Core.Contracts;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
-namespace Axis.Dia.BionSerializer.Types
+namespace Axis.Dia.Bion.Types
 {
     public readonly struct Reference :
         IDiaType,

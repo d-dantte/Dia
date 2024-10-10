@@ -5,7 +5,7 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
-namespace Axis.Dia.BionSerializer.Utils
+namespace Axis.Dia.Bion.Utils
 {
     /// <summary>
     /// Structure that represents a variable number of consecutive bytes. Each byte has the 8th (index 7) byte designated as an overflow flag that if set, means another byte follows.

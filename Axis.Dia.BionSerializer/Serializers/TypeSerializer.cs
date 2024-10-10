@@ -1,11 +1,11 @@
-﻿using Axis.Dia.BionSerializer.Serializers.Contracts;
-using Axis.Dia.BionSerializer.Types;
+﻿using Axis.Dia.Bion.Serializers.Contracts;
+using Axis.Dia.Bion.Types;
 using Axis.Dia.Core.Contracts;
 using Axis.Dia.Core.Types;
 using Axis.Luna.Extensions;
 using System.Numerics;
 
-namespace Axis.Dia.BionSerializer.Serializers
+namespace Axis.Dia.Bion.Serializers
 {
     public class TypeSerializer :
         ITypeSerializer<IDiaType>,

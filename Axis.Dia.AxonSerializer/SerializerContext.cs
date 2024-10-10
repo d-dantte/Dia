@@ -1,5 +1,5 @@
 ﻿using Axis.Dia.Axon.Serializers;
-using Axis.Dia.AxonSerializer;
+using Axis.Dia.Axon;
 using Axis.Dia.Core.Contracts;
 
 namespace Axis.Dia.Axon

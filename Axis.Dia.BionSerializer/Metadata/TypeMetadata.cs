@@ -1,5 +1,5 @@
-﻿using Axis.Dia.BionSerializer.Types;
-using Axis.Dia.BionSerializer.Utils;
+﻿using Axis.Dia.Bion.Types;
+using Axis.Dia.Bion.Utils;
 using Axis.Dia.Core;
 using Axis.Dia.Core.Contracts;
 using Axis.Luna.Common;
@@ -7,7 +7,7 @@ using Axis.Luna.Extensions;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
-namespace Axis.Dia.BionSerializer.Metadata
+namespace Axis.Dia.Bion.Metadata
 {
     /// <summary>
     /// </summary>
@@ -162,7 +162,7 @@ namespace Axis.Dia.BionSerializer.Metadata
         public CustomMetadata[] CustomMetadata
             => CustomMetadataCount > 0
                 ? metadata[1..]
-                    .Select(BionSerializer.Metadata.CustomMetadata.Of)
+                    .Select(Bion.Metadata.CustomMetadata.Of)
                     .ToArray()
                 : [];
         #endregion

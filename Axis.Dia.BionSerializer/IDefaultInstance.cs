@@ -1,4 +1,4 @@
-﻿namespace Axis.Dia.BionSerializer
+﻿namespace Axis.Dia.Bion
 {
     public interface IDefaultInstance<TSelf> where TSelf : IDefaultInstance<TSelf>
     {

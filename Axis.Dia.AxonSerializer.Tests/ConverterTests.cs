@@ -4,7 +4,7 @@ using Axis.Dia.Core.Types;
 using Axis.Luna.Extensions;
 using System.Collections.Immutable;
 
-namespace Axis.Dia.AxonSerializer.Tests
+namespace Axis.Dia.Axon.Tests
 {
     [TestClass]
     public class ConverterTests

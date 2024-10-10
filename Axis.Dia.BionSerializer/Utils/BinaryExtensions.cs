@@ -1,9 +1,9 @@
-﻿using Axis.Dia.BionSerializer.Metadata;
+﻿using Axis.Dia.Bion.Metadata;
 using Axis.Luna.BitSequence;
 using Axis.Luna.Extensions;
 using System.Numerics;
 
-namespace Axis.Dia.BionSerializer.Utils
+namespace Axis.Dia.Bion.Utils
 {
     public static class BinaryExtensions
     {

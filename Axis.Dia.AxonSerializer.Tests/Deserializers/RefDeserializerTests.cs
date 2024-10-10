@@ -1,8 +1,8 @@
-﻿using Axis.Dia.AxonSerializer.Deserializers;
+﻿using Axis.Dia.Axon.Deserializers;
 using Axis.Luna.Extensions;
 using Axis.Pulsar.Core.CST;
 
-namespace Axis.Dia.AxonSerializer.Tests.Deserializers
+namespace Axis.Dia.Axon.Tests.Deserializers
 {
     [TestClass]
     public class RefDeserializerTests

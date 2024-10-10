@@ -1,4 +1,4 @@
-﻿namespace Axis.Dia.BionSerializer.Exceptions
+﻿namespace Axis.Dia.Bion.Exceptions
 {
     /// <summary>
     /// Represents the inability to successfully deserialize a <see cref="IDiaValue"/>. Deserialization happens in 2 phases:

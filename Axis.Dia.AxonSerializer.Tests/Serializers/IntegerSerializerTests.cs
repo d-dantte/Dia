@@ -2,7 +2,7 @@
 using Axis.Dia.Axon;
 using Axis.Dia.Core.Types;
 
-namespace Axis.Dia.AxonSerializer.Tests.Serializers
+namespace Axis.Dia.Axon.Tests.Serializers
 {
     [TestClass]
     public class IntegerSerializerTests

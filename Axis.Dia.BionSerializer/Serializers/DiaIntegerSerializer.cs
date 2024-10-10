@@ -1,11 +1,11 @@
-﻿using Axis.Dia.BionSerializer.Metadata;
-using Axis.Dia.BionSerializer.Serializers.Contracts;
-using Axis.Dia.BionSerializer.Utils;
+﻿using Axis.Dia.Bion.Metadata;
+using Axis.Dia.Bion.Serializers.Contracts;
+using Axis.Dia.Bion.Utils;
 using Axis.Dia.Core;
 using Axis.Luna.Extensions;
 using System.Numerics;
 
-namespace Axis.Dia.BionSerializer.Serializers
+namespace Axis.Dia.Bion.Serializers
 {
     public class DiaIntegerSerializer :
         ITypeSerializer<Core.Types.Integer>,

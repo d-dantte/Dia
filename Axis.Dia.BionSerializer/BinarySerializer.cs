@@ -1,7 +1,7 @@
-﻿using Axis.Dia.BionSerializer.Deserializers;
-using Axis.Dia.BionSerializer.Serializers;
+﻿using Axis.Dia.Bion.Deserializers;
+using Axis.Dia.Bion.Serializers;
 
-namespace Axis.Dia.BionSerializer
+namespace Axis.Dia.Bion
 {
     public static class BinarySerializer
     {

@@ -1,4 +1,4 @@
-﻿namespace Axis.Dia.BionSerializer.Exceptions
+﻿namespace Axis.Dia.Bion.Exceptions
 {
     /// <summary>
     /// This exception signals that the total number of bytes expected to be read were not read before encountering 

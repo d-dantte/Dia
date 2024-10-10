@@ -1,8 +1,8 @@
-﻿using Axis.Dia.BionSerializer.Utils;
+﻿using Axis.Dia.Bion.Utils;
 using Axis.Luna.Extensions;
 using System.Numerics;
 
-namespace Axis.Dia.BionSerializer
+namespace Axis.Dia.Bion
 {
     internal static class Extensions
     {

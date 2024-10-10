@@ -1,8 +1,8 @@
-﻿using Axis.Dia.AxonSerializer.Deserializers;
+﻿using Axis.Dia.Axon.Deserializers;
 using Axis.Pulsar.Core.CST;
 using Axis.Pulsar.Core.Utils;
 
-namespace Axis.Dia.AxonSerializer.Tests.Deserializers
+namespace Axis.Dia.Axon.Tests.Deserializers
 {
     [TestClass]
     public class AxonGrammar

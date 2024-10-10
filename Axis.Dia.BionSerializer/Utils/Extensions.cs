@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Axis.Dia.BionSerializer.Utils
+namespace Axis.Dia.Bion.Utils
 {
     public static class Extensions
     {

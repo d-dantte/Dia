@@ -5,7 +5,7 @@ using Axis.Luna.Extensions;
 using Axis.Luna.Optional;
 using Axis.Pulsar.Core.CST;
 
-namespace Axis.Dia.AxonSerializer.Deserializers
+namespace Axis.Dia.Axon.Deserializers
 {
     public class TimestampDeserializer : IValueDeserializer<Timestamp>
     {

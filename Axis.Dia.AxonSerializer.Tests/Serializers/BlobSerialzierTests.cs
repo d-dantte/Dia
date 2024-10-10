@@ -1,7 +1,7 @@
 ﻿using Axis.Dia.Axon.Serializers;
 using Axis.Dia.Axon;
 
-namespace Axis.Dia.AxonSerializer.Tests.Serializers
+namespace Axis.Dia.Axon.Tests.Serializers
 {
     [TestClass]
     public class BlobSerialzierTests

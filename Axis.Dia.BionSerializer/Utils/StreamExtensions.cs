@@ -1,6 +1,6 @@
 ﻿using Axis.Luna.Extensions;
 
-namespace Axis.Dia.BionSerializer.Utils
+namespace Axis.Dia.Bion.Utils
 {
     internal static class StreamExtensions
     {

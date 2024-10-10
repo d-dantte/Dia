@@ -1,7 +1,7 @@
 ﻿using Axis.Dia.Core.Contracts;
 using System.Numerics;
 
-namespace Axis.Dia.BionSerializer.Deserializers.Contracts
+namespace Axis.Dia.Bion.Deserializers.Contracts
 {
     public interface IValueTracker
     {

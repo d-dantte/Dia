@@ -1,8 +1,8 @@
-﻿using Axis.Dia.BionSerializer.Metadata;
-using Axis.Dia.BionSerializer.Serializers.Contracts;
+﻿using Axis.Dia.Bion.Metadata;
+using Axis.Dia.Bion.Serializers.Contracts;
 using Axis.Luna.Extensions;
 
-namespace Axis.Dia.BionSerializer.Serializers
+namespace Axis.Dia.Bion.Serializers
 {
     public class DiaBooleanSerializer :
         ITypeSerializer<Core.Types.Boolean>,

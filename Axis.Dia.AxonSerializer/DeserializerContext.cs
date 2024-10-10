@@ -1,4 +1,4 @@
-﻿using Axis.Dia.AxonSerializer;
+﻿using Axis.Dia.Axon;
 using Axis.Luna.Extensions;
 
 namespace Axis.Dia.Axon

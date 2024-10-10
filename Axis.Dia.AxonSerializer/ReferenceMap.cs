@@ -1,7 +1,7 @@
 ﻿using Axis.Dia.Core.Contracts;
 using Axis.Dia.Core.Types;
 
-namespace Axis.Dia.AxonSerializer
+namespace Axis.Dia.Axon
 {
     public class ReferenceMap
     {

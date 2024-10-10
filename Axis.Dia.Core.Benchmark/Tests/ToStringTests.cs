@@ -82,7 +82,7 @@ namespace Axis.Dia.Core.Benchmark.Tests
         [Benchmark]
         public void JsonToString()
         {
-            var text = jobject!.ToString(); jobject.WriteTo
+            var text = jobject!.ToString();
         }
     }
 }

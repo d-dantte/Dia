@@ -1,4 +1,4 @@
-﻿namespace Axis.Dia.BionSerializer.Deserializers.Contracts
+﻿namespace Axis.Dia.Bion.Deserializers.Contracts
 {
     public interface IAttributeSetDeserializer
     {

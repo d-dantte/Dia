@@ -5,7 +5,7 @@ using Axis.Luna.Extensions;
 using Axis.Pulsar.Core.CST;
 using static Axis.Pulsar.Core.CST.ISymbolNode;
 
-namespace Axis.Dia.AxonSerializer.Deserializers
+namespace Axis.Dia.Axon.Deserializers
 {
     public class ValueDeserializer : IValueDeserializer<IDiaValue>
     {

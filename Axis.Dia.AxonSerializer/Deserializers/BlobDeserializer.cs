@@ -7,7 +7,7 @@ using Axis.Pulsar.Core.CST;
 using System.Text;
 using static Axis.Pulsar.Core.CST.ISymbolNode;
 
-namespace Axis.Dia.AxonSerializer.Deserializers
+namespace Axis.Dia.Axon.Deserializers
 {
     public class BlobDeserializer : IValueDeserializer<Blob>
     {

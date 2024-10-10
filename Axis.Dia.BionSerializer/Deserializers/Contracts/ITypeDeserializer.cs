@@ -1,7 +1,7 @@
-﻿using Axis.Dia.BionSerializer.Metadata;
+﻿using Axis.Dia.Bion.Metadata;
 using Axis.Dia.Core.Contracts;
 
-namespace Axis.Dia.BionSerializer.Deserializers.Contracts
+namespace Axis.Dia.Bion.Deserializers.Contracts
 {
     public interface ITypeDeserializer<TDiaType> where TDiaType : IDiaType
     {

@@ -1,8 +1,8 @@
-﻿using Axis.Dia.BionSerializer.Serializers.Contracts;
-using Axis.Dia.BionSerializer.Types;
+﻿using Axis.Dia.Bion.Serializers.Contracts;
+using Axis.Dia.Bion.Types;
 using Axis.Dia.Core.Contracts;
 
-namespace Axis.Dia.BionSerializer.Serializers
+namespace Axis.Dia.Bion.Serializers
 {
     public class ValueTracker: IValueTracker
     {

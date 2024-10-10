@@ -4,7 +4,7 @@ using Axis.Luna.Extensions;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Axis.Dia.BionSerializer.Utils
+namespace Axis.Dia.Bion.Utils
 {
     /// <summary>
     /// Immutable self-contained sequence of bytes that has it's length encoded within it's byte sequence.

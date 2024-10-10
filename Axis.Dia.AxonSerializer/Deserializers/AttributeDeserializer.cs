@@ -1,4 +1,4 @@
-﻿using Axis.Dia.AxonSerializer.Deserializers;
+﻿using Axis.Dia.Axon.Deserializers;
 using Axis.Dia.Core.Types;
 using Axis.Luna.Extensions;
 using Axis.Pulsar.Core.CST;

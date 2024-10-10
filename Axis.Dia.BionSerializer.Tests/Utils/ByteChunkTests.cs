@@ -1,6 +1,6 @@
-﻿using Axis.Dia.BionSerializer.Utils;
+﻿using Axis.Dia.Bion.Utils;
 
-namespace Axis.Dia.BionSerializer.Tests.Utils
+namespace Axis.Dia.Bion.Tests.Utils
 {
     [TestClass]
     public class ByteChunkTests

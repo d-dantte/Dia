@@ -1,11 +1,11 @@
-﻿using Axis.Dia.BionSerializer.Deserializers.Contracts;
-using Axis.Dia.BionSerializer.Metadata;
-using Axis.Dia.BionSerializer.Types;
-using Axis.Dia.BionSerializer.Utils;
+﻿using Axis.Dia.Bion.Deserializers.Contracts;
+using Axis.Dia.Bion.Metadata;
+using Axis.Dia.Bion.Types;
+using Axis.Dia.Bion.Utils;
 using Axis.Luna.Extensions;
 using System.Numerics;
 
-namespace Axis.Dia.BionSerializer.Deserializers
+namespace Axis.Dia.Bion.Deserializers
 {
     public class DiaReferenceDeserializer :
         ITypeDeserializer<Reference>,

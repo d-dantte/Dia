@@ -6,7 +6,7 @@ using Axis.Pulsar.Core.CST;
 using Axis.Luna.Common.StringEscape;
 using System.Text.RegularExpressions;
 
-namespace Axis.Dia.AxonSerializer.Deserializers
+namespace Axis.Dia.Axon.Deserializers
 {
     /// <summary>
     /// 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Axis.Dia.BionSerializer
+namespace Axis.Dia.Bion
 {
     internal class Serializer
     {

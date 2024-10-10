@@ -1,11 +1,11 @@
-﻿using Axis.Dia.BionSerializer.Deserializers.Contracts;
-using Axis.Dia.BionSerializer.Metadata;
-using Axis.Dia.BionSerializer.Utils;
+﻿using Axis.Dia.Bion.Deserializers.Contracts;
+using Axis.Dia.Bion.Metadata;
+using Axis.Dia.Bion.Utils;
 using Axis.Dia.Core;
 using Axis.Luna.Extensions;
 using System.Text;
 
-namespace Axis.Dia.BionSerializer.Deserializers
+namespace Axis.Dia.Bion.Deserializers
 {
     using DiaSymbol = Core.Types.Symbol;
 
