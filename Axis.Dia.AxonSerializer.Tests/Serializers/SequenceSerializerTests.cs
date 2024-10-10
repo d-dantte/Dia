@@ -80,7 +80,7 @@ namespace Axis.Dia.Axon.Tests.Serializers
             var value = Sequence.Of("string", true, 88.5m);
             var result = SequenceSerializer.Serialize(value, context);
 
-            var expected = "#0; [\r\n    \"string\",\r\n    true,\r\n    8.85E1\r\n]";
+            var expected = $"#0; [{Environment.NewLine}    \"string\",{Environment.NewLine}    true,{Environment.NewLine}    8.85E1{Environment.NewLine}]";
             Assert.AreEqual(expected, result);
         }
     }

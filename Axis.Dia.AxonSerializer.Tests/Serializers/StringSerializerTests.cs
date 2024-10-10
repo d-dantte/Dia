@@ -85,7 +85,7 @@ namespace Axis.Dia.Axon.Tests.Serializers
 
             var result = StringSerializer.Serialize(value, context);
 
-            var expected = "\\\r\nThis is a long strin\\\r\ng that needs to be b\\\r\nroken into multiple \\\r\nlines.";
+            var expected = $"\\{Environment.NewLine}This is a long strin\\{Environment.NewLine}g that needs to be b\\{Environment.NewLine}roken into multiple \\{Environment.NewLine}lines.";
             Assert.AreEqual(expected, result);
         }
 
@@ -102,7 +102,7 @@ namespace Axis.Dia.Axon.Tests.Serializers
 
             var result = StringSerializer.Serialize(value, context);
 
-            var expected = "\"This is a long strin\"\r\n+ \"g that needs to be b\"\r\n+ \"roken into multiple \"\r\n+ \"lines.\"";
+            var expected = $"\"This is a long strin\"{Environment.NewLine}+ \"g that needs to be b\"{Environment.NewLine}+ \"roken into multiple \"{Environment.NewLine}+ \"lines.\"";
             Assert.AreEqual(expected, result);
         }
 

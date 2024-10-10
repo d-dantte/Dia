@@ -68,7 +68,7 @@ namespace Axis.Dia.Axon.Tests.Serializers
 
             var result = SymbolSerializer.Serialize(value, context);
 
-            var expected = "'Symbol This is a \\\\long stri'\r\n+ 'ng that needs \\'to be'\r\n+ ' broken into multipl'\r\n+ 'e lines.'";
+            var expected = $"'Symbol This is a \\\\long stri'{Environment.NewLine}+ 'ng that needs \\'to be'{Environment.NewLine}+ ' broken into multipl'{Environment.NewLine}+ 'e lines.'";
             Assert.AreEqual(expected, result);
         }
     }

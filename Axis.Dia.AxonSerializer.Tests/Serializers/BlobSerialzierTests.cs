@@ -69,7 +69,7 @@ namespace Axis.Dia.Axon.Tests.Serializers
             var result = BlobSerializer.Serialize(blob, context);
 
             // Assert
-            var expected = "'Blob AQIDBAUGBwgJCgsMDQ4P'\r\n+ 'EBESExQ='";
+            var expected = $"'Blob AQIDBAUGBwgJCgsMDQ4P'{Environment.NewLine}+ 'EBESExQ='";
             Assert.AreEqual(expected, result);
         }
 

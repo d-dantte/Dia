@@ -69,7 +69,7 @@ namespace Axis.Dia.Axon.Tests.Serializers
             var context = SerializerContext.Of(options);
 
             var result = AttributeSerializer.Serialize(attributeSet, context);
-            Assert.AreEqual("@flag1; @key:value;\r\n@key2:value2;", result);
+            Assert.AreEqual($"@flag1; @key:value;{Environment.NewLine}@key2:value2;", result);
         }
 
         [TestMethod]
