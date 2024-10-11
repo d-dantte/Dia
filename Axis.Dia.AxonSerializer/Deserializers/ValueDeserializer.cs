@@ -1,5 +1,5 @@
 ﻿using Axis.Dia.Axon;
-using Axis.Dia.Axon.Deserializers;
+using Axis.Dia.Axon.Lang;
 using Axis.Dia.Core.Contracts;
 using Axis.Luna.Extensions;
 using Axis.Pulsar.Core.CST;

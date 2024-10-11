@@ -5,7 +5,7 @@ using Axis.Pulsar.Core.Lang;
 using Axis.Pulsar.Core.XBNF.Definitions;
 using Axis.Pulsar.Core.XBNF.Lang;
 
-namespace Axis.Dia.Axon.Deserializers
+namespace Axis.Dia.Axon.Lang
 {
     internal static class GrammarUtil
     {
@@ -40,8 +40,8 @@ namespace Axis.Dia.Axon.Deserializers
 
         private static string[] Base64LegalCharacters()
         {
-            return GrammarUtil
-                .CharRange('A', 'Z')
+            return 
+                CharRange('A', 'Z')
                 .Concat(CharRange('a', 'z'))
                 .Concat(CharRange('0', '9'))
                 .Append('+')
@@ -61,7 +61,7 @@ namespace Axis.Dia.Axon.Deserializers
                 throw new ArgumentOutOfRangeException(nameof(end));
 
             return Enumerable
-                .Range(start, (end - start) + 1)
+                .Range(start, end - start + 1)
                 .Select(c => (char)c)
                 .ToArray();
         }

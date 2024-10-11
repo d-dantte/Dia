@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Deserializers\axon.xbnf" />
+    <EmbeddedResource Include="Lang\axon.xbnf" />
   </ItemGroup>
 
   <ItemGroup>

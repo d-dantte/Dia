@@ -1,10 +1,10 @@
 ﻿using Axis.Dia.Axon;
-using Axis.Dia.Axon.Deserializers;
 using Axis.Luna.Extensions;
 using Axis.Pulsar.Core.CST;
 using static Axis.Pulsar.Core.CST.ISymbolNode;
 using Axis.Dia.Core.Types;
 using Axis.Dia.Core.Contracts;
+using Axis.Dia.Axon.Lang;
 
 namespace Axis.Dia.Axon.Deserializers
 {
