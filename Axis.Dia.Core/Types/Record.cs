@@ -13,6 +13,7 @@ namespace Axis.Dia.Core.Types
     /// </summary>
     public readonly struct Record :
         IDiaValue,
+        IStructureComparable,
         IEquatable<Record>,
         INullContract<Record>,
         IRefEquatable<Record>,
@@ -281,6 +282,34 @@ namespace Axis.Dia.Core.Types
 
         #endregion
 
+        #region IStructureComparable
+        public bool IsStructurallyEquivalent(IStructureComparable other)
+        {
+            ArgumentNullException.ThrowIfNull(other);
+
+            if (!other.Is(out Record rec))
+                return false;
+
+            if (RefEquals(rec))
+                return true;
+
+            if (Count != rec.Count)
+                return false;
+
+            if (!PropertyNameKeys.SetEquals(rec.PropertyNameKeys))
+                return false;
+
+            return this
+                .Select((property, index) => (First: property.Value, Second: rec[property.Name]))
+                .All(info => (info.First.Payload, info.Second.Payload) switch
+                {
+                    (IStructureComparable s1, IStructureComparable s2) => s1.IsStructurallyEquivalent(s2),
+                    (IDiaValue dv1, IDiaValue dv2) => dv1.Type.Equals(dv2.Type),
+                    _ => false
+                });
+        }
+        #endregion
+
         #region Api
 
         public DiaValue this[PropertyName propertyName]
@@ -304,10 +333,15 @@ namespace Axis.Dia.Core.Types
             => (_properties?.TryGetValue(propertyName.Name, out var value) ?? false)
             && value.Name.ValueEquals(propertyName);
 
-        public ImmutableArray<PropertyName> PropertyNames => _properties
+        public ImmutableHashSet<PropertyName> PropertyNames => _properties
             ?.Select(prop => prop.Value.Name)
-            .ToImmutableArray()
-            ?? ImmutableArray<PropertyName>.Empty;
+            .ToImmutableHashSet()
+            ?? [];
+
+        public ImmutableHashSet<string> PropertyNameKeys => _properties
+            ?.Select(prop => prop.Value.Name.Name)
+            .ToImmutableHashSet()
+            ?? [];
 
         public ImmutableArray<DiaValue> PropertyValues => _properties
             ?.Select(prop => prop.Value.Value)
