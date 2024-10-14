@@ -11,6 +11,7 @@ namespace Axis.Dia.Core.Types
     /// </summary>
     public readonly struct Sequence :
         IDiaType,
+        IStructureComparable,
         IEquatable<Sequence>,
         INullContract<Sequence>,
         IRefEquatable<Sequence>,
@@ -244,6 +245,31 @@ namespace Axis.Dia.Core.Types
         public int RefHash() => HashCode.Combine(
             typeof(Sequence).FullName,
             _items?.GetHashCode() ?? 0);
+        #endregion
+
+        #region IStructureComparable
+        public bool IsStructurallyEquivalent(IStructureComparable other)
+        {
+            ArgumentNullException.ThrowIfNull(other);
+
+            if (!other.Is(out Sequence seq))
+                return false;
+
+            if (RefEquals(seq))
+                return true;
+
+            if (Count != seq.Count)
+                return false;
+
+            return this
+                .Select((item, index) => (First: item, Second: seq[index]))
+                .All(info => (info.First.Payload, info.Second.Payload) switch
+                {
+                    (IStructureComparable s1, IStructureComparable s2) => s1.IsStructurallyEquivalent(s2),
+                    (IDiaValue dv1, IDiaValue dv2) => dv1.Type.Equals(dv2.Type),
+                    _ => false
+                });
+        }
         #endregion
 
         #region Overrides
