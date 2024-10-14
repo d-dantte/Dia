@@ -244,4 +244,54 @@ public class SequenceTests
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() => sequence.Set(1, _defaultValue));
     }
+
+    [TestMethod]
+    public void IsStructurallyEquivalent_WithValidInput()
+    {
+        var sequence1 = new Sequence
+        {
+            1,
+            TimeSpan.FromSeconds(34.4453),
+            new Record
+            {
+                ["implicit"] = true
+            },
+            new Sequence
+            {
+                false, new Record()
+            }
+        };
+        var sequence2 = new Sequence
+        {
+            1,
+            TimeSpan.FromSeconds(34.4453),
+            new Record
+            {
+                ["implicit"] = true
+            },
+            new Sequence
+            {
+                false, new Record()
+            }
+        };
+        var sequence3 = new Sequence
+        {
+            1,
+            TimeSpan.FromSeconds(34.4453),
+            new Record
+            {
+                ["implicit"] = true,
+                ["explicit"] = false
+            },
+            new Sequence
+            {
+                false, new Record()
+            }
+        };
+
+        Assert.IsTrue(sequence1.IsStructurallyEquivalent(sequence1));
+        Assert.IsTrue(sequence1.IsStructurallyEquivalent(sequence2));
+        Assert.IsTrue(sequence2.IsStructurallyEquivalent(sequence1));
+        Assert.IsFalse(sequence1.IsStructurallyEquivalent(sequence3));
+    }
 }

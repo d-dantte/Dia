@@ -287,4 +287,38 @@ public class RecordTests
         Assert.IsFalse(record.TryRemove("name", out var removedProperty));
         Assert.IsTrue(removedProperty.IsDefault);
     }
+
+    [TestMethod]
+    public void IsStructurallyEquivalent_WithValidInput()
+    {
+        var record1 = new Record
+        {
+            ["abc"] = 1,
+            ["next"] = TimeSpan.FromSeconds(34.4453),
+            ["plex"] = new Record
+            {
+                ["implicit"] = true
+            }
+        };
+        var record2 = new Record
+        {
+            ["abc"] = 1,
+            ["next"] = TimeSpan.FromSeconds(34.4453),
+            ["plex"] = new Record
+            {
+                ["implicit"] = true
+            }
+        };
+        var record3 = new Record
+        {
+            ["abc"] = 1,
+            ["next"] = TimeSpan.FromSeconds(34.4453),
+            ["oslo"] = "North of the equator"
+        };
+
+        Assert.IsTrue(record1.IsStructurallyEquivalent(record1));
+        Assert.IsTrue(record1.IsStructurallyEquivalent(record2));
+        Assert.IsTrue(record2.IsStructurallyEquivalent(record1));
+        Assert.IsFalse(record1.IsStructurallyEquivalent(record3));
+    }
 }
