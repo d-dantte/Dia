@@ -11,7 +11,7 @@ namespace Axis.Dia.Core.Types
         IEquatable<Attribute>,
         IValueEquatable<Attribute>
     {
-        internal static readonly Regex KeyPattern = new(
+        public static readonly Regex KeyPattern = new(
             "^[a-zA-Z_](([.-])?[a-zA-Z0-9_])*\\z",
             RegexOptions.Compiled);
 
@@ -58,7 +58,6 @@ namespace Axis.Dia.Core.Types
         public static Attribute[] Of(
             params (string key, string? value)[] attributes)
             => attributes.Select(tuple => Of(tuple.key, tuple.value)).ToArray();
-
 
         public static implicit operator Attribute(string key) => Of(key);
 

@@ -22,7 +22,7 @@ namespace Axis.Dia.Axon
 
             refHash = GetRefHash(@ref);
 
-            // has the ref instance already mapped?
+            // has the ref instance already been mapped?
             if (_valueMap.TryGetValue(refHash, out value))
                 return false;
 
@@ -38,10 +38,7 @@ namespace Axis.Dia.Axon
         {
             return @ref switch
             {
-                Record r => r.RefHash(),
-                Symbol s => s.RefHash(),
-                Sequence s => s.RefHash(),
-                Core.Types.String s => s.RefHash(),
+                IRefHashable rhashable => rhashable.RefHash(),
                 _ => throw new ArgumentException($"Invalid ref type: {@ref?.GetType()}")
             };
         }

@@ -24,7 +24,7 @@ namespace Axis.Dia.Core.Types
         /// <summary>
         /// Recursion Guard.
         /// <para/>
-        /// To avoid infinite recursion in situations where this sequence contains itself, and is compared with itself.
+        /// To avoid infinite recursion in situations where this record contains itself, and is compared with itself.
         /// </summary>
         private static readonly AsyncLocal<HashSet<(Record First, Record Second)>> EqualityRecursionGuard = new()
         {
@@ -208,8 +208,9 @@ namespace Axis.Dia.Core.Types
                 return false;
 
             return EqualityRecursionGuard.RecursionGuard(
-                (First: this, Second: other),
-                pair => pair.First._properties!.All(kvp =>
+                instance: (First: this, Second: other),
+                defaultResult: true,
+                recursiveFunction: pair => pair.First._properties!.All(kvp =>
                 {
                     if (!pair.Second._properties!.TryGetValue(kvp.Key, out var ovalue))
                         return false;
@@ -217,8 +218,7 @@ namespace Axis.Dia.Core.Types
                     return
                         kvp.Value.Name.ValueEquals(ovalue.Name)
                         && kvp.Value.Value.ValueEquals(ovalue.Value);
-                }),
-                true);
+                }));
         }
 
         public int ValueHash()
@@ -299,14 +299,17 @@ namespace Axis.Dia.Core.Types
             if (!PropertyNameKeys.SetEquals(rec.PropertyNameKeys))
                 return false;
 
-            return this
-                .Select((property, index) => (First: property.Value, Second: rec[property.Name]))
-                .All(info => (info.First.Payload, info.Second.Payload) switch
-                {
-                    (IStructureComparable s1, IStructureComparable s2) => s1.IsStructurallyEquivalent(s2),
-                    (IDiaValue dv1, IDiaValue dv2) => dv1.Type.Equals(dv2.Type),
-                    _ => false
-                });
+            return EqualityRecursionGuard.RecursionGuard(
+                instance: (First: this, Second: rec),
+                defaultResult: true,
+                recursiveFunction: pair => pair.First
+                    .Select((property, index) => (First: property.Value, Second: pair.Second[property.Name]))
+                    .All(info => (info.First.Payload, info.Second.Payload) switch
+                    {
+                        (IStructureComparable s1, IStructureComparable s2) => s1.IsStructurallyEquivalent(s2),
+                        (IDiaValue dv1, IDiaValue dv2) => dv1.Type.Equals(dv2.Type),
+                        _ => false
+                    }));
         }
         #endregion
 

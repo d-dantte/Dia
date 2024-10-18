@@ -261,14 +261,17 @@ namespace Axis.Dia.Core.Types
             if (Count != seq.Count)
                 return false;
 
-            return this
-                .Select((item, index) => (First: item, Second: seq[index]))
-                .All(info => (info.First.Payload, info.Second.Payload) switch
-                {
-                    (IStructureComparable s1, IStructureComparable s2) => s1.IsStructurallyEquivalent(s2),
-                    (IDiaValue dv1, IDiaValue dv2) => dv1.Type.Equals(dv2.Type),
-                    _ => false
-                });
+            return EqualityRecursionGuard.RecursionGuard(
+                instance: (First: this, Second: seq),
+                defaultResult: true,
+                recursiveFunction: pair => pair.First
+                    .Select((item, index) => (First: item, Second: seq[index]))
+                    .All(info => (info.First.Payload, info.Second.Payload) switch
+                    {
+                        (IStructureComparable s1, IStructureComparable s2) => s1.IsStructurallyEquivalent(s2),
+                        (IDiaValue dv1, IDiaValue dv2) => dv1.Type.Equals(dv2.Type),
+                        _ => false
+                    }));
         }
         #endregion
 
