@@ -47,6 +47,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia.TyphonSerializer",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia.TyphonSerializer.Tests", "Axis.Dia.TyphonSerializer.Tests\Axis.Dia.TyphonSerializer.Tests.csproj", "{618534AA-7437-411B-8DA7-607C5B7E6A3D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axis.Dia.JsonSerializer", "Axis.Dia.JsonSerializer\Axis.Dia.JsonSerializer.csproj", "{50F11D3E-08C6-4E8F-BEC5-777F8A1D2E6B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axis.Dia.JsonSerializer.Tests", "Axis.Dia.JsonSerializer.Tests\Axis.Dia.JsonSerializer.Tests.csproj", "{4934336A-6669-4F78-9F08-A2EA8D2D6C5F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +101,14 @@ Global
 		{618534AA-7437-411B-8DA7-607C5B7E6A3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{618534AA-7437-411B-8DA7-607C5B7E6A3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{618534AA-7437-411B-8DA7-607C5B7E6A3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50F11D3E-08C6-4E8F-BEC5-777F8A1D2E6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50F11D3E-08C6-4E8F-BEC5-777F8A1D2E6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50F11D3E-08C6-4E8F-BEC5-777F8A1D2E6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50F11D3E-08C6-4E8F-BEC5-777F8A1D2E6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4934336A-6669-4F78-9F08-A2EA8D2D6C5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4934336A-6669-4F78-9F08-A2EA8D2D6C5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4934336A-6669-4F78-9F08-A2EA8D2D6C5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4934336A-6669-4F78-9F08-A2EA8D2D6C5F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -115,6 +127,8 @@ Global
 		{303722CE-59F2-461B-8424-38A009F9759D} = {EF0E92E0-92B6-49D6-8B9B-1F945D2EE7B6}
 		{2E379951-C6AC-443A-85C8-1DA9D5CCFB7A} = {38F7A2E7-F2CD-46FC-9E64-86765E4E913E}
 		{618534AA-7437-411B-8DA7-607C5B7E6A3D} = {EF0E92E0-92B6-49D6-8B9B-1F945D2EE7B6}
+		{50F11D3E-08C6-4E8F-BEC5-777F8A1D2E6B} = {38F7A2E7-F2CD-46FC-9E64-86765E4E913E}
+		{4934336A-6669-4F78-9F08-A2EA8D2D6C5F} = {EF0E92E0-92B6-49D6-8B9B-1F945D2EE7B6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AA5CFEA6-4C0E-4559-9C62-32E94CB558B5}

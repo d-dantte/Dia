@@ -1,6 +1,5 @@
 ﻿using Axis.Dia.Axon.Deserializers;
 using Axis.Dia.Axon.Serializers;
-using Axis.Dia.Axon.Deserializers;
 using Axis.Dia.Core;
 using Axis.Dia.Core.Contracts;
 

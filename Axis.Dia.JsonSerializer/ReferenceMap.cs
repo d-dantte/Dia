@@ -1,20 +1,20 @@
 ﻿using Axis.Dia.Core.Contracts;
 using Axis.Dia.Core.Types;
 
-namespace Axis.Dia.Axon
+namespace Axis.Dia.Json
 {
-    public class ReferenceMap
+    internal class ReferenceMap
     {
-        private readonly Dictionary<int, (IDiaValue RefValue, int AxonHash)> _valueMap = new();
-        private readonly Dictionary<int, int> _hashMap = new();
+        private readonly Dictionary<int, (IDiaValue RefValue, int JsonHash)> _valueMap = new();
+        private readonly Dictionary<int, int> _hashMap = [];
 
         private bool TryAddRef(
             IDiaValue @ref,
-            int axonHash,
-            out (IDiaValue RefValue, int AxonHash) value)
+            int jsonHash,
+            out (IDiaValue RefValue, int JsonHash) value)
         {
-            // is the axon-hash already mapped?
-            if (_hashMap.TryGetValue(axonHash, out var refHash))
+            // is the json-hash already mapped?
+            if (_hashMap.TryGetValue(jsonHash, out var refHash))
             {
                 value = _valueMap[refHash];
                 return false;
@@ -22,14 +22,14 @@ namespace Axis.Dia.Axon
 
             refHash = GetRefHash(@ref);
 
-            // has the ref instance already been mapped?
+            // has the ref instance already mapped?
             if (_valueMap.TryGetValue(refHash, out value))
                 return false;
 
             else
             {
-                _hashMap[axonHash] = refHash;
-                _valueMap[refHash] = value = (@ref, axonHash);
+                _hashMap[jsonHash] = refHash;
+                _valueMap[refHash] = value = (@ref, jsonHash);
                 return true;
             }
         }
@@ -48,29 +48,29 @@ namespace Axis.Dia.Axon
 
         public bool TryAddRef(
             Record record,
-            out (IDiaValue RefValue, int AxonHash) value)
+            out (IDiaValue RefValue, int JsonHash) value)
             => TryAddRef(record, _valueMap.Count, out value);
 
         public bool TryAddRef(
             Record record,
-            int axonHash)
-            => TryAddRef(record, axonHash, out _);
+            int jsonHash)
+            => TryAddRef(record, jsonHash, out _);
 
         public bool TryAddRef(
             Sequence sequence,
-            out (IDiaValue RefValue, int AxonHash) value)
+            out (IDiaValue RefValue, int JsonHash) value)
             => TryAddRef(sequence, _valueMap.Count, out value);
 
         public bool TryAddRef(
             Sequence sequence,
-            int axonHash)
-            => TryAddRef(sequence, axonHash, out _);
+            int jsonHash)
+            => TryAddRef(sequence, jsonHash, out _);
 
-        public bool TryGetRef(int axonHash, out IDiaValue? refValue)
+        public bool TryGetRef(int jsonHash, out IDiaValue? refValue)
         {
             refValue = default;
 
-            if (_hashMap.TryGetValue(axonHash, out var refHash)
+            if (_hashMap.TryGetValue(jsonHash, out var refHash)
                 && _valueMap.TryGetValue(refHash, out var payload))
             {
                 refValue = payload.RefValue;

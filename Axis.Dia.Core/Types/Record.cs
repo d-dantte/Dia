@@ -24,7 +24,7 @@ namespace Axis.Dia.Core.Types
         /// <summary>
         /// Recursion Guard.
         /// <para/>
-        /// To avoid infinite recursion in situations where this sequence contains itself, and is compared with itself.
+        /// To avoid infinite recursion in situations where this record contains itself, and is compared with itself.
         /// </summary>
         private static readonly AsyncLocal<HashSet<(Record First, Record Second)>> EqualityRecursionGuard = new()
         {
