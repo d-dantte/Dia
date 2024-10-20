@@ -45,3 +45,9 @@ jobs:
       run: dotnet pack ./Axis.Dia.TyphonSerializer/Axis.Dia.TyphonSerializer.csproj --configuration Release /p:Version=${VERSION} --output .
     - name: Push
       run: dotnet nuget push Axis.Dia.TyphonSerializer.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_TOKEN }}
+
+    # Axis.Dia.JsonSerializer
+    - name: Pack
+      run: dotnet pack ./Axis.Dia.JsonSerializer/Axis.Dia.JsonSerializer.csproj --configuration Release /p:Version=${VERSION} --output .
+    - name: Push
+      run: dotnet nuget push Axis.Dia.JsonSerializer.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_TOKEN }}
