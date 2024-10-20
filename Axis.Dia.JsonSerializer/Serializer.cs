@@ -1,4 +1,4 @@
-﻿using Axis.Dia.Core.Contracts;
+using Axis.Dia.Core.Contracts;
 using Axis.Dia.Json.Deserializers;
 using Axis.Dia.Json.Path;
 using Axis.Dia.Json.Serializers;

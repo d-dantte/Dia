@@ -1,4 +1,4 @@
-﻿using Axis.Dia.Core.Types;
+using Axis.Dia.Core.Types;
 using Axis.Dia.Json.Path;
 using Axis.Luna.Extensions;
 using Newtonsoft.Json.Linq;

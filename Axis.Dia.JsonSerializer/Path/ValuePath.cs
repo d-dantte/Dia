@@ -1,4 +1,4 @@
-﻿using Axis.Luna.Extensions;
+using Axis.Luna.Extensions;
 using Axis.Luna.Result;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;

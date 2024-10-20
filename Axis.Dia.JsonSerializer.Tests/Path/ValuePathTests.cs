@@ -1,4 +1,4 @@
-﻿using Axis.Dia.Json.Path;
+using Axis.Dia.Json.Path;
 using Axis.Luna.Result;
 
 namespace Axis.Dia.Json.Tests.Path

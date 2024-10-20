@@ -1,4 +1,4 @@
-﻿using Axis.Dia.Core.Types;
+using Axis.Dia.Core.Types;
 using Axis.Luna.Extensions;
 
 namespace Axis.Dia.Json.Tests
