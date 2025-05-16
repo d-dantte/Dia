@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia.AxonSerializer.Ben
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia.AxonSerializer", "Axis.Dia.AxonSerializer\Axis.Dia.AxonSerializer.csproj", "{5678B6BC-A34F-45BB-AD80-BCAE4B8F1960}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{38F7A2E7-F2CD-46FC-9E64-86765E4E913E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Serializers", "Serializers", "{38F7A2E7-F2CD-46FC-9E64-86765E4E913E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia.BionSerializer", "Axis.Dia.BionSerializer\Axis.Dia.BionSerializer.csproj", "{30710492-9037-4CD0-90EB-6D3C05B3E4A4}"
 EndProject
@@ -33,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia.Core", "Axis.Dia.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia.Core.Tests", "Axis.Dia.Core.Tests\Axis.Dia.Core.Tests.csproj", "{5A1870FC-C882-416E-9FC4-3135FB81D73E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{EF0E92E0-92B6-49D6-8B9B-1F945D2EE7B6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Serializers", "Serializers", "{EF0E92E0-92B6-49D6-8B9B-1F945D2EE7B6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Axis.Dia.AxonSerializer.Tests", "Axis.Dia.AxonSerializer.Tests\Axis.Dia.AxonSerializer.Tests.csproj", "{07285114-E4C7-4409-8610-520B1643CBFC}"
 EndProject

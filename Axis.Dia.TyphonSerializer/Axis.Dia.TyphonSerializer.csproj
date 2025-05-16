@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Axis.Luna.FInvoke" Version="7.0.9" />
+    <PackageReference Include="Axis.Luna.FInvoke" Version="7.0.15" />
   </ItemGroup>
 
   <ItemGroup>

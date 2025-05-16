@@ -9,12 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Axis.Luna.BitSequence" Version="7.0.9" />
-    <PackageReference Include="Axis.Luna.Common" Version="7.0.9" />
-    <PackageReference Include="Axis.Luna.Extensions" Version="7.0.9" />
-    <PackageReference Include="Axis.Luna.Numerics" Version="7.0.9" />
-    <PackageReference Include="Axis.Luna.Optional" Version="7.0.9" />
-    <PackageReference Include="Axis.Luna.Result" Version="7.0.9" />
+    <PackageReference Include="Axis.Luna.BitSequence" Version="7.0.16" />
+    <PackageReference Include="Axis.Luna.Common" Version="7.0.16" />
+    <PackageReference Include="Axis.Luna.Extensions" Version="7.0.16" />
+    <PackageReference Include="Axis.Luna.Numerics" Version="7.0.16" />
+    <PackageReference Include="Axis.Luna.Optional" Version="7.0.16" />
+    <PackageReference Include="Axis.Luna.Result" Version="7.0.16" />
   </ItemGroup>
 
   <ItemGroup>

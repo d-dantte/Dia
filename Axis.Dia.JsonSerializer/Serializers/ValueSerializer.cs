@@ -1,5 +1,6 @@
 using Axis.Dia.Core.Types;
-using Axis.Dia.Json.Path;
+using Axis.Luna.Common.StringEscape;
+using Axis.Luna.Extensions;
 using Newtonsoft.Json.Linq;
 
 namespace Axis.Dia.Json.Serializers
@@ -9,101 +10,66 @@ namespace Axis.Dia.Json.Serializers
         private static readonly string TimestampFormat = "yyyy-MM-dd HH:mm:ss.fffffff zzz";
         private static readonly string DurationFormat = "dd\\.hh\\:mm\\:ss\\.fffffff";
 
-        internal static JToken SerializeRecord(Record record, ValuePath path, SerializerContext context)
+        internal static readonly string ValueAttributeMetadataProperty = "$";
+        internal static readonly string ValueRefMetadataProperty = "#";
+        internal static readonly string MetadataInstanceProperty = "~";
+        private static readonly CommonStringEscaper StringEscaper = new();
+
+        internal static JToken SerializeRecord(Record record, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
             if (context.ReferenceMap.TryAddRef(record, out var @ref))
             {
-                // serialize value attributes
-                context.SerializeValueAttributes(record.Attributes, path);
-
-                // serialize the ref
-                context.SerializeRef(@ref.JsonHash, path);
-
                 if (record.IsNull)
-                    return new JValue("#Record.null");
-
+                {
+                    return record.Attributes.Count switch
+                    {
+                        0 => new JValue("#Record.null"),
+                        _ => new JValue($"#Record.null{SerializeAttributes(record.Attributes)}")
+                    };
+                }
                 else
                 {
+                    var metadata = new JObject
+                    {
+                        [ValueRefMetadataProperty] = $"0x{@ref.JsonHash:x}"
+                    };
+
+                    if (record.Attributes.Count > 0)
+                        metadata[ValueAttributeMetadataProperty] = SerializeAttributes(record.Attributes);
+
+                    var json = new JObject
+                    {
+                        [MetadataInstanceProperty] = metadata
+                    };
+
                     return record
                         .Select(prop =>
                         {
-                            var propPath = path.Append($"{Path.Property.PropertyNotationPrefixChar}{prop.Name.Name}");
-
                             // serialize property attribute
-                            context.SerializePropertyAttributes(prop.Name.Attributes, propPath);
+                            if (prop.Name.Attributes.Count > 0)
+                                metadata[$"${prop.Name.Name}"] = SerializeAttributes(prop.Name.Attributes);
 
                             return (prop.Name.Name, Value: prop.Value.Payload switch
                             {
-                                Core.Types.Blob value => SerializeBlob(value, propPath, context),
-                                Core.Types.Boolean value => SerializeBool(value, propPath, context),
-                                Core.Types.Decimal value => SerializeDecimal(value, propPath, context),
-                                Core.Types.Duration value => SerializeDuration(value, propPath, context),
-                                Core.Types.Integer value => SerializeInteger(value, propPath, context),
-                                Core.Types.Record value => SerializeRecord(value, propPath, context),
-                                Core.Types.Sequence value => SerializeSequence(value, propPath, context),
-                                Core.Types.String value => SerializeString(value, propPath, context),
-                                Core.Types.Symbol value => SerializeSymbol(value, propPath, context),
-                                Core.Types.Timestamp value => SerializeTimestamp(value, propPath, context),
+                                Core.Types.Blob value => SerializeBlob(value, context),
+                                Core.Types.Boolean value => SerializeBool(value, context),
+                                Core.Types.Decimal value => SerializeDecimal(value, context),
+                                Core.Types.Duration value => SerializeDuration(value, context),
+                                Core.Types.Integer value => SerializeInteger(value, context),
+                                Core.Types.Record value => SerializeRecord(value, context),
+                                Core.Types.Sequence value => SerializeSequence(value, context),
+                                Core.Types.String value => SerializeString(value, context),
+                                Core.Types.Symbol value => SerializeSymbol(value, context),
+                                Core.Types.Timestamp value => SerializeTimestamp(value, context),
                                 _ => throw new InvalidOperationException(
                                     $"Invalid dia value: {prop.Value.Payload}")
                             });
                         })
-                        .Aggregate(new JObject(), (jobj, prop) =>
+                        .Aggregate(json, (jobj, prop) =>
                         {
                             jobj[prop.Name] = prop.Value;
-                            return jobj;
-                        });                    
-                }
-            }
-            else
-            {
-                return new JValue($"#Ref 0x{@ref.JsonHash:x}");
-            }
-        }
-
-        internal static JToken SerializeSequence(Sequence sequence, ValuePath path, SerializerContext context)
-        {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (context.ReferenceMap.TryAddRef(sequence, out var @ref))
-            {
-                // serialize value attributes
-                context.SerializeValueAttributes(sequence.Attributes, path);
-
-                // serialize the ref
-                context.SerializeRef(@ref.JsonHash, path);
-
-                if (sequence.IsNull)
-                    return new JValue("#Sequence.null");
-
-                else
-                {
-                    return sequence
-                        .Select((item, index) =>
-                        {
-                            var propPath = path.Append($"{Path.Index.IndexNotationPrefixChar}{index}");
-
-                            return item.Payload switch
-                            {
-                                Core.Types.Blob value => SerializeBlob(value, propPath, context),
-                                Core.Types.Boolean value => SerializeBool(value, propPath, context),
-                                Core.Types.Decimal value => SerializeDecimal(value, propPath, context),
-                                Core.Types.Duration value => SerializeDuration(value, propPath, context),
-                                Core.Types.Integer value => SerializeInteger(value, propPath, context),
-                                Core.Types.Record value => SerializeRecord(value, propPath, context),
-                                Core.Types.Sequence value => SerializeSequence(value, propPath, context),
-                                Core.Types.String value => SerializeString(value, propPath, context),
-                                Core.Types.Symbol value => SerializeSymbol(value, propPath, context),
-                                Core.Types.Timestamp value => SerializeTimestamp(value, propPath, context),
-                                _ => throw new InvalidOperationException(
-                                    $"Invalid dia value: {item.Payload}")
-                            };
-                        })
-                        .Aggregate(new JArray(), (jobj, item) =>
-                        {
-                            jobj.Add(item);
                             return jobj;
                         });
                 }
@@ -114,125 +80,218 @@ namespace Axis.Dia.Json.Serializers
             }
         }
 
-        internal static JToken SerializeTimestamp(Timestamp value, ValuePath path, SerializerContext context)
+        internal static JToken SerializeSequence(Sequence sequence, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            // serialize value attributes
-            context.SerializeValueAttributes(value.Attributes, path);
+            if (context.ReferenceMap.TryAddRef(sequence, out var @ref))
+            {
+                if (sequence.IsNull)
+                {
+                    return sequence.Attributes.Count switch
+                    {
+                        0 => new JValue("#Sequence.null"),
+                        _ => new JValue($"#Sequence.null {SerializeAttributes(sequence.Attributes)}")
+                    };
+                }
+                else
+                {
+                    var metadata = new JObject
+                    {
+                        [ValueRefMetadataProperty] = $"0x{@ref.JsonHash:x}"
+                    };
 
-            if (value.IsNull)
-                return new JValue("#Timestamp.null");
+                    if (sequence.Attributes.Count > 0)
+                        metadata[ValueAttributeMetadataProperty] = SerializeAttributes(sequence.Attributes);
 
-            else 
-                return new JValue($"#Timestamp {value.Value!.Value.ToString(TimestampFormat)}");
-        }
+                    var json = new JArray
+                    {
+                        metadata
+                    };
 
-        internal static JToken SerializeSymbol(Symbol value, ValuePath path, SerializerContext context)
-        {
-            ArgumentNullException.ThrowIfNull(context);
-
-            // serialize value attributes
-            context.SerializeValueAttributes(value.Attributes, path);
-
-            if (value.IsNull)
-                return new JValue("#Symbol.null");
-
-            else
-                return new JValue($"#Symbol {value.Value}");
-        }
-
-        internal static JToken SerializeString(Core.Types.String value, ValuePath path, SerializerContext context)
-        {
-            ArgumentNullException.ThrowIfNull(context);
-
-            // serialize value attributes
-            context.SerializeValueAttributes(value.Attributes, path);
-
-            if (value.IsNull)
-                return new JValue("#String.null");
-
+                    return sequence
+                        .Select((item, index) =>
+                        {
+                            return item.Payload switch
+                            {
+                                Core.Types.Blob value => SerializeBlob(value, context),
+                                Core.Types.Boolean value => SerializeBool(value, context),
+                                Core.Types.Decimal value => SerializeDecimal(value, context),
+                                Core.Types.Duration value => SerializeDuration(value, context),
+                                Core.Types.Integer value => SerializeInteger(value, context),
+                                Core.Types.Record value => SerializeRecord(value, context),
+                                Core.Types.Sequence value => SerializeSequence(value, context),
+                                Core.Types.Symbol value => SerializeSymbol(value, context),
+                                Core.Types.Timestamp value => SerializeTimestamp(value, context),
+                                Core.Types.String value => SerializeString(value, context),
+                                _ => throw new InvalidOperationException(
+                                    $"Invalid dia value: {item.Payload}")
+                            };
+                        })
+                        .Aggregate(json, (jarr, item) =>
+                        {
+                            jarr.Add(item);
+                            return jarr;
+                        });
+                }
+            }
             else
             {
-                var prefix = value.Value!.StartsWith("#") ? "#" : "";
-                return new JValue($"{prefix}{value.Value}");
+                return new JValue($"#Ref 0x{@ref.JsonHash:x}");
             }
         }
 
-        internal static JToken SerializeInteger(Integer value, ValuePath path, SerializerContext context)
+        internal static JToken SerializeTimestamp(Timestamp value, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            // serialize value attributes
-            context.SerializeValueAttributes(value.Attributes, path);
+            var text = (value.IsNull, value.Attributes.Count > 0) switch
+            {
+                (true, true) => $"#Timestamp.null{SerializeAttributes(value.Attributes)}",
+                (true, false) => $"#Timestamp.null",
+                (false, true) => $"#Timestamp{SerializeAttributes(value.Attributes)} {value.Value!.Value.ToString(TimestampFormat)}",
+                (false, false) => $"#Timestamp {value.Value!.Value.ToString(TimestampFormat)}"
+            };
 
-            if (value.IsNull)
-                return new JValue("#Int.null");
-
-            else if (value.Value < int.MaxValue)
-                return new JValue((int)value.Value);
-
-            else
-                return new JValue($"#Int 0x{value.Value:x}");
+            return new JValue(text);
         }
 
-        internal static JToken SerializeDuration(Duration value, ValuePath path, SerializerContext context)
+        internal static JToken SerializeSymbol(Symbol value, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            // serialize value attributes
-            context.SerializeValueAttributes(value.Attributes, path);
+            var text = (value.IsNull, value.Attributes.Count > 0) switch
+            {
+                (true, true) => $"#Symbol.null{SerializeAttributes(value.Attributes)}",
+                (true, false) => $"#Symbol.null",
+                (false, true) => $"#Symbol{SerializeAttributes(value.Attributes)} '{value.Value}'",
+                (false, false) => $"#Symbol '{value.Value}'"
+            };
 
-            if (value.IsNull)
-                return new JValue("#Duration.null");
-
-            else
-                return new JValue($"#Duration {value.Value!.Value.ToString(DurationFormat)}");
+            return new JValue(text);
         }
 
-        internal static JToken SerializeDecimal(Core.Types.Decimal value, ValuePath path, SerializerContext context)
+        internal static JToken SerializeString(Core.Types.String value, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            // serialize value attributes
-            context.SerializeValueAttributes(value.Attributes, path);
+            var text = (value.IsNull, value.Attributes.Count > 0) switch
+            {
+                (true, true) => $"#String.null{SerializeAttributes(value.Attributes)}",
+                (true, false) => $"#String.null",
+                (false, true) => $"#String{SerializeAttributes(value.Attributes)} '{value.Value}'",
+                (false, false) => value.Value!.StartsWith("#String") ? $"#{value.Value}" : value.Value
+            };
 
-            if (value.IsNull)
-                return new JValue("#Decimal.null");
-
-            else if (value.Value < double.MaxValue)
-                return new JValue((double)value.Value);
-
-            else
-                return new JValue($"#Decimal {value.Value!.Value.ToScientificString()}");
+            return new JValue(text);
         }
 
-        internal static JToken SerializeBool(Core.Types.Boolean value, ValuePath path, SerializerContext context)
+        internal static JToken SerializeInteger(Integer value, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            // serialize value attributes
-            context.SerializeValueAttributes(value.Attributes, path);
-
-            if (value.IsNull)
-                return new JValue("#Bool.null");
-
-            else
-                return new JValue(value.Value);
+            return (value.IsNull, value.Attributes.Count > 0) switch
+            {
+                (true, true) => new JValue($"#Int.null{SerializeAttributes(value.Attributes)}"),
+                (true, false) => new JValue($"#Int.null"),
+                (_, bool hasAttributes) => (value.Value <= int.MaxValue, hasAttributes) switch
+                {
+                    (true, true) =>  new JValue($"#Int{SerializeAttributes(value.Attributes)} {value.Value}"),
+                    (true, false) => new JValue((int)value.Value!),
+                    (false, true) => new JValue($"#Int{SerializeAttributes(value.Attributes)} {value.Value:x}"),
+                    (false, false) => new JValue($"#Int {value.Value:x}"),
+                }
+            };
         }
 
-        internal static JToken SerializeBlob(Blob value, ValuePath path, SerializerContext context)
+        internal static JToken SerializeDuration(Duration value, SerializerContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            // serialize value attributes
-            context.SerializeValueAttributes(value.Attributes, path);
+            var text = (value.IsNull, value.Attributes.Count > 0) switch
+            {
+                (true, true) => $"#Duration.null{SerializeAttributes(value.Attributes)}",
+                (true, false) => $"#Duration.null",
+                (false, true) => $"#Duration{SerializeAttributes(value.Attributes)} {value.Value!.Value.ToString(DurationFormat)}",
+                (false, false) => $"#Duration {value.Value}"
+            };
 
-            if (value.IsNull)
-                return new JValue("#Blob.null");
+            return new JValue(text);
+        }
 
-            else
-                return new JValue($"#Blob {Convert.ToBase64String(value.Value!.Value.ToArray())}");
+        internal static JToken SerializeDecimal(Core.Types.Decimal value, SerializerContext context)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            var dec = value.Value!.Value.ToScientificString();
+            return (value.IsNull, value.Attributes.Count > 0) switch
+            {
+                (true, true) => new JValue($"#Decimal.null{SerializeAttributes(value.Attributes)}"),
+                (true, false) => new JValue($"#Decimal.null"),
+                (_, bool hasAttributes) => (value.Value <= double.MaxValue, hasAttributes) switch
+                {
+                    (true, true) => new JValue($"#Decimal{SerializeAttributes(value.Attributes)} {dec}"),
+                    (true, false) => new JValue((double)value.Value!),
+                    (false, true) => new JValue($"#Decimal{SerializeAttributes(value.Attributes)} {dec}"),
+                    (false, false) => new JValue($"#Decimal {dec}"),
+                }
+            };
+        }
+
+        internal static JToken SerializeBool(Core.Types.Boolean value, SerializerContext context)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            return (value.IsNull, value.Attributes.Count > 0) switch
+            {
+                (true, true) => new JValue($"#Bool.null{SerializeAttributes(value.Attributes)}"),
+                (true, false) => new JValue($"#Bool.null"),
+                (false, true) => new JValue($"#Bool{SerializeAttributes(value.Attributes)} {value.Value}"),
+                (false, false) => new JValue(value.Value!.Value)
+            };
+        }
+
+        internal static JToken SerializeBlob(Blob value, SerializerContext context)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            var text = (value.IsNull, value.Attributes.Count > 0) switch
+            {
+                (true, true) => $"#Blob.null{SerializeAttributes(value.Attributes)}",
+                (true, false) => $"#Blob.null",
+                (false, true) => $"#Blob{SerializeAttributes(value.Attributes)} {Convert.ToBase64String(value.Value!.Value.ToArray())}",
+                (false, false) => $"#Blob {Convert.ToBase64String(value.Value!.Value.ToArray())}"
+            };
+
+            return new JValue(text);
+        }
+
+        private static string SerializeAttributes(AttributeSet attributes)
+        {
+            return attributes
+                .Select(att => att.IsScalar switch
+                {
+                    true => $"@{att.Key};",
+                    false => $"@{att.Key}:{StringEscaper.Escape(att.Value!, IsAttributeEscapableCharacter)};"
+                })
+                .JoinUsing(" ")
+                .ApplyTo(str => $"[{str}]");
+        }
+
+        private static bool IsAttributeEscapableCharacter(char c)
+        {
+            return c switch
+            {
+                '\b' => true,
+                '\f' => true,
+                '\n' => true,
+                '\r' => true,
+                '\t' => true,
+                '\\' => true,
+                '\"' => true,
+                '\'' => true,
+                _ => false
+            };
         }
     }
 }

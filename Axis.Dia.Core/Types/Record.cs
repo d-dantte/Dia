@@ -600,8 +600,8 @@ namespace Axis.Dia.Core.Types
 
             public static PropertyName Of(
                 string name,
-                params Attribute[] attribtues)
-                => new(name, attribtues);
+                params Attribute[] attributes)
+                => new(name, attributes);
 
             public static PropertyName Of(
                 string name)

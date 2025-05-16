@@ -1,110 +1,112 @@
+using Axis.Dia.Core.Attributes;
 using Axis.Dia.Core.Contracts;
 using Axis.Dia.Json.Deserializers;
-using Axis.Dia.Json.Path;
 using Axis.Dia.Json.Serializers;
 using Axis.Luna.Extensions;
 using Newtonsoft.Json.Linq;
-using System.Collections.Immutable;
-using System.Globalization;
 
 namespace Axis.Dia.Json
 {
-    using FullMetadata = (
-        ValuePath Path,
-        int? Ref,
-        ImmutableArray<Core.Types.Attribute> ValueAttributes,
-        ImmutableArray<Core.Types.Attribute> PropertyAttributes);
-
     public class Serializer
     {
-        private static readonly string DiaRootProperty = "dia";
-        private static readonly string MetadataRootProperty = "metadata";
-        private static readonly string MetadataRefProperty = "ref";
-        private static readonly string MetadataValueAttributeProperty = "value-attribute";
-        private static readonly string MetadataPropertyAttributeProperty = "property-attribute";
-
-        public JObject Serialize(IDiaValue dia)
+        public static JToken Serialize(IDiaValue dia)
         {
             ArgumentNullException.ThrowIfNull(dia);
 
             var jobj = new JObject();
-            var path = new ValuePath();
             var context = new SerializerContext();
 
-            jobj[DiaRootProperty] = dia switch
+            return dia switch
             {
-                Core.Types.Blob value => ValueSerializer.SerializeBlob(value, path, context),
-                Core.Types.Boolean value => ValueSerializer.SerializeBool(value, path, context),
-                Core.Types.Decimal value => ValueSerializer.SerializeDecimal(value, path, context),
-                Core.Types.Duration value => ValueSerializer.SerializeDuration(value, path, context),
-                Core.Types.Integer value => ValueSerializer.SerializeInteger(value, path, context),
-                Core.Types.Record value => ValueSerializer.SerializeRecord(value, path, context),
-                Core.Types.Sequence value => ValueSerializer.SerializeSequence(value, path, context),
-                Core.Types.String value => ValueSerializer.SerializeString(value, path, context),
-                Core.Types.Symbol value => ValueSerializer.SerializeSymbol(value, path, context),
-                Core.Types.Timestamp value => ValueSerializer.SerializeTimestamp(value, path, context),
+                Core.Types.Blob value => ValueSerializer.SerializeBlob(value, context),
+                Core.Types.Boolean value => ValueSerializer.SerializeBool(value, context),
+                Core.Types.Decimal value => ValueSerializer.SerializeDecimal(value, context),
+                Core.Types.Duration value => ValueSerializer.SerializeDuration(value, context),
+                Core.Types.Integer value => ValueSerializer.SerializeInteger(value, context),
+                Core.Types.Record value => ValueSerializer.SerializeRecord(value, context),
+                Core.Types.Sequence value => ValueSerializer.SerializeSequence(value, context),
+                Core.Types.String value => ValueSerializer.SerializeString(value, context),
+                Core.Types.Symbol value => ValueSerializer.SerializeSymbol(value, context),
+                Core.Types.Timestamp value => ValueSerializer.SerializeTimestamp(value, context),
                 _ => throw new InvalidOperationException(
                     $"Invalid dia value: {dia}")
             };
-            jobj[MetadataRootProperty] = context.GenerateMetadata();
-
-            return jobj;
         }
 
-        public IDiaValue Deserialize(JObject jsonPacket)
+        public static  IDiaValue Deserialize(JToken json) => Deserialize(json, new DeserializerContext());
+
+        public static IDiaValue Deserialize(JToken token, DeserializerContext context)
         {
-            ArgumentNullException.ThrowIfNull(jsonPacket);
+            ArgumentNullException.ThrowIfNull(token);
+            ArgumentNullException.ThrowIfNull(context);
 
-            if (!jsonPacket.ContainsKey(DiaRootProperty)
-                || !jsonPacket.ContainsKey(MetadataRootProperty))
-                throw new ArgumentException(
-                    $"Invalid json-packet: missing properties '{DiaRootProperty}', and '{MetadataRootProperty}'");
+            var value = token switch
+            {
+                JArray array => ValueDeserializer.DeserializeSequence(array, context),
+                JObject jobj => ValueDeserializer.DeserializeRecord(jobj, context),
+                JToken => token.Type switch
+                {
+                    JTokenType.Boolean => ValueDeserializer.DeserializeBool(token.Value<string>()!, context),
+                    JTokenType.Float => ValueDeserializer.DeserializeDecimal(token.Value<string>()!, context),
+                    JTokenType.Integer => ValueDeserializer.DeserializeInt(token.Value<string>()!, context),
+                    JTokenType.String => DeserializeString(token.As<JValue>(), context),
 
-            // Extract metadata
-            var metadataList = DeserializeMetadata(jsonPacket[MetadataRootProperty]!.As<JObject>());
+                    // Special cases
+                    JTokenType.Bytes => Core.Types.Blob.Of(token.Value<byte[]>()!),
+                    JTokenType.Date => Core.Types.Timestamp.Of(token.ToObject<DateTimeOffset>()),
+                    JTokenType.TimeSpan => Core.Types.Duration.Of(token.ToObject<TimeSpan>()),
 
-            var context = new DeserializerContext(metadataList);
-            var path = new ValuePath();
+                    // All nulls are seen as #Record.null
+                    JTokenType.Null => ValueDeserializer.DeserializeNullRecord(
+                        $"{CanonicalFormParser.RecordPrefix}.null",
+                        context), 
 
-            return ValueDeserializer.DeserializeToken(jsonPacket[DiaRootProperty]!, path, context);
+                    JTokenType.Guid => Core.Types.String.Of(
+                        token.ToString(Newtonsoft.Json.Formatting.None),
+                        WellKnownTypes.Guid.ToAttribute()),
+
+                    JTokenType.Uri => Core.Types.String.Of(
+                        token.ToString(Newtonsoft.Json.Formatting.None),
+                        WellKnownTypes.Uri.ToAttribute()),
+
+                    // Unsupported values
+                    JTokenType.None
+                    or JTokenType.Raw
+                    or JTokenType.Array
+                    or JTokenType.Object
+                    or JTokenType.Comment
+                    or JTokenType.Property
+                    or JTokenType.Undefined
+                    or JTokenType.Constructor
+                    or _ => throw new InvalidOperationException(
+                        $"Invalid jtoken: {token.Type}"),
+                }
+            };
+
+            // resolve the refs
+            context.ResolveRefs();
+
+            return value;
         }
 
-        /// <summary>
-        /// TODO: support missing path metadata objects - when data is missing, assume default <c> (Ref: null, ValueAtts: [], PropAtts: []) </c>.
-        /// </summary>
-        /// <param name="metadata"></param>
-        /// <returns></returns>
-        internal static FullMetadata[] DeserializeMetadata(JObject metadata)
+        internal static IDiaValue DeserializeString(JValue @string, DeserializerContext context)
         {
-            ArgumentNullException.ThrowIfNull(metadata);
+            ArgumentNullException.ThrowIfNull(@string);
+            ArgumentNullException.ThrowIfNull(context);
 
-            return metadata.Properties()
-                .Select(prop => (
-                    Path: ValuePath.Of(prop.Name),
-                    Obj: prop.Value.As<JObject>()))
-                .Select(info => (
-                    info.Path,
-                    Ref: info.Obj[MetadataRefProperty]?
-                        .Value<string>()?
-                        .ApplyTo(text => int.Parse(text[2..], NumberStyles.HexNumber)),
-                    ValueAttributes: DeserializeAttributes(info.Obj[MetadataValueAttributeProperty]?.As<JValue>()),
-                    PropertyAttributes: DeserializeAttributes(info.Obj[MetadataPropertyAttributeProperty]?.As<JValue>())))
-                .ToArray();
-        }
-
-        internal static ImmutableArray<Core.Types.Attribute> DeserializeAttributes(JValue? attributes)
-        {
-            if (attributes is null)
-                return [];
-
-            var text = attributes.Value<string>();
-
-            if (text is null)
-                return [];
-
-            return AttributeParser.TryParseAttributes(text, out var diaAttributes)
-                ? [.. diaAttributes!]
-                : throw new InvalidOperationException($"Invalid attribute text: '{text}'");
+            var text = @string.Value<string>()!;
+            return
+                text.StartsWith(CanonicalFormParser.BlobPrefix) ? ValueDeserializer.DeserializeBlob(text, context) :
+                text.StartsWith(CanonicalFormParser.BoolPrefix) ? ValueDeserializer.DeserializeBool(text, context) :
+                text.StartsWith(CanonicalFormParser.DecimalPrefix) ? ValueDeserializer.DeserializeDecimal(text, context) :
+                text.StartsWith(CanonicalFormParser.DurationPrefix) ? ValueDeserializer.DeserializeDuration(text, context) :
+                text.StartsWith(CanonicalFormParser.IntPrefix) ? ValueDeserializer.DeserializeInt(text, context) :
+                text.StartsWith(CanonicalFormParser.RecordPrefix) ? ValueDeserializer.DeserializeNullRecord(text, context) :
+                text.StartsWith(CanonicalFormParser.RefPrefix) ? ValueDeserializer.DeserializeRef(text, context) :
+                text.StartsWith(CanonicalFormParser.SequencePrefix) ? ValueDeserializer.DeserializeNullSequence(text, context) :
+                text.StartsWith(CanonicalFormParser.SymbolPrefix) ? ValueDeserializer.DeserializeSymbol(text, context) :
+                text.StartsWith(CanonicalFormParser.TimestampPrefix) ? ValueDeserializer.DeserializeTimestamp(text, context) :
+                ValueDeserializer.DeserializeString(text, context);
         }
     }
 }

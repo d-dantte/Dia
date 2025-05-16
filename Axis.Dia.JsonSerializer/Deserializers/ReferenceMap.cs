@@ -6,14 +6,14 @@ namespace Axis.Dia.Json.Deserializers
 {
     internal class ReferenceMap
     {
-        private readonly Dictionary<int, IDiaValue> valueMap = [];
+        private readonly Dictionary<uint, IDiaValue> valueMap = [];
 
         public IDiaValue GetOrAdd(
-            int @ref,
-            Func<int, IDiaValue> valueProducer)
+            uint @ref,
+            Func<uint, IDiaValue> valueProducer)
             => valueMap.GetOrAdd(@ref, valueProducer);
 
-        public IDiaValue Dereference(int @ref)
+        public IDiaValue Dereference(uint @ref)
         {
             if (valueMap.TryGetValue(@ref, out IDiaValue? value))
                 return value!;

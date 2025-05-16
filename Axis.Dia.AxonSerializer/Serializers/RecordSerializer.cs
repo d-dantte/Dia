@@ -54,7 +54,7 @@ namespace Axis.Dia.Axon.Serializers
                 .Escape(property.Name.Name, IsEscapable)
                 .ApplyTo(nameText => (property.Name.IsIdentifier, context.Options.Records.AlwaysQuotePropertyName) switch
                 {
-                    (true, false) => nameText,
+                    (true, false) => $"{nameText}",
                     (_, _) => $"\"{nameText}\""
                 });
 

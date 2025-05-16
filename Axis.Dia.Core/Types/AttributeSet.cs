@@ -12,17 +12,17 @@ namespace Axis.Dia.Core.Types
         IEquatable<AttributeSet>,
         IValueEquatable<AttributeSet>
     {
-        private readonly ImmutableHashSet<Attribute> attributes;
+        private readonly ImmutableHashSet<Attribute>? _attributes;
 
         private IEnumerable<Attribute> Ordered => !IsDefault
-            ? attributes.OrderBy(att => $"{att.Key}:{att.Value}")
+            ? _attributes!.OrderBy(att => $"{att.Key}:{att.Value}")
             : [];
 
         #region DefaultContract
 
         public static AttributeSet Default => default;
 
-        public bool IsDefault => attributes is null;
+        public bool IsDefault => _attributes is null;
         #endregion
 
         #region IEnumerable
@@ -39,37 +39,46 @@ namespace Axis.Dia.Core.Types
         #region API
 
         public ImmutableHashSet<string> AttributeKeys => !IsDefault
-            ? attributes
+            ? _attributes
                 .Select(att => att.Key)
                 .ToImmutableHashSet()
             : ImmutableHashSet<string>.Empty;
 
-        public bool IsEmpty => IsDefault || attributes.IsEmpty;
+        public bool IsEmpty => IsDefault || _attributes.IsEmpty;
 
         public bool Contains(
             Attribute attribute)
-            => !IsDefault && attributes.Contains(attribute);
+            => !IsDefault && _attributes.Contains(attribute);
 
         public bool ContainsKey(
             string attributeKey)
             => !IsDefault && AttributeKeys.Contains(attributeKey);
 
-        public int Count => IsDefault ? 0: attributes.Count;
+        public int Count => IsDefault ? 0: _attributes.Count;
 
         public bool TryGetAttribute(string key, out Attribute? attribute)
         {
             AssertNonDefault();
-            attribute = attributes.FirstOrNull(att => att.Key.Equals(key));
+            attribute = _attributes.FirstOrNull(att => att.Key.Equals(key));
             return attribute is not null;
         }
 
         public bool TryGetAttributes(string key, out ImmutableArray<Attribute> attributes)
         {
             AssertNonDefault();
-            attributes = this.attributes
+            attributes = this._attributes
                 .Where(att => att.Key.Equals(key))
                 .ToImmutableArray();
             return !attributes.IsEmpty; 
+        }
+
+        public Core.Types.Attribute this[Index index]
+        {
+            get
+            {
+                AssertNonDefault();
+                return _attributes.ToArray()[index];
+            }
         }
 
         private void AssertNonDefault()
@@ -88,8 +97,8 @@ namespace Axis.Dia.Core.Types
         public bool Equals(AttributeSet other)
         {
             return EqualityComparer<ImmutableHashSet<Attribute>>.Default.Equals(
-                attributes,
-                other.attributes);
+                _attributes,
+                other._attributes);
         }
 
         public bool ValueEquals(AttributeSet other)
@@ -100,8 +109,8 @@ namespace Axis.Dia.Core.Types
             if (IsDefault ^ other.IsDefault)
                 return false;
 
-           return attributes.Count == other.attributes.Count
-                && attributes.SetEquals(other.attributes);
+           return _attributes.Count == other._attributes.Count
+                && _attributes.SetEquals(other._attributes);
         }
 
         public override bool Equals(
@@ -131,18 +140,20 @@ namespace Axis.Dia.Core.Types
 
         #region Construction
         public AttributeSet(params Attribute[] attributes)
-            : this(attributes.AsEnumerable())
         {
+            if (attributes is null || attributes.Length == 0)
+                _attributes = null;
+
+
+            else _attributes = [.. attributes
+                .ThrowIfAny(
+                    att => att.IsDefault,
+                    _ => new ArgumentException($"Invalid attribute: default"))];
         }
 
         public AttributeSet(IEnumerable<Attribute> attributes)
+            : this([.. attributes])
         {
-            this.attributes = attributes
-                .ThrowIfNull(() => new ArgumentNullException(nameof(attributes)))
-                .ThrowIfAny(
-                    att => att.IsDefault,
-                    _ => new ArgumentException($"Invalid attribute: default"))
-                .ToImmutableHashSet();
         }
 
         public static AttributeSet Of(
@@ -156,6 +167,14 @@ namespace Axis.Dia.Core.Types
         public static implicit operator AttributeSet(
             Attribute[] attributes)
             => new(attributes);
+
+        public static implicit operator Attribute[](
+            AttributeSet attributes)
+            => [.. attributes._attributes ?? []];
+
+        public static implicit operator ImmutableArray<Attribute>(
+            AttributeSet attributes)
+            => [.. attributes._attributes ?? []];
         #endregion
     }
 }
